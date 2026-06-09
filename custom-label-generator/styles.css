@@ -1,0 +1,36 @@
+.label-output {
+  display: none;
+}
+
+.page {
+  margin-bottom: 24px;
+}
+
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+  }
+
+  .label-output {
+    display: block;
+  }
+
+  .page {
+    margin: 0;
+    page-break-after: always;
+  }
+
+  .page:last-child {
+    page-break-after: auto;
+  }
+
+  @page {
+    margin: 0;
+  }
+}
