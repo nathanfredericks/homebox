@@ -19,6 +19,10 @@
 **/node_modules
 **/npm-debug.log
 **/obj
+# Build artifacts; the frontend is rebuilt inside the image.
+frontend/.next
+frontend/out
+frontend/.turbo
 **/secrets.dev.yaml
 **/values.dev.yaml
 README.md

@@ -1,0 +1,6 @@
+#!/command/with-contenv sh
+# Homebox Go API. Bound to loopback only; Caddy fronts it on :7745.
+# HBOX_WEB_HOST / HBOX_WEB_PORT are set in the Dockerfile so the binary listens
+# on 127.0.0.1:7746. config path mirrors the single-process image default.
+cd /app || exit 1
+exec /app/api /data/config.yml

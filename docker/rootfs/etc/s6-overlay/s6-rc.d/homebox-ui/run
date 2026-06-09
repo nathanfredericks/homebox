@@ -1,0 +1,4 @@
+#!/command/with-contenv sh
+# Next.js standalone server. Bound to loopback only; Caddy fronts it on :7745.
+# server.js honours PORT and HOSTNAME; both are set in the Dockerfile.
+exec node /app/ui/server.js

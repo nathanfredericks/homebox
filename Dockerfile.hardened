@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # ---------------------------------------
 # Node dependencies stage
 # ---------------------------------------
@@ -12,7 +14,7 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ---------------------------------------
-# Build Nuxt (frontend) stage
+# Build Next.js (frontend) stage
 # ---------------------------------------
 FROM public.ecr.aws/docker/library/node:22-alpine AS frontend-builder
 WORKDIR /app
@@ -23,6 +25,7 @@ RUN npm install -g pnpm@10
 # Copy over source files and node_modules from dependencies stage
 COPY frontend .
 COPY --from=frontend-dependencies /app/node_modules ./node_modules
+# `output: "standalone"` -> .next/standalone (server.js), .next/static, public/.
 RUN pnpm build
 
 # ---------------------------------------
@@ -36,7 +39,7 @@ COPY ./backend/go.mod ./backend/go.sum ./
 RUN go mod download
 
 # ---------------------------------------
-# Build API + healthcheck stage
+# Build API + supervisor + healthcheck stage
 # ---------------------------------------
 FROM public.ecr.aws/docker/library/golang:alpine AS builder
 ARG TARGETOS
@@ -56,9 +59,8 @@ WORKDIR /go/src/app
 COPY --from=builder-dependencies /go/pkg/mod /go/pkg/mod
 COPY ./backend .
 
-# Clear old public files and copy new ones from frontend build
-RUN rm -rf ./app/api/public
-COPY --from=frontend-builder /app/.output/public ./app/api/static/public
+# The frontend is served by the Next.js standalone server, not embedded in the
+# Go binary; backend/app/api/static/public ships only a placeholder index.html.
 
 # Use cache for Go build artifacts to build Homebox API
 RUN --mount=type=cache,target=/root/.cache/go-build \
@@ -69,6 +71,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 RUN chmod +x /go/bin/api
 RUN mkdir /app
 RUN mkdir /data
+
+# Build the static PID-1 supervisor (spawns caddy + api + node, forwards
+# signals). distroless has no shell, so a static binary supervises the three
+# processes in place of s6-overlay.
+COPY docker/supervisor /go/src/supervisor
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    cd /go/src/supervisor && \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "-s -w" -o /go/bin/supervisor .
 
 # ---------- Build static healthcheck helper ----------
 # A small Go program that GETs the status URL and exits 0 on 2xx.
@@ -99,21 +109,50 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go build -ldflags "-s -w" -o /go/bin/hc /tmp/healthcheck.go
 
 # ---------------------------------------
+# Caddy binary stage
+# ---------------------------------------
+FROM public.ecr.aws/docker/library/caddy:2-alpine AS caddy
+
+# ---------------------------------------
 # Production stage
 # ---------------------------------------
-FROM gcr.io/distroless/static:nonroot
+# distroless nodejs image: ships a node runtime (for the Next server) with no
+# shell or package manager. node lives at /nodejs/bin/node.
+FROM gcr.io/distroless/nodejs22-debian12:nonroot
 ENV HBOX_MODE=production
 ENV HBOX_STORAGE_CONN_STRING=file:///?no_tmp_dir=true
 ENV HBOX_STORAGE_PREFIX_PATH=data
 ENV HBOX_DATABASE_SQLITE_PATH=/data/homebox.db?_pragma=busy_timeout=2000&_pragma=journal_mode=WAL&_fk=1&_time_format=sqlite
 
-# Create application directory and copy over built Go binary and assets
+# Bind the Go API to loopback only; Caddy is the single public listener on 7745.
+ENV HBOX_WEB_HOST=127.0.0.1
+ENV HBOX_WEB_PORT=7746
+
+# Next.js standalone server: loopback only, fronted by Caddy.
+ENV PORT=3000
+ENV HOSTNAME=127.0.0.1
+ENV NODE_ENV=production
+# SSR data fetches hit the Go API directly on loopback, bypassing Caddy. In dev
+# this defaults to http://localhost:7745.
+ENV API_BASE_URL=http://127.0.0.1:7746
+
+# Caddy binary from the official image.
+COPY --from=caddy --chown=65532:65532 --chmod=755 /usr/bin/caddy /usr/bin/caddy
+
+# Go API binary, supervisor and healthcheck helper.
 COPY --from=builder --chown=65532:65532 /app /app
-COPY --from=builder --chown=65532:65532 --chmod=755 /go/bin/api /app
+COPY --from=builder --chown=65532:65532 --chmod=755 /go/bin/api /app/api
+COPY --from=builder --chown=65532:65532 --chmod=755 /go/bin/supervisor /app/supervisor
+COPY --from=builder --chown=65532:65532 --chmod=755 /go/bin/hc /app/healthcheck
 COPY --from=builder --chown=65532:65532 /data /data
 
-# Copy the healthcheck helper
-COPY --from=builder --chown=65532:65532 --chmod=755 /go/bin/hc /app/healthcheck
+# Next.js standalone server. .next/static and public/ live next to server.js.
+COPY --from=frontend-builder --chown=65532:65532 /app/.next/standalone /app/ui
+COPY --from=frontend-builder --chown=65532:65532 /app/.next/static /app/ui/.next/static
+COPY --from=frontend-builder --chown=65532:65532 /app/public /app/ui/public
+
+# Caddy config.
+COPY --chown=65532:65532 docker/Caddyfile /etc/caddy/Caddyfile
 
 # Labels and configuration for the final image
 LABEL Name=homebox Version=0.0.1
@@ -126,11 +165,11 @@ WORKDIR /app
 # Persist volume for data
 VOLUME [ "/data" ]
 
-# Entrypoint and CMD
+# Run as the distroless nonroot user (65532). The supervisor is PID 1 and
+# starts caddy, the Go API and the Next server.
 USER 65532
-ENTRYPOINT [ "/app/api" ]
-CMD [ "/data/config.yml" ]
+ENTRYPOINT [ "/app/supervisor" ]
 
-# JSON exec-form healthcheck (no shell, no wget)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+# JSON exec-form healthcheck (no shell, no wget). Exercises Caddy -> Go API.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["/app/healthcheck", "http://127.0.0.1:7745/api/v1/status"]

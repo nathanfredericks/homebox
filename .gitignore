@@ -54,9 +54,11 @@ backend/app/api/app
 backend/app/api/__debug_bin*
 dist/
 
-# Nuxt Publish Dir
+# Frontend publish dir. The UI is now served by a separate Next.js server, so
+# only the committed placeholder page (embedded via go:embed) lives here.
 backend/app/api/static/public/*
 !backend/app/api/static/public/.gitkeep
+!backend/app/api/static/public/index.html
 backend/api
 
 docs/.vitepress/cache/

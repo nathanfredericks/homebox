@@ -1,0 +1,4 @@
+#!/command/with-contenv sh
+# Caddy reverse proxy: the only process on the public port (7745). Routes /api
+# and /swagger to the Go API and everything else to the Next.js server.
+exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile

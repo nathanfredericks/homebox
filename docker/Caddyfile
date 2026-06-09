@@ -1,0 +1,36 @@
+# Homebox reverse proxy.
+#
+# Caddy is the only process bound to the public port (7745). It splits traffic
+# between the Go API and the Next.js standalone server, both of which listen on
+# loopback only:
+#   - /api/*     -> Go API (also carries the /api/v1/ws/events WebSocket upgrade)
+#   - /swagger*  -> Go API (swagger UI + spec)
+#   - everything else -> Next.js server (pages, _next assets, static files)
+#
+# reverse_proxy transparently forwards WebSocket Upgrade requests, which is the
+# whole reason Caddy fronts the stack: Next.js rewrites cannot proxy upgrades,
+# so the events socket must terminate here and be passed to Go.
+{
+	admin off
+	# Quieten the default access log; the apps do their own logging. Errors
+	# still surface on stderr, which s6 forwards to the container logs.
+	log {
+		output stderr
+		level ERROR
+	}
+}
+
+:7745 {
+	# Go API and swagger. Order matters: these matchers win over the catch-all
+	# reverse_proxy below.
+	@api path /api/* /swagger /swagger/*
+	reverse_proxy @api 127.0.0.1:7746 {
+		# Keep idle WebSocket connections (e.g. /api/v1/ws/events) alive. The
+		# client already handles reconnect/backoff, but a long flush/read
+		# timeout avoids dropping otherwise-healthy event streams.
+		flush_interval -1
+	}
+
+	# Everything else is the Next.js standalone server.
+	reverse_proxy 127.0.0.1:3000
+}
