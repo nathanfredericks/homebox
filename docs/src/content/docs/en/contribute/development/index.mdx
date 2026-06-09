@@ -23,9 +23,10 @@ and serving the frontend. It can also be used by 3<sup>rd</sup> party applicatio
 Extensive backend documentation can be found in the [backend topic](/en/contribute/development/backend).
 
 ## Frontend
-The frontend is written in Vue.js with Vite and Nuxt and is located in the `frontend` directory. The frontend is a
- single-page application that provides a user interface for interacting with Homebox. It is built on top of the
-[Homebox API](/docs/api).
+The frontend is written in [Next.js](https://nextjs.org/) (App Router) with React and [Material UI](https://mui.com/),
+and is located in the `frontend` directory. It provides the user interface for interacting with Homebox and is built on
+top of the [Homebox API](/docs/api). Unlike earlier versions, the frontend is **not** embedded in the Go binary — it runs
+as its own Node server (Next.js `standalone` output).
 
 Extensive frontend documentation can be found in the [frontend topic](/en/contribute/development/frontend).
 
@@ -34,5 +35,15 @@ To run Homebox locally, for development purposes, you'll need to run both the ba
 - `task go:run`
 - `task ui:dev`
 
-This will start both the backend and frontend locally. The frontend will be available at `http://localhost:3000`, and will
-automatically proxy API request to the backend at `http://localhost:7745`.
+This starts the Go API on `http://localhost:7745` and the Next.js dev server on `http://localhost:3000`. Open the app at
+`http://localhost:3000`; HTTP API requests are automatically proxied to the backend on port `7745`, and the live-events
+WebSocket connects to the backend directly.
+
+The frontend is SSR-first — Next.js performs server-side data fetches against the Go API. The API base URL is read from
+the `API_BASE_URL` environment variable, which defaults to `http://localhost:7745` in development.
+
+In production (the official Docker image), the topology is different: a bundled Caddy reverse proxy listens on port
+`7745` and routes `/api/*` (including the events WebSocket) and `/swagger*` to the Go API, while serving everything else
+from the Next.js server. The Go API and Next.js server both listen on loopback inside the container, and `API_BASE_URL`
+is set to `http://127.0.0.1:7746` so the Next server's SSR fetches reach the Go API directly without going back through
+Caddy.

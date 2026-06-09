@@ -44,9 +44,13 @@ start command `task go:run`
 
 start command `task ui:dev`
 
-1. The frontend is a Vue 3 app with Nuxt.js that uses Tailwind and Shadcn-vue for styling.
-2. We're using Vitest for our automated testing. You can run these with `task ui:watch`.
-3. Tests require the API server to be running, and in some cases the first run will fail due to a race condition. If this happens, just run the tests again and they should pass.
+1. The frontend is a Next.js 15 (App Router) app written in React with Material UI for styling. It runs as a standalone Node server rather than being embedded in the Go binary.
+2. In development, `task ui:dev` runs the Next.js dev server on `http://localhost:3000`. HTTP `/api/*` requests are proxied to the Go API on `http://localhost:7745` (see `frontend/next.config.ts`); the WebSocket events connection dials the Go server directly. Run the backend in another terminal with `task go:run`.
+3. `task ui:build` produces the production standalone build; `task ui:check` runs the TypeScript type check and `task ui:fix` runs ESLint + Prettier.
+4. The frontend is SSR-first: Next.js performs server-side data fetches against the Go API. The API base URL comes from `API_BASE_URL`, which defaults to `http://localhost:7745` in dev (SSR fetches go through the dev proxy).
+5. In production (the official Docker image), Caddy serves everything on port `7745`: it routes `/api/*` (including the events WebSocket) and `/swagger*` to the Go API and everything else to the Next.js server. The Go API and Next.js server both listen on loopback only. There, `API_BASE_URL=http://127.0.0.1:7746` is set so the Next server's SSR fetches reach the Go API directly and skip the Caddy hop.
+
+> The frontend automated test suite (Vitest/Playwright) is parked during the Next.js migration and will be restored on the new stack.
 
 ## Publishing Release
 
