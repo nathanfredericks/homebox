@@ -10,7 +10,7 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-export default [
+const eslintConfig = [
   {
     ignores: [".next/**", "node_modules/**", "next-env.d.ts", "lib/api/__test__/**", "**/*.test.ts"],
   },
@@ -47,3 +47,5 @@ export default [
   },
   prettier,
 ];
+
+export default eslintConfig;
