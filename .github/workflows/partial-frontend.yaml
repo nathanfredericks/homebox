@@ -35,39 +35,14 @@ jobs:
         run: pnpm run typecheck
         working-directory: frontend
 
-  integration-tests:
-    name: Integration Tests
+  build:
+    name: Next.js Build
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: homebox
-          POSTGRES_PASSWORD: homebox
-          POSTGRES_DB: homebox
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           fetch-depth: 0
-
-      - name: Install Task
-        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
-        with:
-          go-version: "1.26"
-          cache-dependency-path: backend/go.mod
 
       - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
         with:
@@ -81,56 +56,14 @@ jobs:
         run: pnpm install
         working-directory: frontend
 
-      - name: Run Integration Tests
-        run: task test:ci
-  integration-tests-pgsql:
-    strategy:
-        matrix:
-            database_version: [17,16,15]
-    name: Integration Tests PGSQL ${{ matrix.database_version }}
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:${{ matrix.database_version }}
-        env:
-          POSTGRES_USER: homebox
-          POSTGRES_PASSWORD: homebox
-          POSTGRES_DB: homebox
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          fetch-depth: 0
-
-      - name: Install Task
-        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
-        with:
-          go-version: "1.26"
-          cache-dependency-path: backend/go.mod
-
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
-        with:
-          node-version: lts/*
-
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
-        with:
-          version: 10
-
-      - name: Install dependencies
-        run: pnpm install
+      # Verifies the Next.js app compiles and produces standalone output. The
+      # frontend is no longer embedded in the Go binary; it is served by its own
+      # Node server in the Docker image.
+      - name: Build frontend
+        run: pnpm run build
         working-directory: frontend
 
-      - name: Run Integration Tests
-        run: task test:ci:postgresql
+  # The Vitest integration test jobs (integration-tests / integration-tests-pgsql)
+  # are parked during the Next.js migration: the test/ directory and the test:ci
+  # package script were removed (migration plan decision 4). Re-add these jobs
+  # once the frontend test suite is restored on the new stack.

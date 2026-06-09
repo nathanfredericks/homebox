@@ -6,36 +6,15 @@ on:
     tags: [ 'v*.*.*' ]
 
 jobs:
-  build-frontend:
-    name: Build Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
-        with:
-          version: 10
-
-      - name: Build Frontend
-        working-directory: frontend
-        run: |
-          pnpm install
-          pnpm run build
-
-      - name: Upload Frontend Artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: frontend-static
-          path: frontend/.output/public
-          retention-days: 1
-
+  # NOTE (Next.js migration): the standalone release binaries no longer embed
+  # the web UI. The UI is now a separate Next.js Node server (shipped in the
+  # Docker image), so there is no build-frontend / embed step here anymore — the
+  # Go binary embeds only backend/app/api/static/public/index.html (a committed
+  # placeholder). If standalone-binary users still need a bundled UI, that is a
+  # separate distribution decision to make with the maintainers.
   goreleaser:
     name: goreleaser-${{ matrix.goarch }}
     runs-on: ubuntu-latest
-    needs: [ build-frontend ]
     strategy:
       matrix:
         goarch: [ amd64, arm64, riscv64 ]
@@ -54,13 +33,6 @@ jobs:
         with:
           go-version: "1.26"
           cache-dependency-path: backend/go.mod
-
-      - name: Download Frontend Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: frontend-static
-          path: backend/app/api/static/public/
-
 
       - name: Install Syft
         working-directory: backend

@@ -96,12 +96,13 @@ tasks:
     silent: true
 
   go:ci:with-frontend:
-      desc: Run backend with frontend in CI mode
+      desc: Build the Next.js frontend (verification) then start the backend in CI mode
       dir: frontend
       cmds:
         - pnpm install
+        # The Next.js app is no longer embedded in the Go binary; building it
+        # here just verifies it compiles. The standalone server runs separately.
         - pnpm run build
-        - cp -r ./.output/public ../backend/app/api/static/
         - task: go:ci
       silent: true
 
@@ -152,24 +153,20 @@ tasks:
     sources:
       - "./backend/internal/data/ent/schema/**/*"
 
-  ui:watch:
-    desc: Starts the vitest test runner in watch mode
-    dir: frontend
-    cmds:
-      - pnpm run test:watch
+  # ui:watch (vitest) is parked during the Next.js migration; see test:ci /
+  # test:e2e below. Re-add once the frontend test suite is restored.
 
   ui:dev:
-    desc: Run frontend development server
+    desc: Run the Next.js dev server (:3000; /api proxied to the Go API on :7745)
     dir: frontend
     cmds:
-      - pnpm dev --no-fork
+      - pnpm dev
 
-  ui:ci:
-    desc: Run frontend build in CI mode
+  ui:build:
+    desc: Build the Next.js frontend (standalone output)
     dir: frontend
     cmds:
-      - pnpm dev &
-    silent: true
+      - pnpm run build
 
   ui:fix:
     desc: Runs prettier and eslint on the frontend
@@ -183,41 +180,11 @@ tasks:
     cmds:
       - pnpm run typecheck
 
-  test:ci:
-    desc: Runs end-to-end test on a live server (only for use in CI)
-    cmds:
-      - cd backend && go build ./app/api
-      - backend/api &
-      - sleep 15
-      - cd frontend && pnpm run test:ci
-    silent: true
-
-  test:ci:postgresql:
-    env:
-      HBOX_DATABASE_DRIVER: postgres
-      HBOX_DATABASE_USERNAME: homebox
-      HBOX_DATABASE_PASSWORD: homebox
-      HBOX_DATABASE_DATABASE: homebox
-      HBOX_DATABASE_HOST: 127.0.0.1
-      HBOX_DATABASE_PORT: 5432
-      HBOX_DATABASE_SSL_MODE: disable
-    desc: Runs end-to-end test on a live server with postgresql (only for use in CI)
-    cmds:
-      - cd backend && go build ./app/api
-      - backend/api &
-      - sleep 15
-      - cd frontend && pnpm run test:ci
-    silent: true
-
-  test:e2e:
-    desc: Runs end-to-end test on a live server
-    dir: frontend
-    cmds:
-      - task: go:ci:with-frontend
-      - pnpm exec playwright install-deps
-      - pnpm exec playwright install
-      - sleep 30
-      - TEST_SHUTDOWN_API_SERVER=true E2E_BASE_URL=http://localhost:7745 pnpm exec playwright test -c ./test/playwright.config.ts {{ .CLI_ARGS }}
+  # The frontend Vitest integration suite and the Playwright E2E suite (test:ci,
+  # test:ci:postgresql, test:e2e) are parked during the Next.js migration — the
+  # test/ directory and the test:ci / test:watch package scripts were removed
+  # (migration plan decision 4). Re-add these once the frontend test suite is
+  # restored on the new stack.
 
   pr:
     desc: Runs all tasks required for a PR
@@ -226,4 +193,4 @@ tasks:
       - task: go:all
       - task: ui:check
       - task: ui:fix
-      - task: test:ci
+      - task: ui:build

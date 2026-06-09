@@ -17,7 +17,6 @@ on:
       - 'frontend/**'
       - '.github/workflows/partial-backend.yaml'
       - '.github/workflows/partial-frontend.yaml'
-      - '.github/workflows/e2e-partial.yaml'
       - '.github/workflows/pull-requests.yaml'
 
 jobs:
@@ -29,6 +28,6 @@ jobs:
     name: "Frontend Tests"
     uses: ./.github/workflows/partial-frontend.yaml
 
-  e2e-tests:
-    name: "End-to-End Playwright Tests"
-    uses: ./.github/workflows/e2e-partial.yaml
+  # The End-to-End Playwright job (e2e-partial.yaml) is parked during the
+  # Next.js migration — the Playwright suite under frontend/test was removed
+  # (migration plan decision 4). Re-add it once the E2E suite is restored.
