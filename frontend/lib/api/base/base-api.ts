@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Requests } from "../../requests";
 import { route } from ".";
+import { getViewPreferences } from "../../preferences/viewPreferences";
 
 const ZERO_DATE = "0001-01-01T00:00:00Z";
 
@@ -79,7 +80,7 @@ export class BaseAPI {
     if (this.attachmentToken) {
       const params: Record<string, string> = { access_token: this.attachmentToken };
 
-      const prefs = useViewPreferences();
+      const prefs = getViewPreferences();
       if (prefs.value.collectionId) {
         params.tenant = prefs.value.collectionId;
       }

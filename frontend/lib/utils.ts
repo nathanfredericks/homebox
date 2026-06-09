@@ -1,16 +1,3 @@
-import type { Updater } from "@tanstack/vue-table";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function valueUpdater<T extends Updater<any>>(updaterOrValue: T, ref: Ref) {
-  ref.value = typeof updaterOrValue === "function" ? updaterOrValue(ref.value) : updaterOrValue;
-}
-
 /**
  * Returns either '#000' or '#fff' depending on which has better contrast with the given background color.
  * Accepts hex (#RRGGBB or #RGB) or rgb(a) strings.
