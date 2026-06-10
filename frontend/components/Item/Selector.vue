@@ -13,15 +13,19 @@
           </span>
 
           <span class="ml-2 flex items-center">
-            <button
+            <!-- span, not button: this sits inside the trigger <button>, and
+            nested buttons are invalid HTML that breaks SSR hydration -->
+            <span
               v-if="value"
-              type="button"
+              role="button"
+              tabindex="0"
               class="shrink-0 rounded p-1 hover:bg-primary/20"
               :aria-label="t('components.item.selector.clear')"
               @click.stop.prevent="clearSelection"
+              @keydown.enter.stop.prevent="clearSelection"
             >
               <X class="size-4" />
-            </button>
+            </span>
 
             <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
           </span>

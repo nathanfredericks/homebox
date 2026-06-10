@@ -49,11 +49,16 @@
 
   const locationId = computed<string>(() => route.params.id as string);
 
-  const { data: location, refresh } = useAsyncData(locationId.value, async () => {
+  const { data: location, refresh } = await useAsyncData(`location-${locationId.value}`, async nuxtApp => {
     const { data, error } = await api.items.getLocation(locationId.value);
     if (error) {
       toast.error(t("locations.toast.failed_load_location"));
-      navigateTo("/home");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/home"));
+      } else {
+        await navigateTo("/home");
+      }
       return;
     }
 
@@ -191,7 +196,7 @@
     return ret;
   });
 
-  const { data: items, refresh: refreshItemList } = useAsyncData(
+  const { data: items, refresh: refreshItemList } = await useAsyncData(
     () => locationId.value + "_item_list",
     async () => {
       if (!locationId.value) {

@@ -21,35 +21,43 @@
 </script>
 
 <template>
-  <Teleport to="#selectable-subtitle" defer>
-    <Checkbox
-      class="size-6 p-0"
-      :model-value="
-        table.getIsAllPageRowsSelected() ? true : table.getSelectedRowModel().rows.length > 0 ? 'indeterminate' : false
-      "
-      :aria-label="$t('components.item.view.selectable.select_all')"
-      @update:model-value="table.toggleAllPageRowsSelected(!!$event)"
-    />
-
-    <div class="grow" />
-
-    <div :class="['relative inline-flex items-center', selectedCount === 0 ? 'pointer-events-none opacity-50' : '']">
-      <DropdownAction
-        :multi="{ items: table.getSelectedRowModel().rows, columns: table.getAllColumns() }"
-        view="card"
-        :table="table"
-        @refresh="$emit('refresh')"
+  <!-- ClientOnly: teleports do not render during SSR, so the teleported
+  controls must not take part in hydration -->
+  <ClientOnly>
+    <Teleport to="#selectable-subtitle" defer>
+      <Checkbox
+        class="size-6 p-0"
+        :model-value="
+          table.getIsAllPageRowsSelected()
+            ? true
+            : table.getSelectedRowModel().rows.length > 0
+              ? 'indeterminate'
+              : false
+        "
+        :aria-label="$t('components.item.view.selectable.select_all')"
+        @update:model-value="table.toggleAllPageRowsSelected(!!$event)"
       />
 
-      <span v-if="selectedCount > 0" class="absolute -right-1 -top-1 flex size-4">
-        <span
-          class="pointer-events-none relative flex size-4 items-center justify-center whitespace-nowrap rounded-full bg-primary p-1 text-xs text-primary-foreground"
-        >
-          {{ String(selectedCount) }}
+      <div class="grow" />
+
+      <div :class="['relative inline-flex items-center', selectedCount === 0 ? 'pointer-events-none opacity-50' : '']">
+        <DropdownAction
+          :multi="{ items: table.getSelectedRowModel().rows, columns: table.getAllColumns() }"
+          view="card"
+          :table="table"
+          @refresh="$emit('refresh')"
+        />
+
+        <span v-if="selectedCount > 0" class="absolute -right-1 -top-1 flex size-4">
+          <span
+            class="pointer-events-none relative flex size-4 items-center justify-center whitespace-nowrap rounded-full bg-primary p-1 text-xs text-primary-foreground"
+          >
+            {{ String(selectedCount) }}
+          </span>
         </span>
-      </span>
-    </div>
-  </Teleport>
+      </div>
+    </Teleport>
+  </ClientOnly>
   <div v-if="table.getRowModel().rows?.length === 0" class="flex flex-col items-center gap-2">
     <MdiSelectSearch class="size-10" />
     <p>{{ $t("items.no_results") }}</p>

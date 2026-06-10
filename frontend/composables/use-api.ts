@@ -23,8 +23,32 @@ function logger(r: Response) {
   console.log(`${r.status}   ${r.url}   ${r.statusText}`);
 }
 
+// In the browser requests stay relative (same origin, routed by the reverse
+// proxy). During SSR there is no origin, so requests go straight to the Go API.
+function apiBaseUrl(): string {
+  if (import.meta.server) {
+    return useRuntimeConfig().apiHost;
+  }
+  return "";
+}
+
+// During SSR the browser's cookies (incl. the HttpOnly auth token) must be
+// forwarded to the Go API; the browser sends them itself.
+function forwardedHeaders(): Record<string, string> {
+  if (import.meta.client) {
+    return {};
+  }
+
+  const headers: Record<string, string> = {};
+  const { cookie } = useRequestHeaders(["cookie"]);
+  if (cookie) {
+    headers.Cookie = cookie;
+  }
+  return headers;
+}
+
 export function usePublicApi(): PublicApi {
-  const requests = new Requests("", "", {});
+  const requests = new Requests(apiBaseUrl(), "", forwardedHeaders());
   return new PublicApi(requests);
 }
 
@@ -32,21 +56,23 @@ export function useUserApi(): UserClient {
   const authCtx = useAuthContext();
   const prefs = useViewPreferences();
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = forwardedHeaders();
   if (prefs?.value?.collectionId) {
     headers["X-Tenant"] = prefs.value.collectionId;
   }
 
-  const requests = new Requests("", "", headers);
+  const requests = new Requests(apiBaseUrl(), "", headers);
   requests.addResponseInterceptor(logger);
   requests.addResponseInterceptor(async r => {
     if (r.status === 401) {
       console.error("unauthorized request, invalidating session");
       authCtx.invalidateSession();
-      navigateTo("/");
+      if (import.meta.client) {
+        navigateTo("/");
+      }
     }
 
-    if (r.status === 403) {
+    if (r.status === 403 && import.meta.client) {
       try {
         const contentType = r.headers.get("Content-Type") ?? "";
         if (!contentType.startsWith("application/json")) {

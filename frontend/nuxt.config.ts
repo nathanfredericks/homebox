@@ -2,7 +2,7 @@ import { defineNuxtConfig } from "nuxt/config";
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  ssr: false,
+  ssr: true,
 
   components: {
     dirs: [],
@@ -30,6 +30,9 @@ export default defineNuxtConfig({
   // Note: otelEnabled is determined automatically by querying the backend status endpoint.
   // When the backend has telemetry enabled, the frontend will automatically enable it.
   runtimeConfig: {
+    // Server-only: where the Nitro server reaches the Go API during SSR.
+    // Overridable at runtime via NUXT_API_HOST.
+    apiHost: process.env.NUXT_API_HOST || "http://localhost:7745",
     public: {
       // OpenTelemetry configuration (can be overridden by environment variables)
       otelServiceName: process.env.NUXT_PUBLIC_OTEL_SERVICE_NAME || "homebox-frontend",
@@ -59,6 +62,9 @@ export default defineNuxtConfig({
 
   pwa: {
     workbox: {
+      // Pages are server-rendered; the service worker must never answer
+      // navigations with cached HTML.
+      navigateFallback: null,
       navigateFallbackDenylist: [/^\/api/],
       cleanupOutdatedCaches: true,
       runtimeCaching: [

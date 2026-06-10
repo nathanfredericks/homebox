@@ -1,44 +1,49 @@
 import { format, formatDistance } from "date-fns";
-import { reactive } from "vue";
 /* eslint import/namespace: ['error', { allowComputed: true }] */
 import * as Locales from "date-fns/locale";
 import { isDateOnlyString, parseDateOnly } from "~/lib/datelib/dateOnly";
 import { fmtCurrency, fmtCurrencyAsync } from "./utils";
 
-const cache = reactive({
-  currency: "",
-});
+// useState keeps the cached currency per request during SSR (a module-level
+// cache would leak one user's currency into another's render) and ships it to
+// the client in the payload.
+function useCurrencyCache() {
+  return useState("group.currency", () => "");
+}
 
 export function resetCurrency() {
-  cache.currency = "";
+  useCurrencyCache().value = "";
 }
 
 export function setCurrency(currency: string) {
-  cache.currency = currency;
+  useCurrencyCache().value = currency;
 }
 
 export async function useFormatCurrency() {
-  if (cache.currency === "") {
+  const cache = useCurrencyCache();
+  // getLocaleCode needs the Nuxt context, which is lost after the await below
+  const localeCode = getLocaleCode();
+  if (cache.value === "") {
     const client = useUserApi();
 
     const { data: group } = await client.group.get();
 
-    if (group && cache.currency === "") {
-      cache.currency = group.currency;
+    if (group && cache.value === "") {
+      cache.value = group.currency;
     }
   }
 
   // Pre-load currency decimals for better formatting (optional, non-blocking)
-  if (cache.currency && cache.currency.trim() !== "") {
+  if (cache.value && cache.value.trim() !== "") {
     try {
-      await fmtCurrencyAsync(0, cache.currency, getLocaleCode());
+      await fmtCurrencyAsync(0, cache.value, localeCode);
     } catch (error) {
       // Silently swallow preload errors - formatter will still work, just without pre-cached decimals
       console.debug("Currency preload failed (non-fatal):", error);
     }
   }
 
-  return (value: number | string) => fmtCurrency(value, cache.currency, getLocaleCode());
+  return (value: number | string) => fmtCurrency(value, cache.value, getLocaleCode());
 }
 
 export type DateTimeFormat = "relative" | "long" | "short" | "human";

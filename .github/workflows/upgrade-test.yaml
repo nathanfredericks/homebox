@@ -133,12 +133,15 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:7745/api/v1/status; do sleep 2; done'
           echo "HomeBox new version is ready"
       
-      # Step 5: Run verification tests with Playwright
+      # Step 5: Run verification tests with Playwright. The backend no longer
+      # serves the UI; the SSR dev server proxies /api to localhost:7745.
       - name: Run verification tests
         run: |
           cd frontend
+          pnpm dev &
+          timeout 120 bash -c 'until curl -sf http://localhost:3000/ >/dev/null; do sleep 2; done'
           TEST_DATA_FILE=/tmp/test-users.json \
-          E2E_BASE_URL=http://localhost:7745 \
+          E2E_BASE_URL=http://localhost:3000 \
           pnpm exec playwright test \
             -c ./test/playwright.config.ts \
             --project=chromium \

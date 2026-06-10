@@ -121,6 +121,12 @@ function connect(onmessage: (m: EventMessage) => void) {
 }
 
 export function onServerEvent(event: ServerEvent, callback: () => void) {
+  // WebSockets are browser-only; the module-level socket state must never be
+  // touched during SSR.
+  if (import.meta.server) {
+    return;
+  }
+
   const prefs = useViewPreferences();
   currentTenantId = prefs.value.collectionId || null;
 

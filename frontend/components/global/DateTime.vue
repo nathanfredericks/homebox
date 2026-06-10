@@ -1,5 +1,7 @@
 <template>
-  {{ value }}
+  <!-- span root: a bare text node merges with adjacent text in the SSR
+  output, which the client cannot hydrate -->
+  <span>{{ value }}</span>
 </template>
 
 <script setup lang="ts">

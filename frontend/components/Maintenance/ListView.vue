@@ -39,7 +39,8 @@
     },
   });
 
-  const { data: maintenanceDataList, refresh: refreshList } = useAsyncData(
+  const { data: maintenanceDataList, refresh: refreshList } = await useAsyncData(
+    () => `maintenance-${props.currentItemId ?? "all"}`,
     async () => {
       const { data } =
         props.currentItemId !== undefined

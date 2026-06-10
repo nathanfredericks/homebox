@@ -25,17 +25,22 @@ jobs:
           pnpm install
           pnpm run build
 
-      - name: Upload Frontend Artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: frontend-static
-          path: frontend/.output/public
-          retention-days: 1
+      # The frontend is a server-side rendered Nuxt app and is no longer
+      # embedded in the Go binary. It ships as its own archive; run it with
+      # `node .output/server/index.mjs` (NUXT_API_HOST pointing at the API).
+      - name: Package Frontend SSR bundle
+        working-directory: frontend
+        run: tar -czf homebox-frontend-ssr.tar.gz .output
+
+      - name: Upload Frontend SSR bundle to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$GITHUB_REF_NAME" frontend/homebox-frontend-ssr.tar.gz --clobber
 
   goreleaser:
     name: goreleaser-${{ matrix.goarch }}
     runs-on: ubuntu-latest
-    needs: [ build-frontend ]
     strategy:
       matrix:
         goarch: [ amd64, arm64, riscv64 ]
@@ -54,13 +59,6 @@ jobs:
         with:
           go-version: "1.26"
           cache-dependency-path: backend/go.mod
-
-      - name: Download Frontend Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: frontend-static
-          path: backend/app/api/static/public/
-
 
       - name: Install Syft
         working-directory: backend

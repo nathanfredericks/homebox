@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.output
+dist
+test/results
+.playwright-mcp
+Dockerfile
+.dockerignore

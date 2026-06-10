@@ -24,7 +24,7 @@
 
   const api = useUserApi();
 
-  const { data: allTags } = useAsyncData(async () => {
+  const { data: allTags } = await useAsyncData("tags-all", async () => {
     const { data, error } = await api.tags.getAll();
 
     if (error) {
@@ -132,7 +132,7 @@
         <TooltipProvider :delay-duration="0">
           <ButtonGroup>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger as-child>
                 <Button size="icon" variant="outline" data-pos="start" @click="openAll">
                   <MdiExpandAllOutline />
                 </Button>
@@ -142,7 +142,7 @@
               </TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger as-child>
                 <Button size="icon" variant="outline" data-pos="end" @click="closeAll">
                   <MdiCollapseAllOutline />
                 </Button>

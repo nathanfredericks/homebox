@@ -1,26 +1,3 @@
-# Node dependencies stage
-FROM public.ecr.aws/docker/library/node:22-alpine AS frontend-dependencies
-WORKDIR /app
-
-# Install pnpm 10 (latest stable, works reliably in Alpine)
-RUN npm install -g pnpm@10
-
-# Copy package.json and lockfile to leverage caching
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
-# Build Nuxt (frontend) stage
-FROM public.ecr.aws/docker/library/node:22-alpine AS frontend-builder
-WORKDIR /app
-
-# Install pnpm 10 (latest stable)
-RUN npm install -g pnpm@10
-
-# Copy over source files and node_modules from dependencies stage
-COPY frontend . 
-COPY --from=frontend-dependencies /app/node_modules ./node_modules
-RUN pnpm build
-
 # Go dependencies stage
 FROM public.ecr.aws/docker/library/golang:alpine AS builder-dependencies
 WORKDIR /go/src/app
@@ -48,10 +25,6 @@ WORKDIR /go/src/app
 # Copy Go modules (from dependencies stage) and source code
 COPY --from=builder-dependencies /go/pkg/mod /go/pkg/mod
 COPY ./backend .
-
-# Clear old public files and copy new ones from frontend build
-RUN rm -rf ./app/api/public
-COPY --from=frontend-builder /app/.output/public ./app/api/static/public
 
 # Use cache for Go build artifacts
 RUN --mount=type=cache,target=/root/.cache/go-build \

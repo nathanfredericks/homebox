@@ -1,4 +1,5 @@
-import type { CookieRef } from "nuxt/app";
+import type { CookieRef, NuxtApp } from "nuxt/app";
+import type { Ref } from "vue";
 import type { PublicApi } from "~~/lib/api/public";
 import type { UserOut } from "~~/lib/api/types/data-contracts";
 import type { UserClient } from "~~/lib/api/user";
@@ -33,15 +34,23 @@ export interface IAuthContext {
   login(api: PublicApi, email: string, password: string, stayLoggedIn: boolean): ReturnType<PublicApi["login"]>;
 }
 
+// One AuthContext per Nuxt app instance. A module-level singleton would leak
+// cookie refs between requests during SSR (cross-request state pollution).
 class AuthContext implements IAuthContext {
-  private static _instance?: AuthContext;
-
   private static readonly cookieTokenKey = "hb.auth.session";
   private static readonly cookieAttachmentTokenKey = "hb.auth.attachment_token";
 
-  user?: UserOut;
+  private _user: Ref<UserOut | undefined>;
   private _token: CookieRef<string | null>;
   private _attachmentToken: CookieRef<string | null>;
+
+  get user() {
+    return this._user.value;
+  }
+
+  set user(user: UserOut | undefined) {
+    this._user.value = user;
+  }
 
   get token() {
     // @ts-expect-error sometimes it's a boolean I guess?
@@ -52,17 +61,12 @@ class AuthContext implements IAuthContext {
     return this._attachmentToken.value;
   }
 
-  private constructor(token: string, attachmentToken: string) {
-    this._token = useCookie(token);
-    this._attachmentToken = useCookie(attachmentToken);
-  }
-
-  static get instance() {
-    if (!this._instance) {
-      this._instance = new AuthContext(AuthContext.cookieTokenKey, AuthContext.cookieAttachmentTokenKey);
-    }
-
-    return this._instance;
+  constructor(private readonly nuxtApp: NuxtApp) {
+    // cast needed because the auto-imported global Ref and the "vue" Ref types
+    // don't unify in this codebase
+    this._user = useState<UserOut | undefined>("auth.user", () => undefined) as unknown as Ref<UserOut | undefined>;
+    this._token = useCookie(AuthContext.cookieTokenKey);
+    this._attachmentToken = useCookie(AuthContext.cookieAttachmentTokenKey);
   }
 
   isExpired() {
@@ -88,11 +92,14 @@ class AuthContext implements IAuthContext {
 
     if (!r.error) {
       const expiresAt = new Date(r.data.expiresAt);
-      this._token = useCookie(AuthContext.cookieTokenKey);
-      this._attachmentToken = useCookie(AuthContext.cookieAttachmentTokenKey, {
-        expires: expiresAt,
+      // useCookie needs the Nuxt context, which is lost after the await above
+      await this.nuxtApp.runWithContext(() => {
+        this._token = useCookie(AuthContext.cookieTokenKey);
+        this._attachmentToken = useCookie(AuthContext.cookieAttachmentTokenKey, {
+          expires: expiresAt,
+        });
+        this._attachmentToken.value = r.data.attachmentToken;
       });
-      this._attachmentToken.value = r.data.attachmentToken;
     }
 
     return r;
@@ -110,5 +117,7 @@ class AuthContext implements IAuthContext {
 }
 
 export function useAuthContext(): IAuthContext {
-  return AuthContext.instance;
+  const nuxtApp = useNuxtApp() as NuxtApp & { _authContext?: AuthContext };
+  nuxtApp._authContext ??= new AuthContext(nuxtApp);
+  return nuxtApp._authContext;
 }

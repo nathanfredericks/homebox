@@ -14,7 +14,7 @@ const refreshing = ref(false);
 
 export const useCollections = () => {
   const load = async () => {
-    if (window.location.pathname === "/") {
+    if (useRoute().path === "/") {
       console.debug("[useCollections] On root path '/', skipping load");
       return;
     }

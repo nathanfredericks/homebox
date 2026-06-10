@@ -53,15 +53,23 @@
   const tagStore = useTagStore();
   const tags = computed(() => tagStore.tags);
 
+  // declared before the awaited fetch below, whose handler assigns it
+  const parent = ref();
+
   const {
     data: nullableItem,
     refresh,
     pending: requestPending,
-  } = useAsyncData(async () => {
+  } = await useAsyncData(`item-${itemId.value}-edit`, async nuxtApp => {
     const { data, error } = await api.items.get(itemId.value);
     if (error) {
       toast.error(t("items.toast.failed_load_item"));
-      navigateTo("/home");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/home"));
+      } else {
+        await navigateTo("/home");
+      }
       return;
     }
 
@@ -494,7 +502,6 @@
   }
 
   const { query, results, isLoading, triggerSearch } = useItemSearch(api, { immediate: false });
-  const parent = ref();
 
   async function keyboardSave(e: KeyboardEvent) {
     // Cmd + S

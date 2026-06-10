@@ -30,13 +30,12 @@
   definePageMeta({
     layout: "empty",
     middleware: [
-      () => {
+      to => {
         const ctx = useAuthContext();
-        const route = useRoute();
         if (ctx.isAuthorized()) {
           // Preserve invitation token when redirecting authenticated users
-          if (route.query.token) {
-            return `/home?token=${encodeURIComponent(route.query.token as string)}`;
+          if (to.query.token) {
+            return `/home?token=${encodeURIComponent(to.query.token as string)}`;
           }
           return "/home";
         } else {
@@ -57,27 +56,33 @@
   const oidcError = ref<string | null>(null);
   const shownErrorMessage = ref(false);
 
-  const { data: status } = useAsyncData(async () => {
+  const { data: status } = await useAsyncData("app-status", async () => {
     const { data } = await api.status();
-
-    if (data.demo) {
-      username.value = "demo@example.com";
-      password.value = "demodemo";
-    }
     return data;
   });
 
-  whenever(status, status => {
-    if (status?.demo) {
+  // Side effects from the status response are browser-only and must run after
+  // the onMounted below has parsed any OIDC error from the URL.
+  function applyStatusEffects() {
+    if (status.value?.demo) {
+      username.value = "demo@example.com";
+      password.value = "demodemo";
       email.value = "demo@example.com";
       loginPassword.value = "demodemo";
     }
 
     // Auto-redirect to OIDC if autoRedirect is enabled, but not if there's an OIDC initialization error
-    if (status?.oidc?.enabled && status?.oidc?.autoRedirect && !oidcError.value && !shownErrorMessage.value) {
+    if (
+      status.value?.oidc?.enabled &&
+      status.value?.oidc?.autoRedirect &&
+      !oidcError.value &&
+      !shownErrorMessage.value
+    ) {
       loginWithOIDC();
     }
-  });
+  }
+
+  whenever(status, applyStatusEffects);
 
   const isEvilAccentTheme = useIsThemeInList([
     "bumblebee",
@@ -186,6 +191,10 @@
       // Clear the error state after showing the message
       oidcError.value = null;
     }
+
+    // With SSR the status is already resolved before mount, so the watcher
+    // above never fires on initial load — apply the effects here instead.
+    applyStatusEffects();
   });
 
   const loading = ref(false);

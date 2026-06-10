@@ -179,7 +179,7 @@
   const fieldTuples = ref<[string, string][]>([]);
   const fieldValuesCache = ref<Record<string, string[]>>({});
 
-  const { data: allFields } = useAsyncData(async () => {
+  const { data: allFields } = await useAsyncData("item-fields", async () => {
     const { data, error } = await api.items.fields.getAll();
 
     if (error) {

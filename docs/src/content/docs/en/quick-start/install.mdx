@@ -5,10 +5,17 @@ title: Install
 
 import {TabItem, Tabs} from '@astrojs/starlight/components';
 
+Homebox is made up of two services:
+
+1. The **API** (`ghcr.io/sysadminsmedia/homebox`) — the Go backend that owns your data.
+2. The **frontend** (`ghcr.io/sysadminsmedia/homebox-frontend`) — a server-side rendered web app.
+
+A reverse proxy in front of both keeps everything on a single origin: requests to `/api` and `/swagger` go to the API, and everything else goes to the frontend. The Docker Compose example below includes a ready-to-use [Caddy](https://caddyserver.com/) proxy.
+
 There are two main ways to run Homebox.
 
-1. As a Docker container
-2. Using the correct executable for your platform by downloading it from the [releases page](https://github.com/sysadminsmedia/homebox/releases)
+1. As Docker containers (recommended)
+2. Using the executables for your platform from the [releases page](https://github.com/sysadminsmedia/homebox/releases)
 
 > [!NOTE]
 > The application can be configured using environment variables. You can find a list of all the available options in the [configuration](/en/quick-start/configure/) section.
@@ -22,154 +29,106 @@ There are two main ways to run Homebox.
 ## Docker
 The following instructions assume you have Docker installed on your machine.
 
-The official image is `ghcr.io/sysadminsmedia/homebox:latest`. For each image there are three tags, respectively the regular
+The official API image is `ghcr.io/sysadminsmedia/homebox:latest`. For each API image there are three tags, respectively the regular
 tag, the `$tag-rootless` and `$tag-hardened`. The rootless tag is a regular image but with the user `homebox` created.
 The hardened tag is a distroless image and contains no shells or utilities.
 
+The official frontend image is `ghcr.io/sysadminsmedia/homebox-frontend:latest`.
+
 > [!WARNING]
-> If you want to use MQTT, you must use the regular or rootless image. The hardened image does not contain the MQTT
+> If you want to use MQTT, you must use the regular or rootless API image. The hardened image does not contain the MQTT
 > client.
 
-### Docker Run
-Great for testing the application, but not recommended for production deployments. Check out the docker compose example below for a production deployment.
-
-<Tabs>
-    <TabItem label="Regular">
-        ```bash
-        # Run the container
-        docker run -d --name homebox --restart unless-stopped \
-        --publish 3100:7745 --env HBOX_OPTIONS_ALLOW_ANALYTICS=false \
-        --env HBOX_AUTH_API_KEY_PEPPER=some_random_string \
-        --volume /path/to/data/folder:/data \
-        ghcr.io/sysadminsmedia/homebox:latest
-        ```
-    </TabItem>
-    <TabItem label="Rootless">
-        ```bash
-        # When using rootless you must ensure the data folder has the correct permissions
-        mkdir -p /path/to/data/folder
-        chown 65532:65532 -R /path/to/data/folder
-        # --------
-        # Run the container
-        docker run -d --name homebox --restart unless-stopped \
-        --publish 3100:7745 --env HBOX_OPTIONS_ALLOW_ANALYTICS=false \
-        --env HBOX_AUTH_API_KEY_PEPPER=some_random_string \
-        --volume /path/to/data/folder:/data \
-        ghcr.io/sysadminsmedia/homebox:latest-rootless
-        ```
-    </TabItem>
-    <TabItem label="Hardened">
-        ```bash
-        # When using hardened you must ensure the data folder has the correct permissions
-        mkdir -p /path/to/data/folder
-        chown 65532:65532 -R /path/to/data/folder
-        # --------
-        # Run the container
-        docker run -d --name homebox --restart unless-stopped \
-        --publish 3100:7745 --env HBOX_OPTIONS_ALLOW_ANALYTICS=false \
-        --env HBOX_AUTH_API_KEY_PEPPER=some_random_string \
-        --volume /path/to/data/folder:/data \
-        ghcr.io/sysadminsmedia/homebox:latest-hardened
-        ```
-    </TabItem>
-</Tabs>
-
 ### Docker Compose
-1. Create a `compose.yml` file with the following contents:
+1. Create a `compose.yml` file with the following contents (for the rootless or hardened API image, change the
+`homebox-api` image tag to `latest-rootless` or `latest-hardened`):
 
-<Tabs>
-    <TabItem label="Regular">
-        ```yaml title="compose.yml"
-        services:
-            homebox:
-                image: ghcr.io/sysadminsmedia/homebox:latest
-                restart: always
-                environment:
-                    - HBOX_LOG_LEVEL=info
-                    - HBOX_LOG_FORMAT=text
-                    - HBOX_WEB_MAX_UPLOAD_SIZE=10
-                    # Please consider allowing analytics to help us improve Homebox (basic computer information, no personal data)
-                    - HBOX_OPTIONS_ALLOW_ANALYTICS=false
-                    # Use a strong random string for the pepper in production, it will be used to hash API keys and make them more secure
-                    - HBOX_AUTH_API_KEY_PEPPER=some_random_string
-                volumes:
-                    - homebox-data:/data/
-                ports:
-                    - 3100:7745
-
+```yaml title="compose.yml"
+services:
+    homebox-api:
+        image: ghcr.io/sysadminsmedia/homebox:latest
+        restart: always
+        environment:
+            - HBOX_LOG_LEVEL=info
+            - HBOX_LOG_FORMAT=text
+            - HBOX_WEB_MAX_UPLOAD_SIZE=10
+            # The proxy fronts the API, so cookies must use the forwarded host
+            - HBOX_OPTIONS_TRUST_PROXY=true
+            # Please consider allowing analytics to help us improve Homebox (basic computer information, no personal data)
+            - HBOX_OPTIONS_ALLOW_ANALYTICS=false
+            # Use a strong random string for the pepper in production, it will be used to hash API keys and make them more secure
+            - HBOX_AUTH_API_KEY_PEPPER=some_random_string
         volumes:
-            homebox-data:
-                driver: local
-        ```
-    </TabItem>
-    <TabItem label="Rootless">
-        ```yaml title="compose.yml"
-        services:
-            homebox:
-                image: ghcr.io/sysadminsmedia/homebox:latest-rootless
-                restart: always
-                environment:
-                    - HBOX_LOG_LEVEL=info
-                    - HBOX_LOG_FORMAT=text
-                    - HBOX_WEB_MAX_UPLOAD_SIZE=10
-                    # Please consider allowing analytics to help us improve Homebox (basic computer information, no personal data)
-                    - HBOX_OPTIONS_ALLOW_ANALYTICS=false
-                    # Use a strong random string for the pepper in production, it will be used to hash API keys and make them more secure
-                    - HBOX_AUTH_API_KEY_PEPPER=some_random_string
-                volumes:
-                    - homebox-data:/data/
-                ports:
-                    - 3100:7745
+            - homebox-data:/data/
 
-        volumes:
-            homebox-data:
-                driver: local
-        ```
+    homebox-frontend:
+        image: ghcr.io/sysadminsmedia/homebox-frontend:latest
+        restart: always
+        environment:
+            # Internal URL the server-side renderer uses to reach the API
+            - NUXT_API_HOST=http://homebox-api:7745
+        depends_on:
+            - homebox-api
 
-        > [!NOTE]
-        > If you want to use a bind mount instead of a volume, you will need to `chown` the chosen directory in advance to
-        > the `65532` user (as shown in the Docker run example above)
-    </TabItem>
-    <TabItem label="Hardened">
-        ```yaml title="compose.yml"
-        services:
-            homebox:
-                image: ghcr.io/sysadminsmedia/homebox:latest-hardened
-                restart: always
-                environment:
-                    - HBOX_LOG_LEVEL=info
-                    - HBOX_LOG_FORMAT=text
-                    - HBOX_WEB_MAX_UPLOAD_SIZE=10
-                    # Please consider allowing analytics to help us improve Homebox (basic computer information, no personal data)
-                    - HBOX_OPTIONS_ALLOW_ANALYTICS=false
-                    # Use a strong random string for the pepper in production, it will be used to hash API keys and make them more secure
-                    - HBOX_AUTH_API_KEY_PEPPER=some_random_string
-                volumes:
-                    - homebox-data:/data/
-                ports:
-                    - 3100:7745
+    proxy:
+        image: caddy:alpine
+        restart: always
+        ports:
+            - 3100:80
+        configs:
+            - source: caddyfile
+              target: /etc/caddy/Caddyfile
+        depends_on:
+            - homebox-api
+            - homebox-frontend
 
-        volumes:
-            homebox-data:
-                driver: local
-        ```
+configs:
+    caddyfile:
+        content: |
+            :80 {
+              handle /api/* {
+                reverse_proxy homebox-api:7745
+              }
+              handle /swagger/* {
+                reverse_proxy homebox-api:7745
+              }
+              handle {
+                reverse_proxy homebox-frontend:3000
+              }
+            }
 
-        > [!CAUTION]
-        > The hardened image does not contain the MQTT client.
+volumes:
+    homebox-data:
+        driver: local
+```
 
-        > [!NOTE]
-        > If you want to use a bind mount instead of a volume, you will need to `chown` the chosen directory in advance to
-        > the `65532` user (as shown in the Docker run example above)
-    </TabItem>
-</Tabs>
+> [!NOTE]
+> When using the rootless or hardened API image with a bind mount instead of a volume, you will need to `chown` the
+> chosen directory in advance to the `65532` user.
 
 > [!WARNING]
 > If you previously set up docker compose with the `HBOX_WEB_READ_TIMEOUT`, `HBOX_WEB_WRITE_TIMEOUT` or `HBOX_WEB_IDLE_TIMEOUT` environment variables,
 > with the hay-kot image, please note that you will need to add an `s` for seconds or `m` for minutes to the end of the integers.
 > A dependency update removed the default sections, and it now requires them to be explicitly set.
 
-2. While in the same directory as the `compose.yml` file, run `docker compose up -d` to start the container.
+2. While in the same directory as the `compose.yml` file, run `docker compose up -d` to start the containers.
 3. Navigate to `http://server.local.ip.address:3100` to access the Homebox web interface. (Replace with the correct IP address)
+
+If you already run a reverse proxy (nginx, Traefik, Caddy, ...) you can drop the `proxy` service and route the two
+upstreams yourself — see [Using a Reverse Proxy](/en/quick-start/configure/proxy/).
+
+### Docker Run
+`docker run` is only practical for quickly testing the API by itself, since the web interface requires the frontend
+container and a proxy in front of both. For anything beyond an API smoke test, use the Docker Compose example above.
+
+```bash
+# Run the API container only (no web interface)
+docker run -d --name homebox-api --restart unless-stopped \
+--publish 7745:7745 --env HBOX_OPTIONS_ALLOW_ANALYTICS=false \
+--env HBOX_AUTH_API_KEY_PEPPER=some_random_string \
+--volume /path/to/data/folder:/data \
+ghcr.io/sysadminsmedia/homebox:latest
+```
 
 ## Binaries
 We supply a wide range of binaries for different platforms and CPU architectures.
@@ -181,24 +140,38 @@ We supply a wide range of binaries for different platforms and CPU architectures
 > Currently Linux is the primary platform we validate and test with. Because MacOS is extremely similar to Linux, we expect the binaries to work without issues, but we do not have Mac devices.
 > Windows is not a primary platform for us, but we do provide binaries for it as well. There have been known issues with Windows binaries due to the way Windows handles file permissions and other system features, so we **heavily recommend** using Docker on Windows.
 
+The release binaries contain the API server only. The web interface is a separate server-side rendered application,
+published as `homebox-frontend-ssr.tar.gz` on the [releases page](https://github.com/sysadminsmedia/homebox/releases),
+and requires Node.js 20 or later:
+
+```bash
+# Start the API (serves http://localhost:7745)
+./homebox &
+
+# Start the frontend (serves http://localhost:3000)
+tar -xzf homebox-frontend-ssr.tar.gz
+NUXT_API_HOST=http://localhost:7745 node .output/server/index.mjs
+```
+
+Finally, put a reverse proxy in front of both so the browser sees a single origin: route `/api` and `/swagger` to
+`http://localhost:7745` and everything else to `http://localhost:3000` — see
+[Using a Reverse Proxy](/en/quick-start/configure/proxy/).
+
 ### Windows
 1. Download the latest version from the [releases page](https://github.com/sysadminsmedia/homebox/releases).
 2. Extract the archive and run `homebox.exe`.
-3. The web interface will be available at `http://localhost:7745` by default. Access the page by navigating to
-`http://server.local.ip.address:7745/` (replace with the right ip address)
+3. The API will be available at `http://localhost:7745` by default. Run the frontend and a reverse proxy as described above.
 
 ### macOS
 1. Download the latest version from the [releases page](https://github.com/sysadminsmedia/homebox/releases). (Use
 `homebox_Darwin_x86_64.tar.gz` for Intel-based Macs and `homebox_Darwin_arm64.tar.gz` for Apple Silicon)
 2. Extract the archive and run `./homebox` from a terminal.
-3. The web interface will be available at `http://localhost:7745` by default. Access the page by navigating to
-`http://server.local.ip.address:7745/` (replace with the right ip address)
+3. The API will be available at `http://localhost:7745` by default. Run the frontend and a reverse proxy as described above.
 
 ### Linux
 1. Download the latest version from the [releases page](https://github.com/sysadminsmedia/homebox/releases).
 2. Extract the archive and run `./homebox` from a terminal.
-3. The web interface will be available at `http://localhost:7745` by default. Access the page by navigating to
-`http://server.local.ip.address:7745/` (replace with the right ip address)
+3. The API will be available at `http://localhost:7745` by default. Run the frontend and a reverse proxy as described above.
 
 > [!NOTE]
 > RISC-V binaries are experimental and not recommended for production deployments. Use at your own risk. Please provide feedback

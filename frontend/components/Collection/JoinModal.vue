@@ -54,7 +54,8 @@
   const api = useUserApi();
   const collections = useCollections();
 
-  const domain = window.location.protocol + "//" + window.location.host;
+  const requestUrl = useRequestURL();
+  const domain = requestUrl.protocol + "//" + requestUrl.host;
 
   const redirectTo = ref("");
   // Holds invite code from dialog params until the watcher applies it on open

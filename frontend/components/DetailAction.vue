@@ -4,9 +4,11 @@
       <h4 class="mb-1 text-lg font-semibold">
         <slot name="title" />
       </h4>
-      <p class="text-sm">
+      <!-- div, not p: slot content may contain block elements, which is
+      invalid inside <p> and breaks SSR hydration -->
+      <div class="text-sm">
         <slot />
-      </p>
+      </div>
     </div>
     <div class="flex items-center">
       <template v-if="to">

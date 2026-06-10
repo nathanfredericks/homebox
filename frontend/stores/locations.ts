@@ -2,13 +2,19 @@ import { defineStore } from "pinia";
 import type { ItemsApi } from "~~/lib/api/classes/items";
 import type { EntitySummary, TreeItem } from "~~/lib/api/types/data-contracts";
 
+// Pinia state is serialized into the SSR payload, so it must hold plain data
+// only — no API client instances and no in-flight Promises. Dedupe promises
+// live on the store instance outside of $state.
+type RefreshTracker = {
+  _refreshLocations?: Promise<unknown>;
+  _refreshParents?: Promise<unknown>;
+};
+
 export const useLocationStore = defineStore("locations", {
   state: () => ({
     parents: null as EntitySummary[] | null,
     Locations: null as EntitySummary[] | null,
-    client: useUserApi(),
     tree: null as TreeItem[] | null,
-    refreshLocationsPromise: null as Promise<void> | null,
   }),
   getters: {
     /**
@@ -17,16 +23,6 @@ export const useLocationStore = defineStore("locations", {
      * response
      */
     parentLocations(state): EntitySummary[] {
-      if (state.parents === null) {
-        this.client.items.getLocations({ filterChildren: true }).then(result => {
-          if (result.error) {
-            console.error(result.error);
-            return;
-          }
-
-          this.parents = result.data;
-        });
-      }
       return state.parents ?? [];
     },
     allLocations(state): EntitySummary[] {
@@ -39,13 +35,29 @@ export const useLocationStore = defineStore("locations", {
         return;
       }
 
-      if (this.refreshLocationsPromise === null) {
-        this.refreshLocationsPromise = this.refreshChildren().then(() => {});
+      const self = this as typeof this & RefreshTracker;
+      self._refreshLocations ??= this.refreshChildren();
+      try {
+        await self._refreshLocations;
+      } finally {
+        self._refreshLocations = undefined;
       }
-      await this.refreshLocationsPromise;
+    },
+    async ensureParentsFetched() {
+      if (this.parents !== null) {
+        return;
+      }
+
+      const self = this as typeof this & RefreshTracker;
+      self._refreshParents ??= this.refreshParents();
+      try {
+        await self._refreshParents;
+      } finally {
+        self._refreshParents = undefined;
+      }
     },
     async refreshParents(): ReturnType<ItemsApi["getLocations"]> {
-      const result = await this.client.items.getLocations({ filterChildren: true });
+      const result = await useUserApi().items.getLocations({ filterChildren: true });
       if (result.error) {
         return result;
       }
@@ -54,7 +66,7 @@ export const useLocationStore = defineStore("locations", {
       return result;
     },
     async refreshChildren(): ReturnType<ItemsApi["getLocations"]> {
-      const result = await this.client.items.getLocations({ filterChildren: false });
+      const result = await useUserApi().items.getLocations({ filterChildren: false });
       if (result.error) {
         return result;
       }
@@ -63,7 +75,7 @@ export const useLocationStore = defineStore("locations", {
       return result;
     },
     async refreshTree(): ReturnType<ItemsApi["getTree"]> {
-      const result = await this.client.items.getTree();
+      const result = await useUserApi().items.getTree();
       if (result.error) {
         return result;
       }

@@ -31,8 +31,22 @@
   const tagsStore = useTagStore();
   const tags = computed(() => tagsStore.tags);
 
-  const itemTable = itemsTable(api);
-  const stats = statCardData(api);
+  const { table: itemTable, asyncData: itemsAsyncData } = itemsTable(api);
+  const { cards: stats, asyncData: statsAsyncData } = statCardData(api);
+
+  // Await everything so the SSR payload (and Pinia state) ships populated
+  await Promise.all([
+    itemsAsyncData,
+    statsAsyncData,
+    useAsyncData("home-parent-locations", async () => {
+      await locationStore.ensureParentsFetched();
+      return true;
+    }),
+    useAsyncData("home-tags", async () => {
+      await tagsStore.ensureAllTagsFetched();
+      return true;
+    }),
+  ]);
 </script>
 
 <template>

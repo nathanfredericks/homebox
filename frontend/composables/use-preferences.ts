@@ -1,4 +1,5 @@
 import type { Ref } from "vue";
+import type { NuxtApp } from "nuxt/app";
 import type { EntitySummary } from "~/lib/api/types/data-contracts";
 import type { DaisyTheme } from "~~/lib/data/themes";
 
@@ -66,7 +67,51 @@ let syncInitialized = false;
 
 const preferenceKeys = Object.keys(DEFAULT_PREFERENCES) as (keyof LocationViewPreferences)[];
 
-const results = useLocalStorage("homebox/preferences/location", DEFAULT_PREFERENCES, { mergeDefaults: true });
+const PREFERENCE_COOKIE_OPTS = {
+  path: "/",
+  sameSite: "lax",
+  maxAge: 60 * 60 * 24 * 365,
+} as const;
+
+// Bulk preferences live in localStorage (browser-only). The few fields the
+// server needs to render correct HTML — theme (data-theme attr), language
+// (SSR locale), and collectionId (X-Tenant header) — are mirrored to cookies
+// so SSR sees them.
+function createPreferences(): Ref<LocationViewPreferences> {
+  const themeCookie = useCookie<DaisyTheme | null>("hb.theme", { ...PREFERENCE_COOKIE_OPTS, default: () => null });
+  const localeCookie = useCookie<string | null>("hb.locale", { ...PREFERENCE_COOKIE_OPTS, default: () => null });
+  const collectionCookie = useCookie<string | null>("hb.collection", {
+    ...PREFERENCE_COOKIE_OPTS,
+    default: () => null,
+  });
+
+  if (import.meta.server) {
+    // cast needed because the auto-imported global Ref and the "vue" Ref types
+    // don't unify in this codebase
+    return useState<LocationViewPreferences>("preferences", () => ({
+      ...DEFAULT_PREFERENCES,
+      ...(themeCookie.value ? { theme: themeCookie.value } : {}),
+      ...(localeCookie.value ? { language: localeCookie.value } : {}),
+      ...(collectionCookie.value ? { collectionId: collectionCookie.value } : {}),
+    })) as unknown as Ref<LocationViewPreferences>;
+  }
+
+  const stored = useLocalStorage("homebox/preferences/location", DEFAULT_PREFERENCES, {
+    mergeDefaults: true,
+  }) as unknown as Ref<LocationViewPreferences>;
+
+  watch(
+    () => [stored.value.theme, stored.value.language, stored.value.collectionId] as const,
+    ([theme, language, collectionId]) => {
+      themeCookie.value = theme ?? null;
+      localeCookie.value = language ?? null;
+      collectionCookie.value = collectionId ?? null;
+    },
+    { immediate: true }
+  );
+
+  return stored;
+}
 
 function forEachSyncedPreference(callback: (key: keyof LocationViewPreferences) => void) {
   for (const key of preferenceKeys) {
@@ -128,7 +173,7 @@ export function useViewPreferencesSync() {
   syncInitialized = true;
 
   const auth = useAuthContext();
-  const preferences = results as unknown as Ref<LocationViewPreferences>;
+  const preferences = useViewPreferences();
   let pauseServerSaves = true;
   let applyingServerSnapshot = false;
   let saveInFlight = false;
@@ -247,7 +292,7 @@ export function useViewPreferencesSync() {
 }
 
 export function useViewPreferences(): Ref<LocationViewPreferences> {
-  // casting is required because the type returned is removable, however since we
-  // use `mergeDefaults` the result _should_ always be present.
-  return results as unknown as Ref<LocationViewPreferences>;
+  const nuxtApp = useNuxtApp() as NuxtApp & { _preferences?: Ref<LocationViewPreferences> };
+  nuxtApp._preferences ??= createPreferences();
+  return nuxtApp._preferences;
 }

@@ -28,7 +28,7 @@
   const confirm = useConfirm();
   const { openDialog, closeDialog } = useDialog();
 
-  const { data: entityTypes, refresh } = useAsyncData("entity-types", async () => {
+  const { data: entityTypes, refresh } = await useAsyncData("entity-types", async () => {
     const { data, error } = await api.entityTypes.getAll();
     if (error) {
       toast.error("Failed to load entity types");

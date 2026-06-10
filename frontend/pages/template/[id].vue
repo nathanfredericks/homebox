@@ -38,11 +38,16 @@
 
   const { t } = useI18n();
 
-  const { data: template, refresh } = useAsyncData(templateId.value, async () => {
+  const { data: template, refresh } = await useAsyncData(`template-${templateId.value}`, async nuxtApp => {
     const { data, error } = await api.templates.get(templateId.value);
     if (error) {
       toast.error(t("components.template.toast.load_failed"));
-      navigateTo("/templates");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/templates"));
+      } else {
+        await navigateTo("/templates");
+      }
       return;
     }
     return data;

@@ -123,27 +123,31 @@
 
 <template>
   <div class="space-y-4">
-    <Teleport to="#collection-header-actions" defer>
-      <TooltipProvider :delay-duration="0">
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              class="size-8"
-              variant="outline"
-              size="icon"
-              :aria-label="$t('collection.create_invite')"
-              :disabled="loading"
-              @click="handleOpenCreate"
-            >
-              <MdiPlus class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {{ $t("collection.create_invite") }}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </Teleport>
+    <!-- ClientOnly: teleports do not render during SSR, so the teleported
+    controls must not take part in hydration -->
+    <ClientOnly>
+      <Teleport to="#collection-header-actions" defer>
+        <TooltipProvider :delay-duration="0">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                class="size-8"
+                variant="outline"
+                size="icon"
+                :aria-label="$t('collection.create_invite')"
+                :disabled="loading"
+                @click="handleOpenCreate"
+              >
+                <MdiPlus class="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {{ $t("collection.create_invite") }}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
       {{ $t("global.loading") }}

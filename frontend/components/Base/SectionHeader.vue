@@ -4,9 +4,12 @@
       <slot />
     </CardTitle>
     <slot name="subtitle" />
-    <CardDescription v-if="$slots.description">
+    <!-- div, not CardDescription: CardDescription renders a <p>, and slots
+    here contain block elements, which is invalid inside <p> and breaks SSR
+    hydration -->
+    <div v-if="$slots.description" class="text-sm text-muted-foreground">
       <slot name="description" />
-    </CardDescription>
+    </div>
     <div v-if="$slots.after">
       <slot name="after" />
     </div>
@@ -14,5 +17,5 @@
 </template>
 
 <script lang="ts" setup>
-  import { CardDescription, CardTitle } from "@/components/ui/card";
+  import { CardTitle } from "@/components/ui/card";
 </script>

@@ -72,11 +72,16 @@
     return route.fullPath.split("/").at(-1) !== itemId.value;
   });
 
-  const { data: item, refresh } = useAsyncData(itemId.value, async () => {
+  const { data: item, refresh } = await useAsyncData(`item-${itemId.value}`, async nuxtApp => {
     const { data, error } = await api.items.get(itemId.value);
     if (error) {
       toast.error(t("items.toast.failed_load_item"));
-      navigateTo("/home");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/home"));
+      } else {
+        await navigateTo("/home");
+      }
       return;
     }
     return data;
@@ -451,8 +456,10 @@
     });
   }
 
+  // useRequestURL works during SSR; window.location does not
+  const requestUrl = useRequestURL();
   const currentUrl = computed(() => {
-    return window.location.href;
+    return requestUrl.origin + route.fullPath;
   });
 
   const currentPath = computed(() => {
@@ -479,21 +486,30 @@
     ];
   });
 
-  const fullpath = computedAsync(async () => {
-    if (!item.value) {
-      return [];
+  // awaited useAsyncData (not computedAsync) so the breadcrumb is in the SSR
+  // payload and identical at hydration
+  const { data: fullpathData } = await useAsyncData(
+    `item-${itemId.value}-fullpath`,
+    async () => {
+      if (!item.value) {
+        return [];
+      }
+
+      const resp = await api.items.fullpath(item.value.id);
+      if (resp.error) {
+        toast.error(t("items.toast.failed_load_item"));
+        return [];
+      }
+
+      return resp.data;
+    },
+    {
+      watch: [item],
     }
+  );
+  const fullpath = computed(() => fullpathData.value ?? []);
 
-    const resp = await api.items.fullpath(item.value.id);
-    if (resp.error) {
-      toast.error(t("items.toast.failed_load_item"));
-      return [];
-    }
-
-    return resp.data;
-  });
-
-  const { data: items, refresh: refreshItemList } = useAsyncData(
+  const { data: items, refresh: refreshItemList } = await useAsyncData(
     () => itemId.value + "_item_list",
     async () => {
       if (!itemId.value) {
@@ -667,21 +683,25 @@
             <div>
               <Breadcrumb v-if="fullpath && fullpath.length > 0">
                 <BreadcrumbList>
-                  <BreadcrumbItem v-for="(part, idx) in fullpath" :key="part.id">
-                    <BreadcrumbLink
-                      v-if="idx < fullpath.length - 1"
-                      as-child
-                      class="text-foreground/70 hover:underline"
-                    >
-                      <NuxtLink :to="`/${part.type}/${part.id}`">
+                  <!-- separator is a sibling <li>, not a child of the item
+                  <li>: nested <li> is invalid HTML and breaks SSR hydration -->
+                  <template v-for="(part, idx) in fullpath" :key="part.id">
+                    <BreadcrumbItem>
+                      <BreadcrumbLink
+                        v-if="idx < fullpath.length - 1"
+                        as-child
+                        class="text-foreground/70 hover:underline"
+                      >
+                        <NuxtLink :to="`/${part.type}/${part.id}`">
+                          {{ part.name }}
+                        </NuxtLink>
+                      </BreadcrumbLink>
+                      <template v-else>
                         {{ part.name }}
-                      </NuxtLink>
-                    </BreadcrumbLink>
-                    <template v-else>
-                      {{ part.name }}
-                    </template>
+                      </template>
+                    </BreadcrumbItem>
                     <BreadcrumbSeparator v-if="idx < fullpath.length - 1" :key="`sep-${part.id}`" />
-                  </BreadcrumbItem>
+                  </template>
                 </BreadcrumbList>
               </Breadcrumb>
               <h1 class="text-wrap pb-1 text-2xl">

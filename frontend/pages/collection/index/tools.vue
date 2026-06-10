@@ -109,14 +109,15 @@
               {{ $t("tools.backups_set.list_empty") }}
             </p>
           </div>
-          <DetailAction>
+          <!-- The file input lives outside the #button slot: that slot
+          renders inside a <button>, and nested interactive elements are
+          invalid HTML that breaks SSR hydration. -->
+          <DetailAction @action="restoreInput?.click()">
             <template #title>{{ $t("tools.backups_set.restore") }}</template>
             {{ $t("tools.backups_set.restore_sub") }}
+            <input ref="restoreInput" type="file" accept=".zip" class="hidden" @change="onRestoreFile" />
             <template #button>
-              <input ref="restoreInput" type="file" accept=".zip" class="hidden" @change="onRestoreFile" />
-              <button class="rounded bg-primary px-3 py-1 text-primary-foreground" @click="restoreInput?.click()">
-                {{ $t("tools.backups_set.restore_button") }}
-              </button>
+              {{ $t("tools.backups_set.restore_button") }}
             </template>
           </DetailAction>
         </div>
@@ -174,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-  import DOMPurify from "dompurify";
+  import DOMPurify from "isomorphic-dompurify";
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
   import MdiFileChart from "~icons/mdi/file-chart";
@@ -207,7 +208,7 @@
   const api = useUserApi();
   const confirm = useConfirm();
   const pubApi = usePublicApi();
-  const { data: status } = useAsyncData(async () => {
+  const { data: status } = await useAsyncData("tools-status", async () => {
     const { data } = await pubApi.status();
     return data;
   });

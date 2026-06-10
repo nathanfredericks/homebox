@@ -2,10 +2,10 @@ import { defineStore } from "pinia";
 import type { TagOut, TagSummary } from "~~/lib/api/types/data-contracts";
 
 export const useTagStore = defineStore("tags", {
+  // Pinia state is serialized into the SSR payload, so it must hold plain
+  // data only — no API client instances and no in-flight Promises.
   state: () => ({
     allTags: null as TagOut[] | null,
-    client: useUserApi(),
-    refreshAllTagsPromise: null as Promise<void> | null,
   }),
   getters: {
     /**
@@ -23,13 +23,17 @@ export const useTagStore = defineStore("tags", {
         return;
       }
 
-      if (this.refreshAllTagsPromise === null) {
-        this.refreshAllTagsPromise = this.refresh().then(() => {});
+      // dedupe promise lives outside $state so it is never serialized
+      const self = this as typeof this & { _refreshAllTags?: Promise<unknown> };
+      self._refreshAllTags ??= this.refresh();
+      try {
+        await self._refreshAllTags;
+      } finally {
+        self._refreshAllTags = undefined;
       }
-      await this.refreshAllTagsPromise;
     },
     async refresh() {
-      const result = await this.client.tags.getAll();
+      const result = await useUserApi().tags.getAll();
       if (result.error) {
         return result;
       }

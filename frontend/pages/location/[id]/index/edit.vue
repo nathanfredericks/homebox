@@ -50,15 +50,23 @@
   const tagStore = useTagStore();
   const tags = computed(() => tagStore.tags);
 
+  // declared before the awaited fetch below, whose handler assigns it
+  const parent = ref<any>({});
+
   const {
     data: nullableItem,
     refresh,
     pending: requestPending,
-  } = useAsyncData(async () => {
+  } = await useAsyncData(`location-${locationId.value}-edit`, async nuxtApp => {
     const { data, error } = await api.items.get(locationId.value);
     if (error) {
       toast.error(t("locations.toast.failed_load_location"));
-      navigateTo("/home");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/home"));
+      } else {
+        await navigateTo("/home");
+      }
       return;
     }
 
@@ -85,7 +93,6 @@
   });
 
   const saving = ref(false);
-  const parent = ref<any>({});
 
   async function saveLocation(redirect: boolean) {
     saving.value = true;

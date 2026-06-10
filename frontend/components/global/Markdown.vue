@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import MarkdownIt from "markdown-it";
   import { imgSize } from "@mdit/plugin-img-size";
-  import DOMPurify from "dompurify";
+  import DOMPurify from "isomorphic-dompurify";
 
   type Props = {
     source?: string | null;

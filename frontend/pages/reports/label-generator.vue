@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useI18n } from "vue-i18n";
-  import DOMPurify from "dompurify";
+  import DOMPurify from "isomorphic-dompurify";
   import { route } from "../../lib/api/base";
   import { Toaster, toast } from "@/components/ui/sonner";
   import { Separator } from "@/components/ui/separator";
@@ -37,7 +37,8 @@
   const replaceHomeboxText = ref(labelBlankLine);
 
   const displayProperties = reactive({
-    baseURL: window.location.origin,
+    // useRequestURL works during SSR; window.location does not
+    baseURL: useRequestURL().origin,
     assetRange: 1,
     assetRangeMax: 91,
     skipLabels: 0,

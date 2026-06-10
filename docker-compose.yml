@@ -1,6 +1,6 @@
 services:
-  homebox:
-    image: homebox
+  homebox-api:
+    image: homebox-api
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -14,5 +14,58 @@ services:
             - linux/arm
     environment:
       - HBOX_LOGGER_LEVEL=-1
+      # The proxy fronts the API, so cookies must use the forwarded host
+      - HBOX_OPTIONS_TRUST_PROXY=true
+      # Dev-only pepper; generate your own for production (openssl rand -base64 48)
+      - HBOX_AUTH_API_KEY_PEPPER=dev-only-pepper-not-for-production-use-32b+
+      - HBOX_OPTIONS_ALLOW_REGISTRATION=true
+    volumes:
+      - homebox-data:/data
+
+  homebox-frontend:
+    image: homebox-frontend
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+      x-bake:
+        platforms:
+            - linux/amd64
+            - linux/arm64
+            - linux/arm
+    environment:
+      # Internal URL the SSR server uses to reach the API
+      - NUXT_API_HOST=http://homebox-api:7745
+    depends_on:
+      - homebox-api
+
+  proxy:
+    image: caddy:alpine
     ports:
-      - 3100:7745
+      - 3100:80
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    depends_on:
+      - homebox-api
+      - homebox-frontend
+
+configs:
+  caddyfile:
+    content: |
+      :80 {
+        # API and swagger go to the Go backend (incl. the
+        # /api/v1/ws/events websocket upgrade); everything
+        # else is server-side rendered by the frontend.
+        handle /api/* {
+          reverse_proxy homebox-api:7745
+        }
+        handle /swagger/* {
+          reverse_proxy homebox-api:7745
+        }
+        handle {
+          reverse_proxy homebox-frontend:3000
+        }
+      }
+
+volumes:
+  homebox-data:

@@ -10,7 +10,7 @@ type StatCard = {
 export function statCardData(api: UserClient) {
   const { t } = useI18n();
 
-  const { data: statistics } = useAsyncData(
+  const asyncData = useAsyncData(
     "statistics",
     async () => {
       const { data } = await api.stats.group();
@@ -21,7 +21,9 @@ export function statCardData(api: UserClient) {
     }
   );
 
-  return computed(() => {
+  const { data: statistics } = asyncData;
+
+  const cards = computed(() => {
     return [
       {
         label: t("home.total_value"),
@@ -45,4 +47,7 @@ export function statCardData(api: UserClient) {
       },
     ] as StatCard[];
   });
+
+  // asyncData is awaited by the page so the stats are in the SSR payload
+  return { cards, asyncData };
 }

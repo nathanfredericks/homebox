@@ -1,7 +1,7 @@
 import type { UserClient } from "~~/lib/api/user";
 
 export function itemsTable(api: UserClient) {
-  const { data: items, refresh } = useAsyncData(
+  const asyncData = useAsyncData(
     "items",
     async () => {
       const { data } = await api.items.getAll({
@@ -16,14 +16,19 @@ export function itemsTable(api: UserClient) {
     }
   );
 
+  const { data: items, refresh } = asyncData;
+
   onServerEvent(ServerEvent.EntityMutation, () => {
     console.log("entity mutation");
     refresh();
   });
 
-  return computed(() => {
+  const table = computed(() => {
     return {
       items: items.value || [],
     };
   });
+
+  // asyncData is awaited by the page so the items are in the SSR payload
+  return { table, asyncData };
 }

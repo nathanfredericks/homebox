@@ -88,7 +88,7 @@
 
   const { copy, copied } = useClipboard({ source: props.text, copiedDuring: 1000 });
   const copyError = ref(false);
-  const isNotHttps = window.location.protocol !== "https:";
+  const isNotHttps = useRequestURL().protocol !== "https:";
 
   async function copyText() {
     await copy(props.text);

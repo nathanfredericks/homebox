@@ -5,18 +5,22 @@
     it here to ensure it's always available. Possibly could move this further
     up the tree
     -->
-    <ModalConfirm />
-    <OutdatedModal v-if="status" :status="status" />
-    <ItemCreateModal />
-    <WipeInventoryDialog />
-    <TagCreateModal />
-    <LocationCreateModal />
-    <ItemBarcodeModal />
-    <AppQuickMenuModal :actions="quickMenuActions" />
-    <AppScannerModal />
-    <CollectionCreateModal />
-    <CollectionJoinModal />
-    <CollectionInviteCreateModal />
+    <!-- Dialogs are closed until the user interacts, and their teleports do
+    not hydrate cleanly, so they are client-only. -->
+    <ClientOnly>
+      <ModalConfirm />
+      <OutdatedModal v-if="status" :status="status" />
+      <ItemCreateModal />
+      <WipeInventoryDialog />
+      <TagCreateModal />
+      <LocationCreateModal />
+      <ItemBarcodeModal />
+      <AppQuickMenuModal :actions="quickMenuActions" />
+      <AppScannerModal />
+      <CollectionCreateModal />
+      <CollectionJoinModal />
+      <CollectionInviteCreateModal />
+    </ClientOnly>
     <SidebarProvider :default-open="sidebarState">
       <Sidebar collapsible="icon">
         <SidebarHeader class="items-center">
@@ -80,9 +84,11 @@
                   </SidebarMenuLink>
                 </SidebarMenuItem>
 
-                <Collapsible v-else default-open class="group/collapsible">
+                <Collapsible v-else default-open :unmount-on-hide="false" class="group/collapsible">
                   <SidebarMenuItem>
-                    <SidebarMenuItem class="flex gap-1">
+                    <!-- div, not SidebarMenuItem: nested <li> elements are
+                    invalid HTML and break SSR hydration -->
+                    <div class="flex gap-1">
                       <SidebarMenuLink
                         :href="n.to"
                         :class="{
@@ -101,7 +107,7 @@
                           />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
-                    </SidebarMenuItem>
+                    </div>
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         <SidebarMenuSubItem v-for="c in n.collapsible" :key="c.id">
@@ -224,7 +230,7 @@
 
 <script lang="ts" setup>
   import { useI18n } from "vue-i18n";
-  import DOMPurify from "dompurify";
+  import DOMPurify from "isomorphic-dompurify";
   import { useTagStore } from "~/stores/tags";
   import { useLocationStore } from "~~/stores/locations";
 
@@ -304,7 +310,7 @@
   });
 
   const pubApi = usePublicApi();
-  const { data: status } = useAsyncData(async () => {
+  const { data: status } = await useAsyncData("layout-status", async () => {
     const { data } = await pubApi.status();
 
     return data;
@@ -498,10 +504,20 @@
   ]);
 
   const tagStore = useTagStore();
-  tagStore.ensureAllTagsFetched();
-
   const locationStore = useLocationStore();
-  locationStore.ensureLocationsFetched();
+
+  // Awaited so the sidebar's tags/locations are rendered during SSR (the
+  // fetched data reaches the client via the serialized Pinia state)
+  await Promise.all([
+    useAsyncData("sidebar-tags", async () => {
+      await tagStore.ensureAllTagsFetched();
+      return true;
+    }),
+    useAsyncData("sidebar-locations", async () => {
+      await locationStore.ensureLocationsFetched();
+      return true;
+    }),
+  ]);
 
   onMounted(() => {
     locationStore.refreshParents();

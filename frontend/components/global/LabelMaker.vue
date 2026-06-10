@@ -30,7 +30,7 @@
 
   const pubApi = usePublicApi();
 
-  const { data: status } = useAsyncData(async () => {
+  const { data: status } = await useAsyncData("label-maker-status", async () => {
     const { data, error } = await pubApi.status();
     if (error) {
       toast.error(t("components.global.label_maker.toast.load_status_failed"));

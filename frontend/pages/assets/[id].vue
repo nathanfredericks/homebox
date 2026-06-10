@@ -16,20 +16,25 @@
 
   const assetId = computed<string>(() => route.params.id as string);
 
-  const { pending, data: items } = useLazyAsyncData(`asset/${assetId.value}`, async () => {
+  const { pending, data: items } = await useAsyncData(`asset-${assetId.value}`, async nuxtApp => {
     const { data, error } = await api.assets.get(assetId.value);
+
+    // navigateTo needs the Nuxt context, which is lost after the await above
+    const redirect = (to: string, opts?: Parameters<typeof navigateTo>[1]) =>
+      nuxtApp ? nuxtApp.runWithContext(() => navigateTo(to, opts)) : navigateTo(to, opts);
+
     if (error) {
       toast.error(t("items.toast.failed_to_load_asset"));
-      navigateTo("/home");
+      await redirect("/home");
       return;
     }
     switch (data.total) {
       case 0:
         toast.error(t("items.toast.asset_not_found"));
-        navigateTo("/home");
+        await redirect("/home");
         break;
       case 1:
-        navigateTo(`/item/${data.items[0]!.id}`, { replace: true, redirectCode: 302 });
+        await redirect(`/item/${data.items[0]!.id}`, { replace: true, redirectCode: 302 });
         break;
       default:
         return data.items;

@@ -4,18 +4,37 @@ import { createI18n } from "vue-i18n";
 import { IntlMessageFormat } from "intl-messageformat";
 
 export default defineNuxtPlugin(({ vueApp }) => {
+  // The requested languages come from the browser on the client and from the
+  // Accept-Language header during SSR, so both sides resolve the same locale.
+  function requestedLanguages(): readonly string[] {
+    if (import.meta.client) {
+      return navigator.languages;
+    }
+
+    const { "accept-language": acceptLanguage } = useRequestHeaders(["accept-language"]);
+    if (!acceptLanguage) {
+      return [];
+    }
+
+    return acceptLanguage
+      .split(",")
+      .map(part => part.split(";")[0]!.trim())
+      .filter(Boolean);
+  }
+
   function checkDefaultLanguage() {
     let matched = null;
     const languages = Object.getOwnPropertyNames(messages());
-    const matching = navigator.languages.filter(lang => languages.some(l => l.toLowerCase() === lang.toLowerCase()));
+    const requested = requestedLanguages();
+    const matching = requested.filter(lang => languages.some(l => l.toLowerCase() === lang.toLowerCase()));
     if (matching.length > 0) {
       matched = matching[0];
     }
     if (!matched) {
+      const languagePartials = requested.map(lang => lang.split("-")[0]!.toLowerCase());
       languages.forEach(lang => {
-        const languagePartials = navigator.language.split("-")[0];
-        if (lang.toLowerCase() === languagePartials) {
-          matched = lang;
+        if (languagePartials.includes(lang.toLowerCase())) {
+          matched ??= lang;
         }
       });
     }

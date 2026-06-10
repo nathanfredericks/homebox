@@ -23,7 +23,7 @@
   const api = useUserApi();
   const { openDialog } = useDialog();
 
-  const { data: templates, refresh } = useAsyncData("templates", async () => {
+  const { data: templates, refresh } = await useAsyncData("templates", async () => {
     const { data, error } = await api.templates.getAll();
     if (error) {
       toast.error(t("components.template.toast.load_failed"));
@@ -47,7 +47,10 @@
       </Button>
     </div>
 
-    <TemplateCreateModal @created="handleRefresh" />
+    <!-- ClientOnly: closed dialogs do not hydrate cleanly under SSR -->
+    <ClientOnly>
+      <TemplateCreateModal @created="handleRefresh" />
+    </ClientOnly>
 
     <div v-if="templates && templates.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <TemplateCard

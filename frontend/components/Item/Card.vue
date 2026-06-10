@@ -1,5 +1,9 @@
 <template>
   <Card class="relative overflow-hidden">
+    <!-- The link is an overlay instead of a wrapper: the card body contains
+    other anchors (location badge, tag chips, markdown links), and nested
+    anchors are invalid HTML that breaks SSR hydration. -->
+    <NuxtLink :to="`/item/${item.id}`" class="absolute inset-0" :aria-label="item.name" />
     <div v-if="tableRow" class="absolute left-1 top-1 z-10">
       <Checkbox
         class="size-5 bg-accent hover:bg-background-accent"
@@ -8,7 +12,7 @@
         @update:model-value="tableRow.toggleSelected()"
       />
     </div>
-    <NuxtLink :to="`/item/${item.id}`">
+    <div class="pointer-events-none relative">
       <div class="relative h-[200px]">
         <img
           v-if="imageUrl && objectContain"
@@ -25,7 +29,7 @@
           :src="imageUrl"
           :alt="item.name"
         />
-        <div class="absolute inset-x-1 bottom-1">
+        <div class="pointer-events-auto absolute inset-x-1 bottom-1">
           <Badge class="text-wrap bg-secondary text-secondary-foreground hover:bg-secondary/70 hover:underline">
             <NuxtLink v-if="item.location" :to="`/location/${item.location.id}`">
               {{ locationString }}
@@ -37,7 +41,7 @@
         <h2 class="line-clamp-2 text-ellipsis text-wrap text-lg font-bold">{{ item.name }}</h2>
         <Separator class="mb-1" />
         <TooltipProvider :delay-duration="0">
-          <div class="flex items-center gap-2">
+          <div class="pointer-events-auto flex items-center gap-2">
             <Tooltip v-if="item.insured">
               <TooltipTrigger>
                 <MdiShieldCheck class="size-5 text-primary" />
@@ -68,11 +72,11 @@
           </div>
         </TooltipProvider>
         <Markdown class="mb-2 line-clamp-3 text-ellipsis" :source="item.description" />
-        <div class="-mr-1 mt-auto flex flex-wrap justify-end gap-2">
+        <div class="pointer-events-auto -mr-1 mt-auto flex flex-wrap justify-end gap-2">
           <TagChip v-for="tag in itemTags" :key="tag.id" :tag="tag" size="sm" :ancestors="tag.ancestors" />
         </div>
       </div>
-    </NuxtLink>
+    </div>
   </Card>
 </template>
 

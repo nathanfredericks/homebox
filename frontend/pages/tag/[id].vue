@@ -42,11 +42,16 @@
 
   const tagId = computed<string>(() => route.params.id as string);
 
-  const { data: tag } = useAsyncData(tagId.value, async () => {
+  const { data: tag } = await useAsyncData(`tag-${tagId.value}`, async nuxtApp => {
     const { data, error } = await api.tags.get(tagId.value);
     if (error) {
       toast.error(t("tags.toast.failed_load_tag"));
-      navigateTo("/home");
+      // navigateTo needs the Nuxt context, which is lost after the await above
+      if (nuxtApp) {
+        await nuxtApp.runWithContext(() => navigateTo("/home"));
+      } else {
+        await navigateTo("/home");
+      }
       return;
     }
     return data;
@@ -188,7 +193,7 @@
     updating.value = false;
   }
 
-  const { data: items, refresh: refreshItemList } = useAsyncData(
+  const { data: items, refresh: refreshItemList } = await useAsyncData(
     () => tagId.value + "_item_list",
     async () => {
       if (!tagId.value) {

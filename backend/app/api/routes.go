@@ -1,14 +1,8 @@
 package main
 
 import (
-	"embed"
-	"errors"
 	"fmt"
-	"io"
-	"mime"
 	"net/http"
-	"path"
-	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hay-kot/httpkit/errchain"
@@ -23,13 +17,6 @@ import (
 
 const prefix = "/api"
 
-var (
-	ErrDir = errors.New("path is dir")
-
-	//go:embed all:static/public/*
-	public embed.FS
-)
-
 func (a *app) debugRouter() *http.ServeMux {
 	dbg := http.NewServeMux()
 	debughandlers.New(dbg)
@@ -39,8 +26,6 @@ func (a *app) debugRouter() *http.ServeMux {
 
 // registerRoutes registers all the routes for the API
 func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllRepos) {
-	registerMimes()
-
 	// Serve doc.json dynamically so the Swagger UI "Base URL" reflects the
 	// actual host of the user's instance rather than a hardcoded value.
 	r.Get("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
@@ -251,53 +236,4 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 
 		r.NotFound(http.NotFound)
 	})
-
-	r.NotFound(chain.ToHandlerFunc(notFoundHandler()))
-}
-
-func registerMimes() {
-	err := mime.AddExtensionType(".js", "application/javascript")
-	if err != nil {
-		panic(err)
-	}
-
-	err = mime.AddExtensionType(".mjs", "application/javascript")
-	if err != nil {
-		panic(err)
-	}
-}
-
-// notFoundHandler perform the main logic around handling the internal SPA embed and ensuring that
-// the client side routing is handled correctly.
-func notFoundHandler() errchain.HandlerFunc {
-	tryRead := func(fs embed.FS, prefix, requestedPath string, w http.ResponseWriter) error {
-		f, err := fs.Open(path.Join(prefix, requestedPath))
-		if err != nil {
-			return err
-		}
-		defer func() { _ = f.Close() }()
-
-		stat, _ := f.Stat()
-		if stat.IsDir() {
-			return ErrDir
-		}
-
-		contentType := mime.TypeByExtension(filepath.Ext(requestedPath))
-		w.Header().Set("Content-Type", contentType)
-		_, err = io.Copy(w, f)
-		return err
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) error {
-		err := tryRead(public, "static/public", r.URL.Path, w)
-		if err != nil {
-			// Fallback to the index.html file.
-			// should succeed in all cases.
-			err = tryRead(public, "static/public", "index.html", w)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
 }

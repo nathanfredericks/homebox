@@ -96,12 +96,11 @@ tasks:
     silent: true
 
   go:ci:with-frontend:
-      desc: Run backend with frontend in CI mode
+      desc: Run backend with the SSR frontend dev server (proxies /api) in CI mode
       dir: frontend
       cmds:
         - pnpm install
-        - pnpm run build
-        - cp -r ./.output/public ../backend/app/api/static/
+        - pnpm dev &
         - task: go:ci
       silent: true
 
@@ -151,6 +150,20 @@ tasks:
         go generate ./...
     sources:
       - "./backend/internal/data/ent/schema/**/*"
+
+  ui:build:
+    desc: Builds the frontend SSR bundle (.output)
+    dir: frontend
+    cmds:
+      - pnpm run build
+
+  ui:start:
+    desc: Runs the built frontend SSR server (expects NUXT_API_HOST to point at the API)
+    dir: frontend
+    env:
+      NUXT_API_HOST: http://localhost:7745
+    cmds:
+      - node .output/server/index.mjs
 
   ui:watch:
     desc: Starts the vitest test runner in watch mode
@@ -217,7 +230,7 @@ tasks:
       - pnpm exec playwright install-deps
       - pnpm exec playwright install
       - sleep 30
-      - TEST_SHUTDOWN_API_SERVER=true E2E_BASE_URL=http://localhost:7745 pnpm exec playwright test -c ./test/playwright.config.ts {{ .CLI_ARGS }}
+      - TEST_SHUTDOWN_API_SERVER=true E2E_BASE_URL=http://localhost:3000 pnpm exec playwright test -c ./test/playwright.config.ts {{ .CLI_ARGS }}
 
   pr:
     desc: Runs all tasks required for a PR

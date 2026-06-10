@@ -27,7 +27,7 @@
 
   const api = useUserApi();
 
-  const { data: tree } = useAsyncData(async () => {
+  const { data: tree } = await useAsyncData("locations-tree", async () => {
     const { data, error } = await api.items.getTree({
       withItems: true,
     });
@@ -118,7 +118,7 @@
         <TooltipProvider :delay-duration="0">
           <ButtonGroup>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger as-child>
                 <Button size="icon" variant="outline" data-pos="start" @click="openAll">
                   <MdiExpandAllOutline />
                 </Button>
@@ -128,7 +128,7 @@
               </TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger as-child>
                 <Button size="icon" variant="outline" data-pos="middle" @click="closeAll">
                   <MdiCollapseAllOutline />
                 </Button>
@@ -138,7 +138,7 @@
               </TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger as-child>
                 <Button
                   size="icon"
                   :variant="showItems ? 'default' : 'outline'"
