@@ -52,12 +52,6 @@
             <Switch id="defaultInsured" v-model:checked="form.defaultInsured" />
             <Label for="defaultInsured" class="text-sm">{{ $t("global.insured") }}</Label>
           </div>
-          <div class="flex items-center gap-2">
-            <Switch id="defaultLifetimeWarranty" v-model:checked="form.defaultLifetimeWarranty" />
-            <Label for="defaultLifetimeWarranty" class="text-sm">{{
-              $t("components.template.form.lifetime_warranty")
-            }}</Label>
-          </div>
         </div>
       </div>
 

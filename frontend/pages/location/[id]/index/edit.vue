@@ -103,7 +103,6 @@
       tagIds: item.value.tagIds,
       assetId: item.value.assetId,
       purchasePrice: item.value.purchasePrice || 0,
-      soldPrice: item.value.soldPrice || 0,
       // Date-only fields stay as YYYY-MM-DD strings via the spread above.
       syncChildEntityLocations: item.value.syncChildEntityLocations,
     };

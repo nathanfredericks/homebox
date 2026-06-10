@@ -330,48 +330,6 @@
     return details;
   });
 
-  const showWarranty = computed(() => {
-    if (preferences.value.showEmpty) {
-      return true;
-    }
-    return item.value?.lifetimeWarranty || validDate(item.value?.warrantyExpires);
-  });
-
-  const warrantyDetails = computed(() => {
-    const details: Details = [
-      {
-        name: "items.lifetime_warranty",
-        text: item.value?.lifetimeWarranty ? "Yes" : "No",
-      },
-    ];
-
-    if (item.value?.lifetimeWarranty) {
-      details.push({
-        name: "items.warranty_expires",
-        text: "N/A",
-      });
-    } else {
-      details.push({
-        name: "items.warranty_expires",
-        text: item.value?.warrantyExpires || "",
-        type: "date",
-        date: true,
-      });
-    }
-
-    details.push({
-      name: "items.warranty_details",
-      type: "markdown",
-      text: item.value?.warrantyDetails || "",
-    });
-
-    if (!preferences.value.showEmpty) {
-      return filterZeroValues(details);
-    }
-
-    return details;
-  });
-
   const showPurchase = computed(() => {
     if (preferences.value.showEmpty) {
       return true;
@@ -393,39 +351,6 @@
       {
         name: "items.purchase_date",
         text: item.value?.purchaseDate || "",
-        type: "date",
-        date: true,
-      },
-    ];
-
-    if (!preferences.value.showEmpty) {
-      return filterZeroValues(v);
-    }
-
-    return v;
-  });
-
-  const showSold = computed(() => {
-    if (preferences.value.showEmpty) {
-      return true;
-    }
-    return item.value?.soldTo || item.value?.soldPrice !== 0 || validDate(item.value?.soldDate);
-  });
-
-  const soldDetails = computed<Details>(() => {
-    const v: Details = [
-      {
-        name: "items.sold_to",
-        text: item.value?.soldTo || "",
-      },
-      {
-        name: "items.sold_price",
-        text: String(item.value?.soldPrice) || "",
-        type: "currency",
-      },
-      {
-        name: "items.sold_at",
-        text: item.value?.soldDate || "",
         type: "date",
         date: true,
       },
@@ -609,13 +534,9 @@
       defaultWarrantyDetails: item.value.warrantyDetails || "",
       defaultLocationId: item.value.location?.id || item.value.parent?.id || "",
       defaultTagIds: item.value.tags?.map(l => l.id) || [],
-      includeWarrantyFields: !!(
-        item.value.warrantyDetails ||
-        item.value.lifetimeWarranty ||
-        item.value.warrantyExpires
-      ),
+      includeWarrantyFields: false,
       includePurchaseFields: !!(item.value.purchaseFrom || item.value.purchasePrice || item.value.purchaseDate),
-      includeSoldFields: !!(item.value.soldTo || item.value.soldPrice || item.value.soldDate),
+      includeSoldFields: false,
       fields: item.value.fields.map(field => ({
         id: NIL_UUID,
         name: field.name,
@@ -877,16 +798,6 @@
           <BaseCard v-if="showPurchase" collapsable>
             <template #title> {{ $t("items.purchase_details") }} </template>
             <DetailsSection :details="purchaseDetails" />
-          </BaseCard>
-
-          <BaseCard v-if="showWarranty" collapsable>
-            <template #title> {{ $t("items.warranty_details") }} </template>
-            <DetailsSection :details="warrantyDetails" />
-          </BaseCard>
-
-          <BaseCard v-if="showSold" collapsable>
-            <template #title> {{ $t("items.sold_details") }} </template>
-            <DetailsSection :details="soldDetails" />
           </BaseCard>
         </template>
       </div>

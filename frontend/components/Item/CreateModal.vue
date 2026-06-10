@@ -161,10 +161,6 @@
                 <span class="font-medium">{{ $t("components.template.form.model_number") }}:</span>
                 {{ templateData.defaultModelNumber }}
               </div>
-              <div v-if="templateData.defaultLifetimeWarranty">
-                <span class="font-medium">{{ $t("components.template.form.lifetime_warranty") }}:</span>
-                {{ $t("global.yes") }}
-              </div>
               <div v-if="templateData.defaultLocation">
                 <span class="font-medium">{{ $t("components.template.form.location") }}:</span>
                 {{ templateData.defaultLocation.name }}

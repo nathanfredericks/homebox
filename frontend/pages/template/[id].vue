@@ -205,10 +205,6 @@
               <Switch id="editInsured" v-model:checked="updateData.defaultInsured" />
               <Label for="editInsured" class="text-sm">{{ $t("global.insured") }}</Label>
             </div>
-            <div class="flex items-center gap-2">
-              <Switch id="editWarranty" v-model:checked="updateData.defaultLifetimeWarranty" />
-              <Label for="editWarranty" class="text-sm">{{ $t("components.template.form.lifetime_warranty") }}</Label>
-            </div>
           </div>
         </div>
 
@@ -317,10 +313,6 @@
             <div class="flex justify-between">
               <dt class="text-muted-foreground">{{ $t("global.insured") }}</dt>
               <dd>{{ template.defaultInsured ? $t("global.yes") : $t("global.no") }}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-muted-foreground">{{ $t("components.template.form.lifetime_warranty") }}</dt>
-              <dd>{{ template.defaultLifetimeWarranty ? $t("global.yes") : $t("global.no") }}</dd>
             </div>
           </dl>
         </div>

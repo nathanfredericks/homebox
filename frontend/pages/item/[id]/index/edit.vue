@@ -106,16 +106,11 @@
     saving.value = true;
 
     let purchasePrice = 0;
-    let soldPrice = 0;
     if (item.value.purchasePrice) {
       purchasePrice = item.value.purchasePrice;
     }
-    if (item.value.soldPrice) {
-      soldPrice = item.value.soldPrice;
-    }
 
     console.log((item.value.purchasePrice ??= 0));
-    console.log((item.value.soldPrice ??= 0));
 
     const payload: EntityUpdate = {
       ...item.value,
@@ -123,7 +118,6 @@
       tagIds: item.value.tagIds,
       assetId: item.value.assetId,
       purchasePrice,
-      soldPrice,
       // Date-only fields stay as YYYY-MM-DD strings — see types.Date on the
       // backend. The form/picker hold strings; sending the spread above is
       // sufficient.
@@ -254,44 +248,6 @@
       type: "date",
       label: "items.purchase_date",
       ref: "purchaseDate",
-    },
-  ];
-
-  const warrantyFields: FormField[] = [
-    {
-      type: "checkbox",
-      label: "items.lifetime_warranty",
-      ref: "lifetimeWarranty",
-    },
-    {
-      type: "date",
-      label: "items.warranty_expires",
-      ref: "warrantyExpires",
-    },
-    {
-      type: "textarea",
-      label: "items.warranty_details",
-      ref: "warrantyDetails",
-      maxLength: 1000,
-    },
-  ];
-
-  const soldFields: FormField[] = [
-    {
-      type: "text",
-      label: "items.sold_to",
-      ref: "soldTo",
-      maxLength: 255,
-    },
-    {
-      type: "number",
-      label: "items.sold_price",
-      ref: "soldPrice",
-    },
-    {
-      type: "date",
-      label: "items.sold_at",
-      ref: "soldDate",
     },
   ];
 
@@ -875,104 +831,6 @@
           </div>
           <div class="border-t sm:p-0">
             <div v-for="field in purchaseFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
-              <div class="border-b px-4 pb-4 pt-2 sm:px-6">
-                <FormTextArea
-                  v-if="field.type === 'textarea'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'text'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'number'"
-                  v-model.number="item[field.ref]"
-                  type="number"
-                  step="any"
-                  :label="$t(field.label)"
-                  inline
-                />
-                <FormDatePicker
-                  v-else-if="field.type === 'date'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  date-only
-                  inline
-                />
-                <FormCheckbox
-                  v-else-if="field.type === 'checkbox'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card v-if="preferences.editorAdvancedView" class="overflow-visible shadow-xl">
-          <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.warranty_details") }}</h3>
-          </div>
-          <div class="border-t sm:p-0">
-            <div v-for="field in warrantyFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
-              <div class="border-b px-4 pb-4 pt-2 sm:px-6">
-                <FormTextArea
-                  v-if="field.type === 'textarea'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'text'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'number'"
-                  v-model.number="item[field.ref]"
-                  type="number"
-                  step="any"
-                  :label="$t(field.label)"
-                  inline
-                />
-                <FormDatePicker
-                  v-else-if="field.type === 'date'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  date-only
-                  inline
-                />
-                <FormCheckbox
-                  v-else-if="field.type === 'checkbox'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card v-if="preferences.editorAdvancedView" class="overflow-visible shadow-xl">
-          <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.sold_details") }}</h3>
-          </div>
-          <div class="border-t sm:p-0">
-            <div v-for="field in soldFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
               <div class="border-b px-4 pb-4 pt-2 sm:px-6">
                 <FormTextArea
                   v-if="field.type === 'textarea'"
