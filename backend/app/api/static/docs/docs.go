@@ -2208,7 +2208,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "image/jpeg",
+                        "description": "image/png",
                         "schema": {
                             "type": "string"
                         }

@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"bytes"
-	"image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -11,12 +9,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/web/adapters"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
-
-	_ "embed"
 )
-
-//go:embed assets/QRIcon.png
-var qrcodeLogo []byte
 
 // HandleGenerateQRCode godoc
 //
@@ -24,7 +17,7 @@ var qrcodeLogo []byte
 //	@Tags		Items
 //	@Produce	json
 //	@Param		data	query		string	false	"data to be encoded into qrcode"
-//	@Success	200		{string}	string	"image/jpeg"
+//	@Success	200		{string}	string	"image/png"
 //	@Router		/v1/qrcode [GET]
 //	@Security	Bearer
 func (ctrl *V1Controller) HandleGenerateQRCode() errchain.HandlerFunc {
@@ -37,11 +30,6 @@ func (ctrl *V1Controller) HandleGenerateQRCode() errchain.HandlerFunc {
 		q, err := adapters.DecodeQuery[query](r)
 		if err != nil {
 			return err
-		}
-
-		image, err := png.Decode(bytes.NewReader(qrcodeLogo))
-		if err != nil {
-			panic(err)
 		}
 
 		decodedStr, err := url.QueryUnescape(q.Data)
@@ -62,11 +50,11 @@ func (ctrl *V1Controller) HandleGenerateQRCode() errchain.HandlerFunc {
 			Closer: io.NopCloser(nil),
 		}
 
-		qrwriter := standard.NewWithWriter(toWriteCloser, standard.WithLogoImage(image))
+		qrwriter := standard.NewWithWriter(toWriteCloser, standard.WithBuiltinImageEncoder(standard.PNG_FORMAT))
 
-		// Return the QR code as a jpeg image
-		w.Header().Set("Content-Type", "image/jpeg")
-		w.Header().Set("Content-Disposition", "attachment; filename=qrcode.jpg")
+		// Return the QR code as a png image
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Content-Disposition", "inline; filename=qrcode.png")
 		return qrc.Save(qrwriter)
 	}
 }

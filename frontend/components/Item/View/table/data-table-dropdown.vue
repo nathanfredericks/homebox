@@ -246,6 +246,20 @@
             : t("components.item.view.table.dropdown.create_maintenance_item")
         }}
       </DropdownMenuItem>
+      <!-- print labels -->
+      <DropdownMenuItem
+        @click="
+          openDialog(DialogID.PrintLabels, {
+            params: { items: multi ? multi.items.map(row => row.original) : [item!] },
+          })
+        "
+      >
+        {{
+          multi
+            ? t("components.item.view.table.dropdown.print_labels_selected")
+            : t("components.item.view.table.dropdown.print_labels_item")
+        }}
+      </DropdownMenuItem>
       <!-- duplicate -->
       <DropdownMenuItem @click="duplicateItems(multi ? multi.items.map(row => row.original.id) : [item!.id])">
         {{

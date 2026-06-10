@@ -157,8 +157,10 @@
             },
             "label_maker": {
                 "browser_print": "Print from Browser",
+                "configure_settings": "Configure label settings",
                 "confirm_description": "Are you sure you want to print this label?",
                 "download": "Download Label",
+                "label_per_quantity": "Print one label per quantity ({quantity})",
                 "print": "Print label",
                 "server_print": "Print on Server",
                 "titles": "Labels",
@@ -210,6 +212,12 @@
                 },
                 "upload_photos": "Upload Photos",
                 "uploaded": "Uploaded Photo"
+            },
+            "print_labels": {
+                "description": "Print labels for the selected items using your label generator settings.",
+                "print": "Print",
+                "summary": "{items} items, {labels} labels, {pages} pages",
+                "title": "Print Labels"
             },
             "product_import": {
                 "barcode": "Product's barcode",
@@ -265,6 +273,8 @@
                         "error_duplicating": "Error Duplicating Item",
                         "open_menu": "Open menu",
                         "open_multi_tab_warning": "For security reasons browsers do not allow multiple tabs to be opened at once by default, to change this please follow the documentation:",
+                        "print_labels_item": "Print Label",
+                        "print_labels_selected": "Print Labels for Selected Items",
                         "toggle_expand": "Toggle Expand",
                         "view_item": "View item",
                         "view_items": "View items"
@@ -825,6 +835,7 @@
             "instruction_2": "As such, these labels work by printing a URL QR Code and AssetID information on a label. If you've disabled\n AssetID's in your HomeBox settings, you can still use this tool, but the AssetID's won't reference any item",
             "instruction_3": "This feature is in early development stages and may change in future releases, if you have feedback please\n provide it in the '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub Discussion'</a>'",
             "label_height": "Label Height",
+            "label_per_quantity": "One label per quantity",
             "label_width": "Label Width",
             "measure_type": "Measure Type",
             "monospace_font": "Monospace Font",

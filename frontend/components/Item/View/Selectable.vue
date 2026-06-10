@@ -12,6 +12,7 @@
   import type { Pagination } from "./pagination";
   import MaintenanceEditModal from "@/components/Maintenance/EditModal.vue";
   import ItemChangeDetails from "./ItemChangeDetails.vue";
+  import PrintLabelsDialog from "../PrintLabelsDialog.vue";
 
   const props = defineProps<{
     view?: ViewType;
@@ -54,6 +55,7 @@
   <section>
     <MaintenanceEditModal />
     <ItemChangeDetails />
+    <PrintLabelsDialog />
 
     <BaseSectionHeader class="flex items-center justify-between" :class="{ 'mb-2 mt-4': !externalPagination }">
       <div class="flex gap-2 text-nowrap">

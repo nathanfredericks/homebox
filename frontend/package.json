@@ -76,6 +76,7 @@
     "dompurify": "^3.4.5",
     "fuzzysort": "^3.1.0",
     "h3": "^1.15.11",
+    "html-to-image": "^1.11.13",
     "http-proxy": "^1.18.1",
     "isomorphic-dompurify": "^3.16.0",
     "lucide-vue-next": "^0.542.0",

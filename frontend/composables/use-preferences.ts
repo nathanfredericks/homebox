@@ -12,6 +12,29 @@ export type DuplicateSettings = {
   copyPrefixOverride: string | null;
 };
 
+export type LabelMakerPreferences = {
+  baseURL: string | null;
+  assetRange: number;
+  assetRangeMax: number;
+  skipLabels: number;
+  measure: string;
+  gapY: number;
+  columns: number;
+  cardHeight: number;
+  cardWidth: number;
+  pageWidth: number;
+  pageHeight: number;
+  pageTopPadding: number;
+  pageBottomPadding: number;
+  pageLeftPadding: number;
+  pageRightPadding: number;
+  sansFont: "default" | "open-sans";
+  monoFont: "default" | "geist-mono";
+  bordered: boolean;
+  printLocationRow: boolean;
+  labelPerQuantity: boolean;
+};
+
 export type LocationViewPreferences = {
   showDetails: boolean;
   showEmpty: boolean;
@@ -33,6 +56,7 @@ export type LocationViewPreferences = {
   quickActions: {
     enabled: boolean;
   };
+  labelmaker: LabelMakerPreferences;
 };
 export type PreferenceSyncConfig = Partial<Record<keyof LocationViewPreferences, boolean>>;
 
@@ -56,6 +80,28 @@ const DEFAULT_PREFERENCES: LocationViewPreferences = {
   shownMultiTabWarning: false,
   quickActions: {
     enabled: true,
+  },
+  labelmaker: {
+    baseURL: null,
+    assetRange: 1,
+    assetRangeMax: 91,
+    skipLabels: 0,
+    measure: "in",
+    gapY: 0.25,
+    columns: 3,
+    cardHeight: 1,
+    cardWidth: 2.63,
+    pageWidth: 8.5,
+    pageHeight: 11,
+    pageTopPadding: 0.52,
+    pageBottomPadding: 0.42,
+    pageLeftPadding: 0.25,
+    pageRightPadding: 0.1,
+    sansFont: "default",
+    monoFont: "default",
+    bordered: false,
+    printLocationRow: true,
+    labelPerQuantity: false,
   },
 };
 let syncConfig: PreferenceSyncConfig = {
@@ -137,7 +183,22 @@ function mergeSyncedSettings(
 
   forEachSyncedPreference(key => {
     if (key in settings) {
-      nextPreferences[key] = settings[key] as never;
+      const defaultValue = DEFAULT_PREFERENCES[key];
+      const serverValue = settings[key];
+      // deep-merge object preferences with defaults so server snapshots
+      // written before a subkey existed don't drop it
+      if (
+        defaultValue !== null &&
+        typeof defaultValue === "object" &&
+        !Array.isArray(defaultValue) &&
+        serverValue !== null &&
+        typeof serverValue === "object" &&
+        !Array.isArray(serverValue)
+      ) {
+        nextPreferences[key] = { ...defaultValue, ...serverValue } as never;
+      } else {
+        nextPreferences[key] = serverValue as never;
+      }
     }
   });
 

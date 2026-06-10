@@ -29,6 +29,7 @@ export enum DialogID {
   ItemImage = "item-image",
   ItemTableSettings = "item-table-settings",
   PrintLabel = "print-label",
+  PrintLabels = "print-labels",
   ProductImport = "product-import",
   QuickMenu = "quick-menu",
   Scanner = "scanner",
@@ -75,6 +76,9 @@ export type DialogParamsMap = {
     changeLocation?: boolean;
     addTags?: boolean;
     removeTags?: boolean;
+  };
+  [DialogID.PrintLabels]: {
+    items: EntitySummary[];
   };
   [DialogID.CreateCollection]?: { redirectTo?: string };
   [DialogID.JoinCollection]?: { redirectTo?: string; inviteCode?: string };

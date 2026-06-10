@@ -1416,7 +1416,7 @@ paths:
             type: string
       responses:
         "200":
-          description: image/jpeg
+          description: image/png
           content:
             application/json:
               schema:
