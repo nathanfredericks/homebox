@@ -482,6 +482,41 @@ func (r *AttachmentRepo) Get(ctx context.Context, gid uuid.UUID, id uuid.UUID) (
 	}
 }
 
+// ensurePrimaryPhoto promotes the oldest photo attachment to primary when the
+// entity has photos but none marked primary, so an entity with at least one
+// photo always has a primary photo.
+func (r *AttachmentRepo) ensurePrimaryPhoto(ctx context.Context, entityID uuid.UUID) error {
+	hasPrimary, err := r.db.Attachment.Query().
+		Where(
+			attachment.HasEntityWith(entity.ID(entityID)),
+			attachment.TypeEQ(attachment.TypePhoto),
+			attachment.Primary(true),
+		).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if hasPrimary {
+		return nil
+	}
+
+	oldest, err := r.db.Attachment.Query().
+		Where(
+			attachment.HasEntityWith(entity.ID(entityID)),
+			attachment.TypeEQ(attachment.TypePhoto),
+		).
+		Order(ent.Asc(attachment.FieldCreatedAt)).
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	return oldest.Update().SetPrimary(true).Exec(ctx)
+}
+
 func (r *AttachmentRepo) Update(ctx context.Context, gid uuid.UUID, id uuid.UUID, data *ItemAttachmentUpdate) (*ent.Attachment, error) {
 	// Validate that the attachment belongs to the specified group
 	_, err := r.db.Attachment.Query().
@@ -532,6 +567,12 @@ func (r *AttachmentRepo) Update(ctx context.Context, gid uuid.UUID, id uuid.UUID
 		}
 	}
 
+	// The update may have unset primary or changed the primary photo's type;
+	// make sure some photo is still marked primary.
+	if err := r.ensurePrimaryPhoto(ctx, attachmentItem.ID); err != nil {
+		return nil, err
+	}
+
 	return r.Get(ctx, gid, updatedAttachment.ID)
 }
 
@@ -545,13 +586,25 @@ func (r *AttachmentRepo) Delete(ctx context.Context, gid uuid.UUID, id uuid.UUID
 			attachment.ID(id),
 			attachment.HasEntityWith(entity.HasGroupWith(group.ID(gid))),
 		).
+		WithEntity().
 		Only(ctx)
 	if err != nil {
 		return err
 	}
 
+	// When deleting a primary photo, promote another photo to primary afterwards
+	ensurePrimary := func() error {
+		if doc.Type == attachment.TypePhoto && doc.Primary && doc.Edges.Entity != nil {
+			return r.ensurePrimaryPhoto(ctx, doc.Edges.Entity.ID)
+		}
+		return nil
+	}
+
 	if isExternalLink(doc.MimeType) {
-		return r.db.Attachment.DeleteOneID(id).Exec(ctx)
+		if err := r.db.Attachment.DeleteOneID(id).Exec(ctx); err != nil {
+			return err
+		}
+		return ensurePrimary()
 	}
 
 	all, err := r.db.Attachment.Query().Where(attachment.Path(doc.Path)).All(ctx)
@@ -599,7 +652,11 @@ func (r *AttachmentRepo) Delete(ctx context.Context, gid uuid.UUID, id uuid.UUID
 		}
 	}
 
-	return r.db.Attachment.DeleteOneID(id).Exec(ctx)
+	if err := r.db.Attachment.DeleteOneID(id).Exec(ctx); err != nil {
+		return err
+	}
+
+	return ensurePrimary()
 }
 
 func (r *AttachmentRepo) Rename(ctx context.Context, gid uuid.UUID, id uuid.UUID, title string) (*ent.Attachment, error) {
@@ -862,58 +919,6 @@ func (r *AttachmentRepo) CreateThumbnail(ctx context.Context, groupId, attachmen
 		return nil
 	}
 	return nil
-}
-
-func (r *AttachmentRepo) CreateMissingThumbnails(ctx context.Context, groupId uuid.UUID) (int, error) {
-	ctx, span := otel.Tracer("data").Start(ctx, "repo.AttachmentRepo.CreateMissingThumbnails")
-	defer span.End()
-
-	attachments, err := r.db.Attachment.Query().
-		Where(
-			attachment.HasEntityWith(entity.HasGroupWith(group.ID(groupId))),
-			attachment.TypeNEQ("thumbnail"),
-		).
-		All(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	pubsubString, err := utils.GenerateSubPubConn(r.pubSubConn, "thumbnails")
-	if err != nil {
-		log.Err(err).Msg("failed to generate pubsub connection string")
-	}
-	topic, err := pubsub.OpenTopic(ctx, pubsubString)
-	if err != nil {
-		log.Err(err).Msg("failed to open pubsub topic")
-	}
-
-	count := 0
-	for _, attachment := range attachments {
-		if r.thumbnail.Enabled {
-			if !attachment.QueryThumbnail().ExistX(ctx) {
-				if count > 0 && count%100 == 0 {
-					time.Sleep(2 * time.Second)
-				}
-				err = topic.Send(ctx, &pubsub.Message{
-					Body: []byte(fmt.Sprintf("attachment_created:%s", attachment.ID.String())),
-					Metadata: map[string]string{
-						"group_id":      groupId.String(),
-						"attachment_id": attachment.ID.String(),
-						"title":         attachment.Title,
-						"path":          attachment.Path,
-					},
-				})
-				if err != nil {
-					log.Err(err).Msg("failed to send message to topic")
-					continue
-				} else {
-					count++
-				}
-			}
-		}
-	}
-
-	return count, nil
 }
 
 // UploadResult contains the results of uploading a file

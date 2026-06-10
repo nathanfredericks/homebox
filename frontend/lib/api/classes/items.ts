@@ -200,10 +200,11 @@ export class ItemsApi extends BaseAPI {
       url: route("/entities", { ...q, isLocation: true }),
     });
     // Unwrap paginated response to flat array for backward compat
+    const { data, ...rest } = resp;
     return {
-      ...resp,
-      data: resp.data?.items ?? [],
-    } as { data: EntitySummary[]; error: any; status: number };
+      ...rest,
+      data: data?.items ?? [],
+    };
   }
 
   getTree(tq: TreeQuery = { withItems: false }) {

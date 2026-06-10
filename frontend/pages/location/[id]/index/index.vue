@@ -4,7 +4,6 @@
   import type { AnyDetail, Details } from "~~/components/global/DetailsSection/types";
   import { filterZeroValues } from "~~/components/global/DetailsSection/types";
   import type { ItemAttachment } from "~~/lib/api/types/data-contracts";
-  import { useLocationStore } from "~~/stores/locations";
   import MdiPackageVariant from "~icons/mdi/package-variant";
   import MdiPlus from "~icons/mdi/plus";
   import MdiPencil from "~icons/mdi/pencil";
@@ -49,7 +48,7 @@
 
   const locationId = computed<string>(() => route.params.id as string);
 
-  const { data: location, refresh } = await useAsyncData(`location-${locationId.value}`, async nuxtApp => {
+  const { data: location } = await useAsyncData(`location-${locationId.value}`, async nuxtApp => {
     const { data, error } = await api.items.getLocation(locationId.value);
     if (error) {
       toast.error(t("locations.toast.failed_load_location"));
@@ -90,8 +89,6 @@
   function goToEdit() {
     navigateTo(`/location/${locationId.value}/edit`);
   }
-
-  const locationStore = useLocationStore();
 
   // Photos
   type Photo = {
@@ -231,6 +228,9 @@
       <!-- Photo gallery -->
       <section v-if="photos.length > 0" class="mb-4">
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          <!-- aspect-square is a Tailwind core utility; the eslint plugin
+          misses it because the aspect-ratio plugin is also installed. -->
+          <!-- eslint-disable tailwindcss/no-custom-classname -->
           <button
             v-for="(photo, i) in photos"
             :key="i"
@@ -243,6 +243,7 @@
               class="size-full object-cover transition-transform duration-200 group-hover:scale-105"
             />
           </button>
+          <!-- eslint-enable tailwindcss/no-custom-classname -->
         </div>
       </section>
 

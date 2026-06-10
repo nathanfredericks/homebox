@@ -856,11 +856,20 @@ export interface EntitySummary {
   insured: boolean;
   /** Container-specific (populated when querying locations) */
   itemCount: number;
+  manufacturer: string;
+  modelNumber: string;
   name: string;
+  /** Extras */
+  notes: string;
   /** Edges */
   parent?: EntitySummary | null;
+  /** Purchase */
+  purchaseDate: Date | string;
+  purchaseFrom: string;
   purchasePrice: number;
   quantity: number;
+  /** Identifications */
+  serialNumber: string;
   /** Sale details */
   soldDate: Date | string;
   tags: TagSummary[];
@@ -1426,12 +1435,6 @@ export interface TokenResponse {
   attachmentToken: string;
   expiresAt: Date | string;
   token: string;
-}
-
-export interface WipeInventoryOptions {
-  wipeLocations: boolean;
-  wipeMaintenance: boolean;
-  wipeTags: boolean;
 }
 
 export interface Wrapped {

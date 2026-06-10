@@ -5,7 +5,6 @@
   import type { ItemAttachment, EntityFieldData, EntityOut, EntityUpdate } from "~~/lib/api/types/data-contracts";
   import { AttachmentTypes } from "~~/lib/api/types/non-generated";
   import { useTagStore } from "~/stores/tags";
-  import { useLocationStore } from "~~/stores/locations";
   import MdiLoading from "~icons/mdi/loading";
   import MdiDelete from "~icons/mdi/delete";
   import MdiPencil from "~icons/mdi/pencil";
@@ -46,9 +45,6 @@
   const preferences = useViewPreferences();
 
   const itemId = computed<string>(() => route.params.id as string);
-
-  const locationStore = useLocationStore();
-  const locations = computed(() => locationStore.allLocations);
 
   const tagStore = useTagStore();
   const tags = computed(() => tagStore.tags);
@@ -173,7 +169,7 @@
 
   type FormField = TextFormField | BoolFormField | DateFormField | NumberFormField;
 
-  const mainFields: FormField[] = [
+  const mainFields: BoolFormField[] = [
     {
       type: "checkbox",
       label: "items.insured",
@@ -617,18 +613,8 @@
 
             <!-- Manufacturer (1/2) + Model Number (1/2) -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormTextField
-                v-model="item.manufacturer"
-                :label="$t('items.manufacturer')"
-                inline
-                :max-length="255"
-              />
-              <FormTextField
-                v-model="item.modelNumber"
-                :label="$t('items.model_number')"
-                inline
-                :max-length="255"
-              />
+              <FormTextField v-model="item.manufacturer" :label="$t('items.manufacturer')" inline :max-length="255" />
+              <FormTextField v-model="item.modelNumber" :label="$t('items.model_number')" inline :max-length="255" />
             </div>
 
             <!-- Serial Number -->

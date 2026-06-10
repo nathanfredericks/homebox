@@ -170,7 +170,18 @@ type (
 		CreatedAt   time.Time `json:"createdAt"`
 		UpdatedAt   time.Time `json:"updatedAt"`
 
-		PurchasePrice float64 `json:"purchasePrice"`
+		// Identifications
+		SerialNumber string `json:"serialNumber"`
+		ModelNumber  string `json:"modelNumber"`
+		Manufacturer string `json:"manufacturer"`
+
+		// Purchase
+		PurchaseDate  types.Date `json:"purchaseDate"`
+		PurchaseFrom  string     `json:"purchaseFrom"`
+		PurchasePrice float64    `json:"purchasePrice"`
+
+		// Extras
+		Notes string `json:"notes"`
 
 		// Edges
 		Parent     *EntitySummary     `json:"parent,omitempty"     extensions:"x-nullable,x-omitempty"`
@@ -262,16 +273,28 @@ func mapEntitySummary(e *ent.Entity) EntitySummary {
 	}
 
 	return EntitySummary{
-		ID:            e.ID,
-		AssetID:       AssetID(e.AssetID),
-		Name:          e.Name,
-		Description:   e.Description,
-		ImportRef:     e.ImportRef,
-		Quantity:      e.Quantity,
-		CreatedAt:     e.CreatedAt,
-		UpdatedAt:     e.UpdatedAt,
-		Archived:      e.Archived,
+		ID:          e.ID,
+		AssetID:     AssetID(e.AssetID),
+		Name:        e.Name,
+		Description: e.Description,
+		ImportRef:   e.ImportRef,
+		Quantity:    e.Quantity,
+		CreatedAt:   e.CreatedAt,
+		UpdatedAt:   e.UpdatedAt,
+		Archived:    e.Archived,
+
+		// Identifications
+		SerialNumber: e.SerialNumber,
+		ModelNumber:  e.ModelNumber,
+		Manufacturer: e.Manufacturer,
+
+		// Purchase
+		PurchaseDate:  types.DateFromTime(e.PurchaseDate),
+		PurchaseFrom:  e.PurchaseFrom,
 		PurchasePrice: e.PurchasePrice,
+
+		// Extras
+		Notes: e.Notes,
 
 		// Edges
 		Parent:     parent,
@@ -1326,125 +1349,6 @@ func (r *EntityRepository) DeleteByGroup(ctx context.Context, gid, id uuid.UUID)
 	return nil
 }
 
-func (r *EntityRepository) WipeInventory(ctx context.Context, gid uuid.UUID, wipeTags bool, wipeContainers bool, wipeMaintenance bool) (int, error) {
-	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory",
-		trace.WithAttributes(
-			attribute.String("group.id", gid.String()),
-			attribute.Bool("wipe.tags", wipeTags),
-			attribute.Bool("wipe.containers", wipeContainers),
-			attribute.Bool("wipe.maintenance", wipeMaintenance),
-		))
-	defer span.End()
-
-	deleted := 0
-
-	// Wipe maintenance records if requested
-	// IMPORTANT: Must delete maintenance records BEFORE entities since they are linked to entities
-	if wipeMaintenance {
-		maintCtx, maintSpan := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory.maintenance")
-		maintenanceCount, err := r.db.MaintenanceEntry.Delete().
-			Where(maintenanceentry.HasEntityWith(entity.HasGroupWith(group.ID(gid)))).
-			Exec(maintCtx)
-		if err != nil {
-			recordSpanError(maintSpan, err)
-			log.Err(err).Msg("failed to delete maintenance entries during wipe inventory")
-		} else {
-			maintSpan.SetAttributes(attribute.Int("deleted.count", maintenanceCount))
-			log.Info().Int("count", maintenanceCount).Msg("deleted maintenance entries during wipe inventory")
-			deleted += maintenanceCount
-		}
-		maintSpan.End()
-	}
-
-	loadCtx, loadSpan := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory.loadEntities")
-	entities, err := r.db.Entity.Query().
-		Where(entity.HasGroupWith(group.ID(gid))).
-		WithAttachments().
-		All(loadCtx)
-	if err != nil {
-		recordSpanError(loadSpan, err)
-		loadSpan.End()
-		recordSpanError(span, err)
-		return 0, err
-	}
-	loadSpan.SetAttributes(attribute.Int("entities.count", len(entities)))
-	loadSpan.End()
-
-	entCtx, entSpan := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory.deleteEntities",
-		trace.WithAttributes(attribute.Int("entities.count", len(entities))))
-	entityDeleted := 0
-	attachmentsDeleted := 0
-	for _, e := range entities {
-		for _, att := range e.Edges.Attachments {
-			err := r.attachments.Delete(entCtx, gid, att.ID)
-			if err != nil {
-				recordSpanError(entSpan, err)
-				log.Err(err).Str("attachment_id", att.ID.String()).Msg("failed to delete attachment during wipe inventory")
-				continue
-			}
-			attachmentsDeleted++
-		}
-
-		_, err = r.db.Entity.
-			Delete().
-			Where(
-				entity.ID(e.ID),
-				entity.HasGroupWith(group.ID(gid)),
-			).Exec(entCtx)
-		if err != nil {
-			recordSpanError(entSpan, err)
-			log.Err(err).Str("entity_id", e.ID.String()).Msg("failed to delete entity during wipe inventory")
-			continue
-		}
-
-		entityDeleted++
-	}
-	entSpan.SetAttributes(
-		attribute.Int("entities.deleted.count", entityDeleted),
-		attribute.Int("attachments.deleted.count", attachmentsDeleted),
-	)
-	entSpan.End()
-	deleted += entityDeleted
-
-	// Wipe tags if requested
-	if wipeTags {
-		tagCtx, tagSpan := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory.tags")
-		tagCount, err := r.db.Tag.Delete().Where(tag.HasGroupWith(group.ID(gid))).Exec(tagCtx)
-		if err != nil {
-			recordSpanError(tagSpan, err)
-			log.Err(err).Msg("failed to delete tags during wipe inventory")
-		} else {
-			tagSpan.SetAttributes(attribute.Int("deleted.count", tagCount))
-			log.Info().Int("count", tagCount).Msg("deleted tags during wipe inventory")
-			deleted += tagCount
-		}
-		tagSpan.End()
-	}
-
-	// Wipe containers (location-type entities) if requested
-	if wipeContainers {
-		containerCtx, containerSpan := entityTracer().Start(ctx, "repo.EntityRepository.WipeInventory.containers")
-		containerCount, err := r.db.Entity.Delete().
-			Where(
-				entity.HasGroupWith(group.ID(gid)),
-				entity.HasEntityTypeWith(entitytype.IsLocation(true)),
-			).Exec(containerCtx)
-		if err != nil {
-			recordSpanError(containerSpan, err)
-			log.Err(err).Msg("failed to delete containers during wipe inventory")
-		} else {
-			containerSpan.SetAttributes(attribute.Int("deleted.count", containerCount))
-			log.Info().Int("count", containerCount).Msg("deleted containers during wipe inventory")
-			deleted += containerCount
-		}
-		containerSpan.End()
-	}
-
-	span.SetAttributes(attribute.Int("deleted.count.total", deleted))
-	r.publishMutationEvent(gid)
-	return deleted, nil
-}
-
 func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, data EntityUpdate) (EntityOut, error) {
 	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.UpdateByGroup",
 		trace.WithAttributes(
@@ -1503,8 +1407,8 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 		SetSyncChildEntityLocations(data.SyncChildEntityLocations)
 
 	// Date fields are nullable. Writing types.Date{}.Time() would persist
-	// the 0001-01-01 sentinel that ZeroOutTimeFields then has to chase —
-	// clear the column instead so absent dates round-trip as NULL/"".
+	// a 0001-01-01 sentinel — clear the column instead so absent dates
+	// round-trip as NULL/"".
 	if t := data.PurchaseDate.Time(); t.IsZero() {
 		q.ClearPurchaseDate()
 	} else {
@@ -1997,165 +1901,6 @@ func (r *EntityRepository) GetAllCustomFieldNames(ctx context.Context, gid uuid.
 
 	span.SetAttributes(attribute.Int("names.count", len(fieldNames)))
 	return fieldNames, nil
-}
-
-// ZeroOutTimeFields sets all date fields to the beginning of the day.
-func (r *EntityRepository) ZeroOutTimeFields(ctx context.Context, gid uuid.UUID) (int, error) {
-	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.ZeroOutTimeFields",
-		trace.WithAttributes(attribute.String("group.id", gid.String())))
-	defer span.End()
-
-	q := r.db.Entity.Query().Where(
-		entity.HasGroupWith(group.ID(gid)),
-		entity.Or(
-			entity.PurchaseDateNotNil(),
-			entity.PurchaseFromLT("0002-01-01"),
-			entity.SoldDateNotNil(),
-			entity.SoldToLT("0002-01-01"),
-			entity.WarrantyExpiresNotNil(),
-			entity.WarrantyDetailsLT("0002-01-01"),
-		),
-	)
-
-	loadCtx, loadSpan := entityTracer().Start(ctx, "repo.EntityRepository.ZeroOutTimeFields.load")
-	entities, err := q.All(loadCtx)
-	if err != nil {
-		wrapped := fmt.Errorf("ZeroOutTimeFields() -> failed to get entities: %w", err)
-		recordSpanError(loadSpan, wrapped)
-		loadSpan.End()
-		recordSpanError(span, wrapped)
-		return -1, wrapped
-	}
-	loadSpan.SetAttributes(attribute.Int("entities.count", len(entities)))
-	loadSpan.End()
-
-	toDateOnly := func(t time.Time) time.Time {
-		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	}
-
-	_, updateSpan := entityTracer().Start(ctx, "repo.EntityRepository.ZeroOutTimeFields.update",
-		trace.WithAttributes(attribute.Int("entities.count", len(entities))))
-	defer func() {
-		updateSpan.End()
-	}()
-
-	updated := 0
-
-	for _, e := range entities {
-		updateQ := r.db.Entity.Update().Where(entity.ID(e.ID))
-
-		if !e.PurchaseDate.IsZero() {
-			switch {
-			case e.PurchaseDate.Year() < 100:
-				updateQ.ClearPurchaseDate()
-			default:
-				updateQ.SetPurchaseDate(toDateOnly(e.PurchaseDate))
-			}
-		} else {
-			updateQ.ClearPurchaseDate()
-		}
-
-		if !e.SoldDate.IsZero() {
-			switch {
-			case e.SoldDate.Year() < 100:
-				updateQ.ClearSoldDate()
-			default:
-				updateQ.SetSoldDate(toDateOnly(e.SoldDate))
-			}
-		} else {
-			updateQ.ClearSoldDate()
-		}
-
-		if !e.WarrantyExpires.IsZero() {
-			switch {
-			case e.WarrantyExpires.Year() < 100:
-				updateQ.ClearWarrantyExpires()
-			default:
-				updateQ.SetWarrantyExpires(toDateOnly(e.WarrantyExpires))
-			}
-		} else {
-			updateQ.ClearWarrantyExpires()
-		}
-
-		_, err = updateQ.Save(ctx)
-		if err != nil {
-			wrapped := fmt.Errorf("ZeroOutTimeFields() -> failed to update entity: %w", err)
-			recordSpanError(updateSpan, wrapped)
-			recordSpanError(span, wrapped)
-			return updated, wrapped
-		}
-
-		updated++
-	}
-
-	updateSpan.SetAttributes(attribute.Int("entities.updated.count", updated))
-	span.SetAttributes(attribute.Int("entities.updated.count", updated))
-	return updated, nil
-}
-
-func (r *EntityRepository) SetPrimaryPhotos(ctx context.Context, gid uuid.UUID) (int, error) {
-	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.SetPrimaryPhotos",
-		trace.WithAttributes(attribute.String("group.id", gid.String())))
-	defer span.End()
-
-	loadCtx, loadSpan := entityTracer().Start(ctx, "repo.EntityRepository.SetPrimaryPhotos.load")
-	entityIDs, err := r.db.Entity.Query().
-		Where(
-			entity.HasGroupWith(group.ID(gid)),
-			entity.HasAttachmentsWith(
-				attachment.TypeEQ(attachment.TypePhoto),
-				attachment.Not(
-					attachment.And(
-						attachment.Primary(true),
-						attachment.TypeEQ(attachment.TypePhoto),
-					),
-				),
-			),
-		).
-		IDs(loadCtx)
-	if err != nil {
-		recordSpanError(loadSpan, err)
-		loadSpan.End()
-		recordSpanError(span, err)
-		return -1, err
-	}
-	loadSpan.SetAttributes(attribute.Int("entities.count", len(entityIDs)))
-	loadSpan.End()
-
-	updateCtx, updateSpan := entityTracer().Start(ctx, "repo.EntityRepository.SetPrimaryPhotos.update",
-		trace.WithAttributes(attribute.Int("entities.count", len(entityIDs))))
-	defer updateSpan.End()
-
-	updated := 0
-	for _, id := range entityIDs {
-		a, err := r.db.Attachment.Query().
-			Where(
-				attachment.HasEntityWith(entity.ID(id)),
-				attachment.TypeEQ(attachment.TypePhoto),
-				attachment.Primary(false),
-			).
-			First(updateCtx)
-		if err != nil {
-			recordSpanError(updateSpan, err)
-			recordSpanError(span, err)
-			return updated, err
-		}
-
-		_, err = r.db.Attachment.UpdateOne(a).
-			SetPrimary(true).
-			Save(updateCtx)
-		if err != nil {
-			recordSpanError(updateSpan, err)
-			recordSpanError(span, err)
-			return updated, err
-		}
-
-		updated++
-	}
-
-	updateSpan.SetAttributes(attribute.Int("entities.updated.count", updated))
-	span.SetAttributes(attribute.Int("entities.updated.count", updated))
-	return updated, nil
 }
 
 // Duplicate creates a copy of an entity with configurable options for what data to copy.

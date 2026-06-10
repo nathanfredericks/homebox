@@ -42,12 +42,6 @@
   const { openDialog, closeDialog } = useDialog();
 
   const preferences = useViewPreferences();
-  function setDisplayHeader() {
-    preferences.value.displayLegacyHeader = !preferences.value.displayLegacyHeader;
-  }
-  function setLegacyImageFit() {
-    preferences.value.legacyImageFit = !preferences.value.legacyImageFit;
-  }
 
   const auth = useAuthContext();
 
@@ -403,34 +397,6 @@
         </div>
       </BaseCard>
 
-      <!-- TODO: Remove this notice once users are familiar with the collection-based settings. -->
-      <BaseCard>
-        <template #title>
-          <BaseSectionHeader>
-            <span> {{ $t("profile.moved_notice_title") }} </span>
-            <template #description>
-              {{ $t("profile.moved_notice_description") }}
-            </template>
-          </BaseSectionHeader>
-        </template>
-
-        <div class="space-y-2 px-4 pb-4 text-sm text-muted-foreground">
-          <p>
-            {{ $t("profile.moved_notice_body") }}
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <NuxtLink to="/collection/settings" class="text-primary underline">
-              {{ $t("profile.moved_notice_link_settings") }}
-            </NuxtLink>
-            <NuxtLink to="/collection/notifiers" class="text-primary underline">
-              {{ $t("profile.moved_notice_link_notifiers") }}
-            </NuxtLink>
-            <NuxtLink to="/collection/invites" class="text-primary underline">
-              {{ $t("profile.moved_notice_link_invites") }}
-            </NuxtLink>
-          </div>
-        </div>
-      </BaseCard>
       <BaseCard>
         <template #title>
           <BaseSectionHeader>
@@ -443,14 +409,6 @@
         </template>
 
         <div class="px-4 pb-4">
-          <div class="mb-3 flex gap-2">
-            <Button variant="secondary" size="sm" @click="setDisplayHeader">
-              {{ $t("profile.display_legacy_header", { currentValue: preferences.displayLegacyHeader }) }}
-            </Button>
-            <Button variant="secondary" size="sm" @click="setLegacyImageFit">
-              {{ $t("profile.legacy_image_fit", { currentValue: preferences.legacyImageFit }) }}
-            </Button>
-          </div>
           <ThemePicker />
         </div>
       </BaseCard>

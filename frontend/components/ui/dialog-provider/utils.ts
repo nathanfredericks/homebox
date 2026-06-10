@@ -40,7 +40,6 @@ export enum DialogID {
   ItemChangeDetails = "item-table-updater",
   CreateEntityType = "create-entity-type",
   UpdateEntityType = "update-entity-type",
-  WipeInventory = "wipe-inventory",
 }
 
 /**
@@ -91,7 +90,6 @@ export type DialogResultMap = {
   [DialogID.ItemImage]?: { action: "delete"; id: string };
   [DialogID.EditMaintenance]?: boolean;
   [DialogID.ItemChangeDetails]?: boolean;
-  [DialogID.WipeInventory]?: { wipeTags: boolean; wipeLocations: boolean; wipeMaintenance: boolean };
   [DialogID.CreateGroupInvite]?: GroupInvitation;
 };
 

@@ -97,23 +97,63 @@
   const route = useRoute();
   const router = useRouter();
 
+  function routeQueryFields(): string[] {
+    const qFields = route.query.fields;
+    if (Array.isArray(qFields)) {
+      return qFields.filter((f): f is string => typeof f === "string");
+    }
+    return typeof qFields === "string" ? [qFields] : [];
+  }
+
+  // Fetch the first page during SSR so the page renders with all items by
+  // default instead of waiting for client-side hydration. The page size used
+  // is returned so the client can refetch if its persisted preference differs
+  // from the server-side default.
+  const { data: initialPage } = await useAsyncData("items-initial-page", async () => {
+    const { data, error } = await api.items.getAll({
+      q: query.value || "",
+      parentIds: qLoc.value,
+      tags: qTag.value,
+      negateTags: negateTags.value,
+      onlyWithoutPhoto: onlyWithoutPhoto.value,
+      onlyWithPhoto: onlyWithPhoto.value,
+      includeArchived: includeArchived.value,
+      page: page.value,
+      pageSize: pageSize.value,
+      orderBy: orderBy.value,
+      fields: routeQueryFields(),
+    });
+
+    if (error) {
+      return null;
+    }
+
+    return { result: data, pageSize: pageSize.value, collectionId: preferences.value.collectionId ?? null };
+  });
+
+  if (initialPage.value?.result) {
+    total.value = initialPage.value.result.total;
+    items.value = initialPage.value.result.items ?? [];
+    initialSearch.value = false;
+  }
+
   onMounted(async () => {
     loading.value = true;
     searchLocked.value = true;
     await Promise.all([locationsStore.ensureLocationsFetched(), tagStore.ensureAllTagsFetched()]);
-    if (qLoc) {
+    if (qLoc.value.length > 0) {
       selectedLocations.value = locations.value.filter(l => qLoc.value.includes(l.id));
     }
 
-    if (qTag) {
+    if (qTag.value.length > 0) {
       selectedTags.value = tags.value.filter(l => qTag.value.includes(l.id));
     }
 
     queryParamsInitialized.value = true;
     searchLocked.value = false;
 
-    const qFields = route.query.fields as string[];
-    if (qFields) {
+    const qFields = routeQueryFields();
+    if (qFields.length > 0) {
       fieldTuples.value = qFields.map(f => f.split("=") as [string, string]);
 
       for (const t of fieldTuples.value) {
@@ -123,8 +163,14 @@
       }
     }
 
-    // trigger search if no changes
-    if (!qTag && !qLoc) {
+    // The SSR fetch used server-side defaults for the page size and the
+    // selected collection (both live in localStorage, unavailable during SSR);
+    // refetch if the client's persisted preferences differ or the fetch failed.
+    if (
+      !initialPage.value?.result ||
+      initialPage.value.pageSize !== pageSize.value ||
+      initialPage.value.collectionId !== (preferences.value.collectionId ?? null)
+    ) {
       search();
     }
 

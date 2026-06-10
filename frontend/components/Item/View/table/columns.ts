@@ -188,6 +188,138 @@ export function makeColumns({
       },
     },
     {
+      id: "description",
+      accessorKey: "description",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.description")
+        ),
+      cell: ({ row }) => h("div", { class: "max-w-xs truncate text-sm" }, String(row.getValue("description") ?? "")),
+    },
+    {
+      id: "entityType",
+      accessorFn: row => row.entityType?.name ?? "",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.entity_type")
+        ),
+      cell: ({ row }) => h("div", { class: "text-sm" }, String(row.getValue("entityType") ?? "")),
+    },
+    {
+      id: "tags",
+      accessorFn: row => (row.tags ?? []).map(tag => tag.name).join(", "),
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.tags")
+        ),
+      cell: ({ row }) => h("div", { class: "max-w-xs truncate text-sm" }, String(row.getValue("tags") ?? "")),
+    },
+    {
+      id: "manufacturer",
+      accessorKey: "manufacturer",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.manufacturer")
+        ),
+      cell: ({ row }) => h("div", { class: "text-sm" }, String(row.getValue("manufacturer") ?? "")),
+    },
+    {
+      id: "modelNumber",
+      accessorKey: "modelNumber",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.model_number")
+        ),
+      cell: ({ row }) => h("div", { class: "text-sm" }, String(row.getValue("modelNumber") ?? "")),
+    },
+    {
+      id: "serialNumber",
+      accessorKey: "serialNumber",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.serial_number")
+        ),
+      cell: ({ row }) => h("div", { class: "text-sm" }, String(row.getValue("serialNumber") ?? "")),
+    },
+    {
+      id: "notes",
+      accessorKey: "notes",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.notes")
+        ),
+      cell: ({ row }) => h("div", { class: "max-w-xs truncate text-sm" }, String(row.getValue("notes") ?? "")),
+    },
+    {
+      id: "purchaseDate",
+      accessorKey: "purchaseDate",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.purchase_date")
+        ),
+      cell: ({ row }) => {
+        const val = row.getValue("purchaseDate") as Date | string | null;
+        if (!val || String(val).startsWith("0001-01-01")) {
+          return h("div", { class: "text-center text-sm text-muted-foreground" }, "");
+        }
+        return h("div", { class: "text-center text-sm" }, h(DateTime, { date: val as Date, datetimeType: "date" }));
+      },
+    },
+    {
+      id: "purchaseFrom",
+      accessorKey: "purchaseFrom",
+      header: ({ column }) =>
+        h(
+          Button,
+          {
+            variant: "ghost",
+            onClick: () => !disableSort && column.toggleSorting(column.getIsSorted() === "asc"),
+          },
+          () => sortable(column, "items.purchase_from")
+        ),
+      cell: ({ row }) => h("div", { class: "text-sm" }, String(row.getValue("purchaseFrom") ?? "")),
+    },
+    {
       id: "createdAt",
       accessorKey: "createdAt",
       header: ({ column }) =>

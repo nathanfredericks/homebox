@@ -72,31 +72,15 @@
 
       <!-- Row 4: Manufacturer + Model Number (50/50) -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormTextField
-          v-model="form.manufacturer"
-          :label="$t('items.manufacturer')"
-          :max-length="255"
-        />
-        <FormTextField
-          v-model="form.modelNumber"
-          :label="$t('items.model_number')"
-          :max-length="255"
-        />
+        <FormTextField v-model="form.manufacturer" :label="$t('items.manufacturer')" :max-length="255" />
+        <FormTextField v-model="form.modelNumber" :label="$t('items.model_number')" :max-length="255" />
       </div>
 
       <!-- Row 5: Serial Number (full width) -->
-      <FormTextField
-        v-model="form.serialNumber"
-        :label="$t('items.serial_number')"
-        :max-length="255"
-      />
+      <FormTextField v-model="form.serialNumber" :label="$t('items.serial_number')" :max-length="255" />
 
       <!-- Row 6: Notes (full width) -->
-      <FormTextArea
-        v-model="form.notes"
-        :label="$t('items.notes')"
-        :max-length="1000"
-      />
+      <FormTextArea v-model="form.notes" :label="$t('items.notes')" :max-length="1000" />
 
       <!-- Entity Type selector (shown when multiple item types exist) -->
       <div v-if="showEntityTypeSelector" class="flex w-full flex-col gap-1.5">

@@ -144,30 +144,6 @@
             {{ $t("tools.actions_set.ensure_import_refs_sub") }}
             <template #button> {{ $t("tools.actions_set.ensure_import_refs_button") }} </template>
           </DetailAction>
-          <DetailAction @action="resetItemDateTimes">
-            <template #title> {{ $t("tools.actions_set.zero_datetimes") }} </template>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="DOMPurify.sanitize($t('tools.actions_set.zero_datetimes_sub'))" />
-            <template #button> {{ $t("tools.actions_set.zero_datetimes_button") }} </template>
-          </DetailAction>
-          <DetailAction @action="setPrimaryPhotos">
-            <template #title> {{ $t("tools.actions_set.set_primary_photo") }} </template>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="DOMPurify.sanitize($t('tools.actions_set.set_primary_photo_sub'))" />
-            <template #button> {{ $t("tools.actions_set.set_primary_photo_button") }} </template>
-          </DetailAction>
-          <DetailAction @action="createMissingThumbnails">
-            <template #title> {{ $t("tools.actions_set.create_missing_thumbnails") }} </template>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="DOMPurify.sanitize($t('tools.actions_set.create_missing_thumbnails_sub'))" />
-            <template #button> {{ $t("tools.actions_set.create_missing_thumbnails_button") }} </template>
-          </DetailAction>
-          <DetailAction @action="wipeInventory">
-            <template #title> {{ $t("tools.actions_set.wipe_inventory") }} </template>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="DOMPurify.sanitize($t('tools.actions_set.wipe_inventory_sub'))" />
-            <template #button> {{ $t("tools.actions_set.wipe_inventory_button") }} </template>
-          </DetailAction>
         </div>
       </BaseCard>
     </BaseContainer>
@@ -207,11 +183,6 @@
 
   const api = useUserApi();
   const confirm = useConfirm();
-  const pubApi = usePublicApi();
-  const { data: status } = await useAsyncData("tools-status", async () => {
-    const { data } = await pubApi.status();
-    return data;
-  });
 
   const getBillOfMaterials = () => {
     const url = api.reports.billOfMaterialsURL(prefs.value.collectionId ?? undefined);
@@ -240,23 +211,6 @@
     toast.success(t("tools.toast.asset_success", { results: result.data.completed }));
   };
 
-  const createMissingThumbnails = async () => {
-    const { isCanceled } = await confirm.open(t("tools.actions_set.create_missing_thumbnails_confirm"));
-
-    if (isCanceled) {
-      return;
-    }
-
-    const result = await api.actions.createMissingThumbnails();
-
-    if (result.error) {
-      toast.error(t("tools.toast.failed_create_missing_thumbnails"));
-      return;
-    }
-
-    toast.success(t("tools.toast.asset_success", { results: result.data.completed }));
-  };
-
   const ensureImportRefs = async () => {
     const { isCanceled } = await confirm.open(t("tools.import_export_set.import_ref_confirm"));
 
@@ -268,40 +222,6 @@
 
     if (result.error) {
       toast.error(t("tools.toast.failed_ensure_import_refs"));
-      return;
-    }
-
-    toast.success(t("tools.toast.asset_success", { results: result.data.completed }));
-  };
-
-  const resetItemDateTimes = async () => {
-    const { isCanceled } = await confirm.open(t("tools.actions_set.zero_datetimes_confirm"));
-
-    if (isCanceled) {
-      return;
-    }
-
-    const result = await api.actions.resetItemDateTimes();
-
-    if (result.error) {
-      toast.error(t("tools.toast.failed_zero_datetimes"));
-      return;
-    }
-
-    toast.success(t("tools.toast.asset_success", { results: result.data.completed }));
-  };
-
-  const setPrimaryPhotos = async () => {
-    const { isCanceled } = await confirm.open(t("tools.actions_set.set_primary_photo_confirm"));
-
-    if (isCanceled) {
-      return;
-    }
-
-    const result = await api.actions.setPrimaryPhotos();
-
-    if (result.error) {
-      toast.error(t("tools.toast.failed_set_primary_photos"));
       return;
     }
 
@@ -391,32 +311,4 @@
     }
     toast.success(t("tools.toast.restore_started"));
   }
-
-  const wipeInventory = async () => {
-    if (status.value?.demo) {
-      await confirm.open(t("tools.demo_mode_error.wipe_inventory"));
-      return;
-    }
-
-    openDialog(DialogID.WipeInventory, {
-      onClose: async result => {
-        if (!result) {
-          return;
-        }
-
-        const apiResult = await api.actions.wipeInventory({
-          wipeTags: result.wipeTags,
-          wipeLocations: result.wipeLocations,
-          wipeMaintenance: result.wipeMaintenance,
-        });
-
-        if (apiResult.error) {
-          toast.error(t("tools.toast.failed_wipe_inventory"));
-          return;
-        }
-
-        toast.success(t("tools.toast.wipe_inventory_success", { results: apiResult.data.completed }));
-      },
-    });
-  };
 </script>

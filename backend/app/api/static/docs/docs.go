@@ -18,31 +18,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/actions/create-missing-thumbnails": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Creates thumbnails for items that are missing them",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Actions"
-                ],
-                "summary": "Create Missing Thumbnails",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ActionAmountResult"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/actions/ensure-asset-ids": {
             "post": {
                 "security": [
@@ -83,91 +58,6 @@ const docTemplate = `{
                     "Actions"
                 ],
                 "summary": "Ensures Import Refs",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ActionAmountResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/actions/set-primary-photos": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Sets the first photo of each item as the primary photo",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Actions"
-                ],
-                "summary": "Set Primary Photos",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ActionAmountResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/actions/wipe-inventory": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Deletes all items in the inventory",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Actions"
-                ],
-                "summary": "Wipe Inventory",
-                "parameters": [
-                    {
-                        "description": "Wipe options",
-                        "name": "options",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/v1.WipeInventoryOptions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ActionAmountResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/actions/zero-item-time-fields": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Resets all item date fields to the beginning of the day",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Actions"
-                ],
-                "summary": "Zero Out Time Fields",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5095,7 +4985,17 @@ const docTemplate = `{
                     "description": "Container-specific (populated when querying locations)",
                     "type": "number"
                 },
+                "manufacturer": {
+                    "type": "string"
+                },
+                "modelNumber": {
+                    "type": "string"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "description": "Extras",
                     "type": "string"
                 },
                 "parent": {
@@ -5108,11 +5008,22 @@ const docTemplate = `{
                     "x-nullable": true,
                     "x-omitempty": true
                 },
+                "purchaseDate": {
+                    "description": "Purchase",
+                    "type": "string"
+                },
+                "purchaseFrom": {
+                    "type": "string"
+                },
                 "purchasePrice": {
                     "type": "number"
                 },
                 "quantity": {
                     "type": "number"
+                },
+                "serialNumber": {
+                    "description": "Identifications",
+                    "type": "string"
                 },
                 "soldDate": {
                     "description": "Sale details",
@@ -6556,20 +6467,6 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.WipeInventoryOptions": {
-            "type": "object",
-            "properties": {
-                "wipeLocations": {
-                    "type": "boolean"
-                },
-                "wipeMaintenance": {
-                    "type": "boolean"
-                },
-                "wipeTags": {
-                    "type": "boolean"
                 }
             }
         },

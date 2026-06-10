@@ -552,6 +552,7 @@
             "view_image": "View Image"
         },
         "edit_details": "Edit Details",
+        "entity_type": "Type",
         "field": "Field",
         "field_selector": "Field Selector",
         "field_value": "Field Value",
@@ -583,6 +584,7 @@
         "prev_page": "Previous Page",
         "purchase_date": "Purchase Date",
         "purchase_details": "Purchase Details",
+        "purchase_from": "Purchased From",
         "purchase_price": "Purchase Price",
         "purchased_from": "Purchased From",
         "quantity": "Quantity",
@@ -601,6 +603,7 @@
         "sold_price": "Sold Price",
         "sold_to": "Sold To",
         "sync_child_locations": "Sync child items' locations",
+        "tags": "Tags",
         "tip_1": "Location and tag filters use the 'OR' operation. If more than one is selected only one will be\n required for a match.",
         "tip_2": "Searches prefixed with '#'' will query for a asset ID (example '#000-001')",
         "tip_3": "Field filters use the 'OR' operation. If more than one is selected only one will be required for a\n match.",
@@ -773,20 +776,12 @@
         "delete_account_confirm": "Are you sure you want to delete your account? If you are the last member in your group all your data will be deleted. This action cannot be undone.",
         "delete_account_sub": "Delete your account and all its associated data. This can not be undone.",
         "delete_notifier_confirm": "Are you sure you want to delete this notifier?",
-        "display_legacy_header": "{ currentValue, select, true {Disable Legacy Header} false {Enable Legacy Header} other {Not Hit}}",
         "enabled": "Enabled",
         "example": "Example",
         "group_settings": "Group Settings",
         "group_settings_sub": "Shared Group Settings. You may need to refresh your browser for some settings to apply.",
         "inactive": "Inactive",
         "language": "Language",
-        "legacy_image_fit": "{ currentValue, select, true {Disable Legacy Fit: Fit Image with Bars} false {Enable Legacy Fit: Fill Image with Crop} other {Not Hit}}",
-        "moved_notice_body": "Notifiers, invites, and currency settings have been moved to the collection pages.",
-        "moved_notice_description": "These settings are now managed per collection.",
-        "moved_notice_link_invites": "Collection invites",
-        "moved_notice_link_notifiers": "Collection notifiers",
-        "moved_notice_link_settings": "Collection currency settings",
-        "moved_notice_title": "Looking for notifiers, invites, or currency settings?",
         "new_password": "New Password",
         "no_api_keys": "No API keys yet",
         "no_notifiers": "No notifiers configured",
@@ -901,33 +896,13 @@
     "tools": {
         "actions": "Inventory Actions",
         "actions_set": {
-            "create_missing_thumbnails": "Create Missing Thumbnails",
-            "create_missing_thumbnails_button": "Create Thumbnails",
-            "create_missing_thumbnails_confirm": "Are you sure you want to create missing thumbnails? This can take a while and cannot be paused.",
-            "create_missing_thumbnails_sub": "Creates thumbnails for all attachments that are supported by the current configuration. This is useful for attachments that were uploaded prior to the v0.20.0 release of Homebox. This will not overwrite existing thumbnails, only create new ones for attachments that do not have a thumbnail. Please note that the thumbnails are created in the background and may take a while to complete.",
             "ensure_ids": "Ensure Asset IDs",
             "ensure_ids_button": "Ensure Asset IDs",
             "ensure_ids_confirm": "Are you sure you want to ensure all assets have an ID? This can take a while and cannot be undone.",
             "ensure_ids_sub": "Ensures that all items in your inventory have a valid asset_id field. This is done by finding the highest current asset_id field in the database and applying the next value to each item that has an unset asset_id field. This is done in order of the created_at field.",
             "ensure_import_refs": "Ensure Import Refs",
             "ensure_import_refs_button": "Ensure Import Refs",
-            "ensure_import_refs_sub": "Ensures that all items in your inventory have a valid import_ref field. This is done by randomly generating a 8 character string for each item that has an unset import_ref field.",
-            "set_primary_photo": "Set Primary Photo",
-            "set_primary_photo_button": "Set Primary Photo",
-            "set_primary_photo_confirm": "Are you sure you want to set primary photos? This can take a while and cannot be undone.",
-            "set_primary_photo_sub": "In version v0.10.0 of Homebox, the primary image field was added to attachments of type photo. This action will set the primary image field to the first image in the attachments array in the database, if it is not already set. '<a class=\"link\" href=\"https://github.com/hay-kot/homebox/pull/576\">'See GitHub PR #576'</a>'",
-            "wipe_inventory": "Wipe Inventory",
-            "wipe_inventory_button": "Wipe Inventory",
-            "wipe_inventory_confirm": "Are you sure you want to wipe your entire inventory? This will delete all items and cannot be undone.",
-            "wipe_inventory_locations": "Also wipe all locations",
-            "wipe_inventory_maintenance": "Also wipe all maintenance records",
-            "wipe_inventory_note": "Note: Only group owners can perform this action.",
-            "wipe_inventory_sub": "Permanently deletes all items in your inventory. This action is irreversible and will remove all item data including attachments and photos.",
-            "wipe_inventory_tags": "Also wipe all tags",
-            "zero_datetimes": "Zero Item Date Times",
-            "zero_datetimes_button": "Zero Item Date Times",
-            "zero_datetimes_confirm": "Are you sure you want to reset all date and time values? This can take a while and cannot be undone.",
-            "zero_datetimes_sub": "Resets the time value for all date time fields in your inventory to the beginning of the date. This is to fix a bug that was introduced early on in the development of the site that caused the time value to be stored with the time which caused issues with date fields displaying accurate values. '<a class=\"link\" href=\"https://github.com/hay-kot/homebox/issues/236\" target=\"_blank\">'See Github Issue #236 for more details.'</a>'"
+            "ensure_import_refs_sub": "Ensures that all items in your inventory have a valid import_ref field. This is done by randomly generating a 8 character string for each item that has an unset import_ref field."
         },
         "actions_sub": "Apply Actions to your inventory in bulk. These are irreversible actions. '<b>'Be careful.'</b>'",
         "backups": "Backup & Restore",
@@ -950,9 +925,6 @@
             }
         },
         "backups_sub": "Export your entire collection — entities, tags, attachments, and metadata — to a portable zip archive. Restore an archive into a freshly registered, empty collection on this or another server.",
-        "demo_mode_error": {
-            "wipe_inventory": "Inventory, tags, locations and maintenance records cannot be wiped whilst Homebox is in demo mode. Please ensure that you are not in demo mode and try again."
-        },
         "import_export": "Import/Export",
         "import_export_set": {
             "export": "Export Inventory",
@@ -979,16 +951,11 @@
             "backup_delete_failed": "Failed to delete backup.",
             "backup_start_failed": "Failed to start backup.",
             "backup_started": "Backup started — it will appear in the table when ready.",
-            "failed_create_missing_thumbnails": "Failed to create missing thumbnails.",
             "failed_ensure_ids": "Failed to ensure asset IDs.",
             "failed_ensure_import_refs": "Failed to ensure import refs.",
-            "failed_set_primary_photos": "Failed to set primary photos.",
-            "failed_wipe_inventory": "Failed to wipe inventory.",
-            "failed_zero_datetimes": "Failed to reset date and time values.",
             "restore_failed": "Restore failed.",
             "restore_requires_empty": "Restore requires a collection with no items. Switch to a freshly registered collection (default locations and tags are fine) and try again.",
-            "restore_started": "Restore started — refresh shortly to see imported items.",
-            "wipe_inventory_success": "Successfully wiped inventory. { results } items deleted."
+            "restore_started": "Restore started — refresh shortly to see imported items."
         }
     }
 }

@@ -356,6 +356,59 @@ func TestAttachmentRepo_SettingPhotoPrimaryStillWorks(t *testing.T) {
 	assert.False(t, photo1.Primary, "Photo 1 should no longer be primary after setting Photo 2 as primary")
 }
 
+func TestAttachmentRepo_DeletingPrimaryPhotoPromotesRemainingPhoto(t *testing.T) {
+	ctx := context.Background()
+	entity := useEntities(t, 1)[0]
+
+	photo1, err := tRepos.Attachments.Create(ctx, entity.ID, ItemCreateAttachment{Title: "Photo 1", Content: strings.NewReader("Photo 1 content")}, attachment.TypePhoto, false)
+	require.NoError(t, err)
+
+	photo2, err := tRepos.Attachments.Create(ctx, entity.ID, ItemCreateAttachment{Title: "Photo 2", Content: strings.NewReader("Photo 2 content")}, attachment.TypePhoto, false)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = tRepos.Attachments.Delete(ctx, tGroup.ID, photo1.ID)
+		_ = tRepos.Attachments.Delete(ctx, tGroup.ID, photo2.ID)
+	})
+
+	// First photo is primary; delete it
+	err = tRepos.Attachments.Delete(ctx, tGroup.ID, photo1.ID)
+	require.NoError(t, err)
+
+	// The remaining photo should be promoted to primary automatically
+	photo2, err = tRepos.Attachments.Get(ctx, tGroup.ID, photo2.ID)
+	require.NoError(t, err)
+	assert.True(t, photo2.Primary, "Remaining photo should become primary after deleting the primary photo")
+}
+
+func TestAttachmentRepo_ChangingPrimaryPhotoTypePromotesOtherPhoto(t *testing.T) {
+	ctx := context.Background()
+	entity := useEntities(t, 1)[0]
+
+	photo1, err := tRepos.Attachments.Create(ctx, entity.ID, ItemCreateAttachment{Title: "Photo 1", Content: strings.NewReader("Photo 1 content")}, attachment.TypePhoto, false)
+	require.NoError(t, err)
+
+	photo2, err := tRepos.Attachments.Create(ctx, entity.ID, ItemCreateAttachment{Title: "Photo 2", Content: strings.NewReader("Photo 2 content")}, attachment.TypePhoto, false)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = tRepos.Attachments.Delete(ctx, tGroup.ID, photo1.ID)
+		_ = tRepos.Attachments.Delete(ctx, tGroup.ID, photo2.ID)
+	})
+
+	// Change the primary photo's type away from photo
+	_, err = tRepos.Attachments.Update(ctx, tGroup.ID, photo1.ID, &ItemAttachmentUpdate{
+		Type:  attachment.TypeManual.String(),
+		Title: "Photo 1",
+	})
+	require.NoError(t, err)
+
+	// The other photo should be promoted to primary automatically
+	photo2, err = tRepos.Attachments.Get(ctx, tGroup.ID, photo2.ID)
+	require.NoError(t, err)
+	assert.True(t, photo2.Primary, "Other photo should become primary when the primary photo's type changes")
+}
+
 func TestAttachmentRepo_PathNormalization(t *testing.T) {
 	// Test that paths always use forward slashes
 	repo := &AttachmentRepo{

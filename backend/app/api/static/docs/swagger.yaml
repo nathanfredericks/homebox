@@ -1323,7 +1323,14 @@ definitions:
       itemCount:
         description: Container-specific (populated when querying locations)
         type: number
+      manufacturer:
+        type: string
+      modelNumber:
+        type: string
       name:
+        type: string
+      notes:
+        description: Extras
         type: string
       parent:
         allOf:
@@ -1331,10 +1338,18 @@ definitions:
         description: Edges
         x-nullable: true
         x-omitempty: true
+      purchaseDate:
+        description: Purchase
+        type: string
+      purchaseFrom:
+        type: string
       purchasePrice:
         type: number
       quantity:
         type: number
+      serialNumber:
+        description: Identifications
+        type: string
       soldDate:
         description: Sale details
         type: string
@@ -2318,15 +2333,6 @@ definitions:
       token:
         type: string
     type: object
-  v1.WipeInventoryOptions:
-    properties:
-      wipeLocations:
-        type: boolean
-      wipeMaintenance:
-        type: boolean
-      wipeTags:
-        type: boolean
-    type: object
   v1.Wrapped:
     properties:
       item: {}
@@ -2357,21 +2363,6 @@ info:
   title: Homebox API
   version: "1.0"
 paths:
-  /v1/actions/create-missing-thumbnails:
-    post:
-      description: Creates thumbnails for items that are missing them
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.ActionAmountResult'
-      security:
-      - Bearer: []
-      summary: Create Missing Thumbnails
-      tags:
-      - Actions
   /v1/actions/ensure-asset-ids:
     post:
       description: Ensures all items in the database have an asset ID
@@ -2400,57 +2391,6 @@ paths:
       security:
       - Bearer: []
       summary: Ensures Import Refs
-      tags:
-      - Actions
-  /v1/actions/set-primary-photos:
-    post:
-      description: Sets the first photo of each item as the primary photo
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.ActionAmountResult'
-      security:
-      - Bearer: []
-      summary: Set Primary Photos
-      tags:
-      - Actions
-  /v1/actions/wipe-inventory:
-    post:
-      description: Deletes all items in the inventory
-      parameters:
-      - description: Wipe options
-        in: body
-        name: options
-        schema:
-          $ref: '#/definitions/v1.WipeInventoryOptions'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.ActionAmountResult'
-      security:
-      - Bearer: []
-      summary: Wipe Inventory
-      tags:
-      - Actions
-  /v1/actions/zero-item-time-fields:
-    post:
-      description: Resets all item date fields to the beginning of the day
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.ActionAmountResult'
-      security:
-      - Bearer: []
-      summary: Zero Out Time Fields
       tags:
       - Actions
   /v1/assets/{id}:

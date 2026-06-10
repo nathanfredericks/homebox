@@ -45,16 +45,26 @@
   const tableHeadersData = preferences.value.tableHeaders;
   const defaultVisible = ["assetId", "name", "quantity", "location", "createdAt", "updatedAt"];
 
-  const tableHeaders = computed(
-    () =>
-      tableHeadersData ??
-      props.columns
-        .filter(c => c.enableHiding !== false)
-        .map(c => ({
-          value: c.id!,
-          enabled: defaultVisible.includes(c.id ?? ""),
-        }))
-  );
+  const tableHeaders = computed(() => {
+    const defaults = props.columns
+      .filter(c => c.enableHiding !== false)
+      .map(c => ({
+        value: c.id!,
+        enabled: defaultVisible.includes(c.id ?? ""),
+      }));
+
+    if (!tableHeadersData) {
+      return defaults;
+    }
+
+    // Persisted preferences may predate newly added columns (or reference
+    // removed ones): keep the saved order/visibility for known columns and
+    // append the rest so they show up in the column picker. Unlisted columns
+    // would otherwise default to visible in TanStack Table.
+    const known = tableHeadersData.filter(h => defaults.some(d => d.value === h.value));
+    const missing = defaults.filter(d => !known.some(h => h.value === d.value));
+    return [...known, ...missing];
+  });
 
   const sorting = ref<SortingState>([]);
   const columnOrder = ref<string[]>([

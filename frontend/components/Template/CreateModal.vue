@@ -1,6 +1,6 @@
 <template>
   <BaseModal :dialog-id="DialogID.CreateTemplate" :title="$t('components.template.create_modal.title')">
-    <form class="flex min-w-0 flex-col gap-2" @submit.prevent="create()">
+    <form class="flex min-w-0 flex-col gap-4" @submit.prevent="create()">
       <FormTextField
         v-model="form.name"
         :autofocus="true"
@@ -16,14 +16,15 @@
 
       <Separator class="my-2" />
       <h3 class="text-sm font-medium">{{ $t("components.template.form.default_item_values") }}</h3>
-      <div class="flex min-w-0 flex-col gap-2">
-        <FormTextField v-model="form.defaultName" :label="$t('components.template.form.item_name')" :max-length="255" />
-        <FormTextArea
-          v-model="form.defaultDescription"
-          :label="$t('components.template.form.item_description')"
-          :max-length="1000"
-        />
-        <div class="grid grid-cols-2 gap-2">
+      <div class="flex min-w-0 flex-col gap-4">
+        <!-- Row 1: Name (3/4) + Quantity (1/4) side by side -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+          <FormTextField
+            v-model="form.defaultName"
+            :label="$t('components.template.form.item_name')"
+            :max-length="255"
+            class="sm:col-span-3"
+          />
           <FormTextField
             v-model.number="form.defaultQuantity"
             :label="$t('global.quantity')"
@@ -31,21 +32,35 @@
             :min="1"
             step="any"
           />
+        </div>
+
+        <!-- Row 2: Description -->
+        <FormTextArea
+          v-model="form.defaultDescription"
+          :label="$t('components.template.form.item_description')"
+          :max-length="1000"
+        />
+
+        <!-- Row 3: Location -->
+        <LocationSelector
+          v-model="form.defaultLocationObject"
+          :label="$t('components.template.form.default_location')"
+        />
+
+        <!-- Row 4: Manufacturer + Model Number (50/50) -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormTextField
+            v-model="form.defaultManufacturer"
+            :label="$t('components.template.form.manufacturer')"
+            :max-length="255"
+          />
           <FormTextField
             v-model="form.defaultModelNumber"
             :label="$t('components.template.form.model_number')"
             :max-length="255"
           />
         </div>
-        <FormTextField
-          v-model="form.defaultManufacturer"
-          :label="$t('components.template.form.manufacturer')"
-          :max-length="255"
-        />
-        <LocationSelector
-          v-model="form.defaultLocationObject"
-          :label="$t('components.template.form.default_location')"
-        />
+
         <TagSelector v-model="form.defaultTagIds" :tags="tags ?? []" />
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
@@ -134,13 +149,29 @@
     includeWarrantyFields: false,
     includePurchaseFields: false,
     includeSoldFields: false,
-    fields: [] as Array<{ id: string; name: string; type: string; textValue: string; booleanValue: boolean; numberValue: number; timeValue: string }>,
+    fields: [] as Array<{
+      id: string;
+      name: string;
+      type: string;
+      textValue: string;
+      booleanValue: boolean;
+      numberValue: number;
+      timeValue: string;
+    }>,
   });
 
   const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 
   function addField() {
-    form.fields.push({ id: NIL_UUID, name: "", type: "text", textValue: "", booleanValue: false, numberValue: 0, timeValue: "" });
+    form.fields.push({
+      id: NIL_UUID,
+      name: "",
+      type: "text",
+      textValue: "",
+      booleanValue: false,
+      numberValue: 0,
+      timeValue: "",
+    });
   }
 
   function reset() {
