@@ -1,6 +1,10 @@
 <script setup lang="ts">
+  import "@fontsource/open-sans/400.css";
+  import "@fontsource/open-sans/700.css";
+  import "@fontsource/geist-mono/400.css";
   import { useI18n } from "vue-i18n";
   import DOMPurify from "isomorphic-dompurify";
+  import { MapPin } from "lucide-vue-next";
   import { route } from "../../lib/api/base";
   import { Toaster, toast } from "@/components/ui/sonner";
   import { Separator } from "@/components/ui/separator";
@@ -26,15 +30,17 @@
   const printLocationRow = ref(true);
   const labelBlankLine = "_______________";
 
-  // Behavior constants for HomeBox text replacement
-  const BEHAVIOR_SHOW = "show";
-  const BEHAVIOR_ALWAYS_REPLACE = "always_replace";
-  const BEHAVIOR_ITEM_NO_NAME_NO_LOCATION = "item_no_name_no_location";
-  const BEHAVIOR_ITEM_NO_NAME = "item_no_name";
-  const BEHAVIOR_ITEM_NO_LOCATION = "item_no_location";
+  const sansFont = ref("default");
+  const monoFont = ref("default");
 
-  const replaceHomeboxBehavior = ref(BEHAVIOR_SHOW);
-  const replaceHomeboxText = ref(labelBlankLine);
+  const sansFontFamily = computed(() =>
+    sansFont.value === "open-sans" ? "'Open Sans', sans-serif" : "ui-sans-serif, system-ui, sans-serif"
+  );
+  const monoFontFamily = computed(() =>
+    monoFont.value === "geist-mono"
+      ? "'Geist Mono', monospace"
+      : "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  );
 
   const displayProperties = reactive({
     // useRequestURL works during SSR; window.location does not
@@ -273,31 +279,6 @@
     return items;
   });
 
-  const getHomeBoxLineText = computed(() => {
-    return (item: LabelData): string | null => {
-      if (replaceHomeboxBehavior.value === BEHAVIOR_SHOW) {
-        return "HomeBox";
-      }
-      if (replaceHomeboxBehavior.value === BEHAVIOR_ALWAYS_REPLACE) {
-        return replaceHomeboxText.value;
-      }
-      if (
-        replaceHomeboxBehavior.value === BEHAVIOR_ITEM_NO_NAME_NO_LOCATION &&
-        item.name === labelBlankLine &&
-        item.location === labelBlankLine
-      ) {
-        return replaceHomeboxText.value;
-      }
-      if (replaceHomeboxBehavior.value === BEHAVIOR_ITEM_NO_NAME && item.name === labelBlankLine) {
-        return replaceHomeboxText.value;
-      }
-      if (replaceHomeboxBehavior.value === BEHAVIOR_ITEM_NO_LOCATION && item.location === labelBlankLine) {
-        return replaceHomeboxText.value;
-      }
-      return null;
-    };
-  });
-
   type Row = {
     items: Array<LabelData | null>;
   };
@@ -441,43 +422,36 @@
           />
         </div>
         <div class="flex w-full max-w-xs flex-col">
-          <Label for="select-replaceHomeboxBehavior">
-            {{ $t("reports.label_generator.replace_homebox_behavior") }}
+          <Label for="select-sansFont">
+            {{ $t("reports.label_generator.sans_serif_font") }}
           </Label>
-          <Select id="select-replaceHomeboxBehavior" v-model="replaceHomeboxBehavior" class="w-full max-w-xs">
+          <Select id="select-sansFont" v-model="sansFont" class="w-full max-w-xs">
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem :value="BEHAVIOR_SHOW">
-                {{ $t("reports.label_generator.replace_homebox_behavior_show_homebox") }}
+              <SelectItem value="default">
+                {{ $t("reports.label_generator.font_default") }}
               </SelectItem>
-              <SelectItem :value="BEHAVIOR_ITEM_NO_NAME_NO_LOCATION">
-                {{ $t("reports.label_generator.replace_homebox_behavior_item_no_name_no_location") }}
-              </SelectItem>
-              <SelectItem :value="BEHAVIOR_ITEM_NO_NAME">
-                {{ $t("reports.label_generator.replace_homebox_behavior_item_no_name") }}
-              </SelectItem>
-              <SelectItem :value="BEHAVIOR_ITEM_NO_LOCATION">
-                {{ $t("reports.label_generator.replace_homebox_behavior_item_no_location") }}
-              </SelectItem>
-              <SelectItem :value="BEHAVIOR_ALWAYS_REPLACE">
-                {{ $t("reports.label_generator.replace_homebox_behavior_always_replace") }}
-              </SelectItem>
+              <SelectItem value="open-sans"> Open Sans </SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div v-if="replaceHomeboxBehavior !== BEHAVIOR_SHOW" class="flex w-full max-w-xs flex-col">
-          <Label for="input-replaceHomeboxText">
-            {{ $t("reports.label_generator.replace_homebox_text") }}
+        <div class="flex w-full max-w-xs flex-col">
+          <Label for="select-monoFont">
+            {{ $t("reports.label_generator.monospace_font") }}
           </Label>
-          <Input
-            id="input-replaceHomeboxText"
-            v-model="replaceHomeboxText"
-            type="text"
-            :placeholder="$t('reports.label_generator.input_placeholder')"
-            class="w-full max-w-xs"
-          />
+          <Select id="select-monoFont" v-model="monoFont" class="w-full max-w-xs">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">
+                {{ $t("reports.label_generator.font_default") }}
+              </SelectItem>
+              <SelectItem value="geist-mono"> Geist Mono </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div class="max-w-xs">
@@ -507,13 +481,15 @@
     <section
       v-for="(page, pi) in pages"
       :key="pi"
-      class="border-2 print:border-none"
+      class="box-border border-2 print:border-none"
+      :class="{ 'print:break-after-page': pi < pages.length - 1 }"
       :style="{
         paddingTop: `${out.page.pt}${out.measure}`,
         paddingBottom: `${out.page.pb}${out.measure}`,
         paddingLeft: `${out.page.pl}${out.measure}`,
         paddingRight: `${out.page.pr}${out.measure}`,
         width: `${out.page.width}${out.measure}`,
+        height: `${out.page.height}${out.measure}`,
         background: `white`,
         color: `black`,
       }"
@@ -530,7 +506,7 @@
         <div
           v-for="(item, idx) in row.items"
           :key="idx"
-          class="flex border-2"
+          class="flex items-center border-2"
           :class="{
             'border-black': bordered && !!item,
             'border-transparent': !bordered || !item,
@@ -538,6 +514,9 @@
           :style="{
             height: `${out.card.height}${out.measure}`,
             width: `${out.card.width}${out.measure}`,
+            gap: '0.1in',
+            padding: '0.1in',
+            fontFamily: sansFontFamily,
           }"
         >
           <template v-if="item">
@@ -545,23 +524,19 @@
               <img
                 :src="item.url"
                 :style="{
-                  minWidth: `${out.card.height * 0.9}${out.measure}`,
-                  width: `${out.card.height * 0.9}${out.measure}`,
-                  height: `${out.card.height * 0.9}${out.measure}`,
+                  minWidth: `${out.card.height - 0.2}${out.measure}`,
+                  width: `${out.card.height - 0.2}${out.measure}`,
+                  height: `${out.card.height - 0.2}${out.measure}`,
                 }"
               />
             </div>
-            <div class="ml-2 flex flex-col justify-center">
-              <div class="font-bold">{{ item.assetID }}</div>
-              <div
-                v-if="getHomeBoxLineText(item)"
-                class="text-xs"
-                :class="{ 'font-light italic': getHomeBoxLineText(item) !== labelBlankLine }"
-              >
-                {{ getHomeBoxLineText(item) }}
+            <div class="flex flex-1 flex-col justify-center overflow-hidden">
+              <div class="text-xs" :style="{ fontFamily: monoFontFamily }">#{{ item.assetID }}</div>
+              <div class="line-clamp-2 overflow-hidden text-xs font-bold">{{ item.name }}</div>
+              <div v-if="printLocationRow" class="flex items-center gap-0.5 text-xs">
+                <MapPin :size="12" class="shrink-0" />
+                <span>{{ item.location }}</span>
               </div>
-              <div class="overflow-hidden text-wrap text-xs">{{ item.name }}</div>
-              <div v-if="printLocationRow" class="text-xs">{{ item.location }}</div>
             </div>
           </template>
         </div>
