@@ -40,8 +40,8 @@
     </template>
 
     <form class="flex min-w-0 flex-col gap-4" @submit.prevent="create()">
-      <!-- Row 1: Name + Quantity side by side -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <!-- Row 1: Name (3/4) + Quantity (1/4) side by side -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <FormTextField
           ref="nameInput"
           v-model="form.name"
@@ -50,6 +50,7 @@
           :label="$t('components.item.create_modal.item_name')"
           :max-length="255"
           :min-length="1"
+          class="sm:col-span-3"
         />
         <FormTextField
           v-model.number="form.quantity"
@@ -69,11 +70,11 @@
       <!-- Row 3: Location -->
       <LocationSelector v-model="form.location" />
 
-      <!-- Row 4: Serial, Model, Manufacturer, Notes -->
+      <!-- Row 4: Manufacturer + Model Number (50/50) -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormTextField
-          v-model="form.serialNumber"
-          :label="$t('items.serial_number')"
+          v-model="form.manufacturer"
+          :label="$t('items.manufacturer')"
           :max-length="255"
         />
         <FormTextField
@@ -81,17 +82,21 @@
           :label="$t('items.model_number')"
           :max-length="255"
         />
-        <FormTextField
-          v-model="form.manufacturer"
-          :label="$t('items.manufacturer')"
-          :max-length="255"
-        />
-        <FormTextArea
-          v-model="form.notes"
-          :label="$t('items.notes')"
-          :max-length="1000"
-        />
       </div>
+
+      <!-- Row 5: Serial Number (full width) -->
+      <FormTextField
+        v-model="form.serialNumber"
+        :label="$t('items.serial_number')"
+        :max-length="255"
+      />
+
+      <!-- Row 6: Notes (full width) -->
+      <FormTextArea
+        v-model="form.notes"
+        :label="$t('items.notes')"
+        :max-length="1000"
+      />
 
       <!-- Entity Type selector (shown when multiple item types exist) -->
       <div v-if="showEntityTypeSelector" class="flex w-full flex-col gap-1.5">
@@ -616,9 +621,8 @@
           parent.value = data;
         }
 
-        if (data.location || data.parent) {
-          const loc = data.location || data.parent;
-          parentItemLocationId = loc.id;
+        if (data.parent) {
+          parentItemLocationId = data.parent.id;
         }
 
         // clear URL Parameter (subItemCreate) since intention was communicated and received
@@ -687,7 +691,7 @@
       const templateRequest = {
         name: form.name,
         description: form.description,
-        parentId: form.location.id as string,
+        parentId: form.location.id!,
         tagIds: form.tags,
         quantity: form.quantity,
       };
@@ -698,12 +702,12 @@
     } else {
       // Normal item creation without template
       const out: EntityCreate = {
-        parentId: form.parentId || (form.location.id as string),
+        parentId: form.parentId || form.location.id!,
         name: form.name,
         quantity: form.quantity,
         description: form.description,
         tagIds: form.tags,
-        entityTypeId: selectedEntityType.value?.id,
+        entityTypeId: selectedEntityType.value!.id,
         serialNumber: form.serialNumber,
         modelNumber: form.modelNumber,
         manufacturer: form.manufacturer,

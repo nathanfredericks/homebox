@@ -114,6 +114,7 @@
 
     const payload: EntityUpdate = {
       ...item.value,
+      entityTypeId: item.value.entityType!.id,
       parentId: parent.value?.id || item.value.parent?.id || null,
       tagIds: item.value.tagIds,
       assetId: item.value.assetId,
@@ -174,48 +175,6 @@
 
   const mainFields: FormField[] = [
     {
-      type: "text",
-      label: "items.name",
-      ref: "name",
-      maxLength: 255,
-      minLength: 1,
-    },
-    {
-      type: "number",
-      label: "items.quantity",
-      ref: "quantity",
-    },
-    {
-      type: "markdown",
-      label: "items.description",
-      ref: "description",
-      maxLength: 1000,
-    },
-    {
-      type: "text",
-      label: "items.serial_number",
-      ref: "serialNumber",
-      maxLength: 255,
-    },
-    {
-      type: "text",
-      label: "items.model_number",
-      ref: "modelNumber",
-      maxLength: 255,
-    },
-    {
-      type: "text",
-      label: "items.manufacturer",
-      ref: "manufacturer",
-      maxLength: 255,
-    },
-    {
-      type: "markdown",
-      label: "items.notes",
-      ref: "notes",
-      maxLength: 1000,
-    },
-    {
       type: "checkbox",
       label: "items.insured",
       ref: "insured",
@@ -224,11 +183,6 @@
       type: "checkbox",
       label: "items.archived",
       ref: "archived",
-    },
-    {
-      type: "text",
-      label: "items.asset_id",
-      ref: "assetId",
     },
   ];
 
@@ -512,6 +466,7 @@
 
     const payload: EntityUpdate = {
       ...item.value,
+      entityTypeId: item.value.entityType!.id,
       parentId: parent.value?.id || item.value.parent?.id || null,
       tagIds: item.value.tagIds,
       assetId: item.value.assetId,
@@ -634,55 +589,57 @@
             <TagSelector v-model="item.tagIds" :tags="tags" />
           </div>
 
-          <div class="border-t sm:p-0">
-            <div v-for="field in mainFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
-              <div class="border-b px-4 pb-4 pt-2 sm:px-6">
-                <FormTextArea
-                  v-if="field.type === 'textarea'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <MarkdownEditor
-                  v-else-if="field.type === 'markdown'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'text'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                  type="text"
-                  :max-length="field.maxLength"
-                  :min-length="field.minLength"
-                />
-                <FormTextField
-                  v-else-if="field.type === 'number'"
-                  v-model.number="item[field.ref]"
-                  type="number"
-                  step="any"
-                  :label="$t(field.label)"
-                  inline
-                />
-                <FormDatePicker
-                  v-else-if="field.type === 'date'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  date-only
-                  inline
-                />
-                <FormCheckbox
-                  v-else-if="field.type === 'checkbox'"
-                  v-model="item[field.ref]"
-                  :label="$t(field.label)"
-                  inline
-                />
-              </div>
+          <div class="space-y-4 border-t px-4 pt-4 sm:px-6">
+            <!-- Asset ID -->
+            <FormTextField v-model="item.assetId" :label="$t('items.asset_id')" inline />
+
+            <!-- Name (3/4) + Quantity (1/4) -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+              <FormTextField
+                v-model="item.name"
+                :label="$t('items.name')"
+                inline
+                :max-length="255"
+                :min-length="1"
+                class="sm:col-span-3"
+              />
+              <FormTextField
+                v-model.number="item.quantity"
+                :label="$t('items.quantity')"
+                type="number"
+                step="any"
+                inline
+              />
+            </div>
+
+            <!-- Description -->
+            <MarkdownEditor v-model="item.description" :label="$t('items.description')" :max-length="1000" />
+
+            <!-- Manufacturer (1/2) + Model Number (1/2) -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormTextField
+                v-model="item.manufacturer"
+                :label="$t('items.manufacturer')"
+                inline
+                :max-length="255"
+              />
+              <FormTextField
+                v-model="item.modelNumber"
+                :label="$t('items.model_number')"
+                inline
+                :max-length="255"
+              />
+            </div>
+
+            <!-- Serial Number -->
+            <FormTextField v-model="item.serialNumber" :label="$t('items.serial_number')" inline :max-length="255" />
+
+            <!-- Notes -->
+            <MarkdownEditor v-model="item.notes" :label="$t('items.notes')" :max-length="1000" />
+
+            <!-- Remaining fields (insured, archived) -->
+            <div v-for="field in mainFields" :key="field.ref">
+              <FormCheckbox v-model="item[field.ref]" :label="$t(field.label)" inline />
             </div>
           </div>
         </BaseCard>
