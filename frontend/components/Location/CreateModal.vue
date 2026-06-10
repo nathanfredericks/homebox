@@ -293,7 +293,13 @@
       name: form.name,
       description: form.description,
       parentId: form.parent ? form.parent.id : null,
-      entityTypeId: selectedEntityType.value?.id,
+      entityTypeId: selectedEntityType.value!.id,
+      manufacturer: "",
+      modelNumber: "",
+      notes: "",
+      quantity: 1,
+      serialNumber: "",
+      tagIds: [],
     });
 
     if (error) {

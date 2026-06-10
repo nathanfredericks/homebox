@@ -85,7 +85,7 @@
     includeWarrantyFields: false,
     includePurchaseFields: false,
     includeSoldFields: false,
-    fields: [] as Array<{ id: string; name: string; type: "text"; textValue: string }>,
+    fields: [] as Array<{ id: string; name: string; type: string; textValue: string; booleanValue: boolean; numberValue: number; timeValue: string }>,
   });
 
   function openUpdate() {
@@ -111,8 +111,11 @@
       fields: template.value.fields.map(f => ({
         id: f.id,
         name: f.name,
-        type: "text" as const,
+        type: f.type,
         textValue: f.textValue,
+        booleanValue: f.booleanValue,
+        numberValue: f.numberValue,
+        timeValue: f.timeValue,
       })),
     });
     openDialog(DialogID.UpdateTemplate);
@@ -215,7 +218,7 @@
             type="button"
             size="sm"
             variant="outline"
-            @click="updateData.fields.push({ id: NIL_UUID, name: '', type: 'text', textValue: '' })"
+            @click="updateData.fields.push({ id: NIL_UUID, name: '', type: 'text', textValue: '', booleanValue: false, numberValue: 0, timeValue: '' })"
           >
             <MdiPlus class="mr-1 size-4" />
             {{ $t("global.add") }}

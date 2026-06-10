@@ -31,7 +31,7 @@
         />
         <div class="pointer-events-auto absolute inset-x-1 bottom-1">
           <Badge class="text-wrap bg-secondary text-secondary-foreground hover:bg-secondary/70 hover:underline">
-            <NuxtLink v-if="item.location" :to="`/location/${item.location.id}`">
+            <NuxtLink v-if="item.parent" :to="`/location/${item.parent.id}`">
               {{ locationString }}
             </NuxtLink>
           </Badge>
@@ -131,7 +131,7 @@
   const objectContain = computed(() => imageUrl.value !== "/no-image.jpg" && !preferences.value.legacyImageFit);
 
   const locationString = computed(
-    () => props.locationFlatTree.find(l => l.id === props.item.location?.id)?.treeString || props.item.location?.name
+    () => props.locationFlatTree.find(l => l.id === props.item.parent?.id)?.treeString || props.item.parent?.name
   );
 </script>
 

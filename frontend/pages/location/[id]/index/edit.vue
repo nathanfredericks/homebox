@@ -99,6 +99,7 @@
 
     const payload: EntityUpdate = {
       ...item.value,
+      entityTypeId: item.value.entityType!.id,
       parentId: parent.value?.id || null,
       tagIds: item.value.tagIds,
       assetId: item.value.assetId,

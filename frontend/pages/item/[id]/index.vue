@@ -532,7 +532,7 @@
       defaultModelNumber: item.value.modelNumber || "",
       defaultLifetimeWarranty: item.value.lifetimeWarranty,
       defaultWarrantyDetails: item.value.warrantyDetails || "",
-      defaultLocationId: item.value.location?.id || item.value.parent?.id || "",
+      defaultLocationId: item.value.parent?.id || "",
       defaultTagIds: item.value.tags?.map(l => l.id) || [],
       includeWarrantyFields: false,
       includePurchaseFields: !!(item.value.purchaseFrom || item.value.purchasePrice || item.value.purchaseDate),
@@ -540,8 +540,11 @@
       fields: item.value.fields.map(field => ({
         id: NIL_UUID,
         name: field.name,
-        type: "text",
+        type: field.type,
         textValue: field.textValue || "",
+        booleanValue: field.booleanValue,
+        numberValue: field.numberValue,
+        timeValue: "",
       })),
     };
 

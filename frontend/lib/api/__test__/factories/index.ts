@@ -39,11 +39,33 @@ function user(): UserRegistration {
   };
 }
 
-function location(parentId: string | null = null): Partial<EntityCreate> & { name: string; description: string } {
+function location(parentId: string | null = null): EntityCreate {
   return {
     parentId,
     name: faker.location.city(),
     description: faker.lorem.sentence(),
+    entityTypeId: "",
+    manufacturer: "",
+    modelNumber: "",
+    notes: "",
+    quantity: 1,
+    serialNumber: "",
+    tagIds: [],
+  };
+}
+
+function item(parentId: string): EntityCreate {
+  return {
+    parentId,
+    name: faker.commerce.productName(),
+    description: faker.lorem.sentence(),
+    entityTypeId: "",
+    manufacturer: faker.company.name(),
+    modelNumber: faker.string.alphanumeric(10),
+    notes: "",
+    quantity: 1,
+    serialNumber: faker.string.alphanumeric(12),
+    tagIds: [],
   };
 }
 
@@ -52,6 +74,7 @@ function tag(): TagCreate {
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
     color: faker.color.rgb(),
+    icon: "",
   };
 }
 
@@ -113,6 +136,7 @@ async function userSingleUse(): Promise<TestUser> {
 export const factories = {
   user,
   location,
+  item,
   tag,
   template,
   itemField,
