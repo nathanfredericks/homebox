@@ -1097,15 +1097,29 @@ definitions:
         type: string
       entityTypeId:
         type: string
+      manufacturer:
+        maxLength: 255
+        type: string
+      modelNumber:
+        maxLength: 255
+        type: string
       name:
         maxLength: 255
         minLength: 1
+        type: string
+      notes:
+        description: Extras
+        maxLength: 1000
         type: string
       parentId:
         type: string
         x-nullable: true
       quantity:
         type: number
+      serialNumber:
+        description: Identifications
+        maxLength: 255
+        type: string
       tagIds:
         description: Edges
         items:

@@ -39,8 +39,59 @@
       </div>
     </template>
 
-    <form class="flex min-w-0 flex-col gap-2" @submit.prevent="create()">
+    <form class="flex min-w-0 flex-col gap-4" @submit.prevent="create()">
+      <!-- Row 1: Name + Quantity side by side -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormTextField
+          ref="nameInput"
+          v-model="form.name"
+          :trigger-focus="focused"
+          :autofocus="true"
+          :label="$t('components.item.create_modal.item_name')"
+          :max-length="255"
+          :min-length="1"
+        />
+        <FormTextField
+          v-model.number="form.quantity"
+          :label="$t('components.item.create_modal.item_quantity')"
+          type="number"
+          step="any"
+        />
+      </div>
+
+      <!-- Row 2: Description -->
+      <FormTextArea
+        v-model="form.description"
+        :label="$t('components.item.create_modal.item_description')"
+        :max-length="1000"
+      />
+
+      <!-- Row 3: Location -->
       <LocationSelector v-model="form.location" />
+
+      <!-- Row 4: Serial, Model, Manufacturer, Notes -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormTextField
+          v-model="form.serialNumber"
+          :label="$t('items.serial_number')"
+          :max-length="255"
+        />
+        <FormTextField
+          v-model="form.modelNumber"
+          :label="$t('items.model_number')"
+          :max-length="255"
+        />
+        <FormTextField
+          v-model="form.manufacturer"
+          :label="$t('items.manufacturer')"
+          :max-length="255"
+        />
+        <FormTextArea
+          v-model="form.notes"
+          :label="$t('items.notes')"
+          :max-length="1000"
+        />
+      </div>
 
       <!-- Entity Type selector (shown when multiple item types exist) -->
       <div v-if="showEntityTypeSelector" class="flex w-full flex-col gap-1.5">
@@ -151,26 +202,7 @@
         :is-loading="isLoading"
         :trigger-search="triggerSearch"
       />
-      <FormTextField
-        ref="nameInput"
-        v-model="form.name"
-        :trigger-focus="focused"
-        :autofocus="true"
-        :label="$t('components.item.create_modal.item_name')"
-        :max-length="255"
-        :min-length="1"
-      />
-      <FormTextField
-        v-model.number="form.quantity"
-        :label="$t('components.item.create_modal.item_quantity')"
-        type="number"
-        step="any"
-      />
-      <FormTextArea
-        v-model="form.description"
-        :label="$t('components.item.create_modal.item_description')"
-        :max-length="1000"
-      />
+
       <TagSelector v-model="form.tags" :tags="tags ?? []" />
       <div class="flex w-full flex-col gap-1.5">
         <Label for="image-create-photo" class="flex w-full px-1">
@@ -432,6 +464,10 @@
     color: "",
     tags: [] as string[],
     photos: [] as PhotoPreview[],
+    serialNumber: "",
+    modelNumber: "",
+    manufacturer: "",
+    notes: "",
   });
 
   async function handleTemplateSelected(template: EntityTemplateSummary | null) {
@@ -672,6 +708,10 @@
         description: form.description,
         tagIds: form.tags,
         entityTypeId: selectedEntityType.value?.id,
+        serialNumber: form.serialNumber,
+        modelNumber: form.modelNumber,
+        manufacturer: form.manufacturer,
+        notes: form.notes,
       };
 
       const result = await api.items.create(out);
@@ -718,6 +758,10 @@
     form.color = "";
     form.photos = [];
     form.tags = [];
+    form.serialNumber = "";
+    form.modelNumber = "";
+    form.manufacturer = "";
+    form.notes = "";
     selectedTemplate.value = null;
     templateData.value = null;
     showTemplateDetails.value = false;

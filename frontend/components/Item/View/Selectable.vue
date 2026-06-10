@@ -33,6 +33,7 @@
       t,
       refresh: () => emit("refresh"),
       disableSort: props.disableSort,
+      locationFlatTree: props.locationFlatTree,
     })
   );
 

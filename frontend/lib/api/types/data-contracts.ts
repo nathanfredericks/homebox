@@ -743,13 +743,27 @@ export interface EntityCreate {
   /** @maxLength 1000 */
   description: string;
   entityTypeId: string;
+  /** @maxLength 255 */
+  manufacturer: string;
+  /** @maxLength 255 */
+  modelNumber: string;
   /**
    * @minLength 1
    * @maxLength 255
    */
   name: string;
+  /**
+   * Extras
+   * @maxLength 1000
+   */
+  notes: string;
   parentId?: string | null;
   quantity: number;
+  /**
+   * Identifications
+   * @maxLength 255
+   */
+  serialNumber: string;
   /** Edges */
   tagIds: string[];
 }

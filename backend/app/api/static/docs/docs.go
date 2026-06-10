@@ -4771,10 +4771,23 @@ const docTemplate = `{
                 "entityTypeId": {
                     "type": "string"
                 },
+                "manufacturer": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "modelNumber": {
+                    "type": "string",
+                    "maxLength": 255
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1
+                },
+                "notes": {
+                    "description": "Extras",
+                    "type": "string",
+                    "maxLength": 1000
                 },
                 "parentId": {
                     "type": "string",
@@ -4782,6 +4795,11 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "number"
+                },
+                "serialNumber": {
+                    "description": "Identifications",
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "tagIds": {
                     "description": "Edges",

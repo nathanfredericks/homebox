@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUpDown, Check, X } from "lucide-vue-next";
 import Button from "~/components/ui/button/Button.vue";
 import Checkbox from "~/components/Form/Checkbox.vue";
 import type { EntitySummary } from "~/lib/api/types/data-contracts";
+import type { FlatTreeItem } from "~/composables/use-location-helpers";
 
 import Currency from "~/components/global/Currency.vue";
 import DateTime from "~/components/global/DateTime.vue";
@@ -18,10 +19,12 @@ export function makeColumns({
   t,
   refresh,
   disableSort,
+  locationFlatTree,
 }: {
   t: (key: string) => string;
   refresh?: () => void;
   disableSort?: boolean;
+  locationFlatTree?: FlatTreeItem[];
 }): ColumnDef<EntitySummary>[] {
   const sortable = (column: Column<EntitySummary, unknown>, key: string) => {
     const sortState = column.getIsSorted(); // 'asc' | 'desc' | false
@@ -157,7 +160,8 @@ export function makeColumns({
         const item = row.original as EntitySummary;
         const loc = (item.location || item.parent) as { id: string; name: string } | null;
         if (loc) {
-          return h("a", { href: `/location/${loc.id}`, class: "hover:underline text-sm" }, loc.name);
+          const breadcrumb = locationFlatTree?.find(l => l.id === loc.id)?.treeString || loc.name;
+          return h("a", { href: `/location/${loc.id}`, class: "hover:underline text-sm" }, breadcrumb);
         }
         return h("div", { class: "text-sm text-muted-foreground" }, "");
       },

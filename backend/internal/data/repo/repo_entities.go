@@ -98,6 +98,14 @@ type (
 
 		// Edges
 		TagIDs []uuid.UUID `json:"tagIds"`
+
+		// Identifications
+		SerialNumber string `json:"serialNumber" validate:"max=255"`
+		ModelNumber  string `json:"modelNumber"  validate:"max=255"`
+		Manufacturer string `json:"manufacturer" validate:"max=255"`
+
+		// Extras
+		Notes string `json:"notes" validate:"max=1000"`
 	}
 
 	EntityUpdate struct {
@@ -1015,6 +1023,10 @@ func (r *EntityRepository) Create(ctx context.Context, gid uuid.UUID, data Entit
 		SetName(data.Name).
 		SetQuantity(data.Quantity).
 		SetDescription(data.Description).
+		SetSerialNumber(data.SerialNumber).
+		SetModelNumber(data.ModelNumber).
+		SetManufacturer(data.Manufacturer).
+		SetNotes(data.Notes).
 		SetGroupID(gid).
 		SetAssetID(int64(data.AssetID))
 

@@ -43,7 +43,7 @@
   const preferences = useViewPreferences();
   const defaultPageSize = preferences.value.itemsPerTablePage;
   const tableHeadersData = preferences.value.tableHeaders;
-  const defaultVisible = ["name", "quantity", "insured", "purchasePrice"];
+  const defaultVisible = ["assetId", "name", "quantity", "location", "createdAt", "updatedAt"];
 
   const tableHeaders = computed(
     () =>
