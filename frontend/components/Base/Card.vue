@@ -1,5 +1,5 @@
 <template>
-  <Card class="overflow-hidden shadow-xl">
+  <Card class="overflow-hidden">
     <CardHeader v-if="$slots.title" class="px-4 py-5 sm:px-6">
       <component :is="collapsable ? 'button' : 'div'" v-on="collapsable ? { click: toggle } : {}">
         <h3 class="flex items-center text-lg font-medium leading-6">
