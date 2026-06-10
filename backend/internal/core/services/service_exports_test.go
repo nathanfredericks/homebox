@@ -37,7 +37,7 @@ func TestExportRoundTrip(t *testing.T) {
 	ctx := context.Background()
 
 	// --- Source group with data ----------------------------------------
-	src, err := tRepos.Groups.GroupCreate(ctx, "export-src-"+fk.Str(4), uuid.Nil)
+	src, err := tRepos.Groups.GroupCreate(ctx, "export-src-"+fk.Str(4))
 	require.NoError(t, err)
 
 	containerET, err := tRepos.EntityTypes.GetDefault(ctx, src.ID, true)
@@ -116,7 +116,7 @@ func TestExportRoundTrip(t *testing.T) {
 	// --- Destination: fresh group with seeded defaults -----------------
 	// Mirror what real registration does: a new group has default locations
 	// and tags but no items. The import must tolerate this and wipe them.
-	dst, err := tRepos.Groups.GroupCreate(ctx, "export-dst-"+fk.Str(4), uuid.Nil)
+	dst, err := tRepos.Groups.GroupCreate(ctx, "export-dst-"+fk.Str(4))
 	require.NoError(t, err)
 
 	dstContainerET, err := tRepos.EntityTypes.GetDefault(ctx, dst.ID, true)
@@ -217,7 +217,7 @@ func TestExportRoundTrip(t *testing.T) {
 func TestCSVExportImportPreservesItemParent(t *testing.T) {
 	ctx := context.Background()
 
-	src, err := tRepos.Groups.GroupCreate(ctx, "csv-parent-src-"+fk.Str(4), uuid.Nil)
+	src, err := tRepos.Groups.GroupCreate(ctx, "csv-parent-src-"+fk.Str(4))
 	require.NoError(t, err)
 
 	locationType, err := tRepos.EntityTypes.GetDefault(ctx, src.ID, true)
@@ -290,7 +290,7 @@ func TestCSVExportImportPreservesItemParent(t *testing.T) {
 	require.NoError(t, writer.WriteAll(importRows))
 	require.NoError(t, writer.Error())
 
-	dst, err := tRepos.Groups.GroupCreate(ctx, "csv-parent-dst-"+fk.Str(4), uuid.Nil)
+	dst, err := tRepos.Groups.GroupCreate(ctx, "csv-parent-dst-"+fk.Str(4))
 	require.NoError(t, err)
 
 	imported, err := tSvc.Entities.CsvImport(ctx, dst.ID, bytes.NewReader(csvBuf.Bytes()))
@@ -306,7 +306,7 @@ func TestCSVExportImportPreservesItemParent(t *testing.T) {
 func TestCSVImportRejectsSelfParentRef(t *testing.T) {
 	ctx := context.Background()
 
-	dst, err := tRepos.Groups.GroupCreate(ctx, "csv-self-parent-"+fk.Str(4), uuid.Nil)
+	dst, err := tRepos.Groups.GroupCreate(ctx, "csv-self-parent-"+fk.Str(4))
 	require.NoError(t, err)
 
 	csvData := strings.Join([]string{
@@ -329,7 +329,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("empty group passes", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-empty-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-empty-"+fk.Str(4))
 		require.NoError(t, err)
 		ready, err := tSvc.Exports.IsGroupReadyForImport(ctx, g.ID)
 		require.NoError(t, err)
@@ -337,7 +337,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("only seeded defaults passes", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-seed-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-seed-"+fk.Str(4))
 		require.NoError(t, err)
 		locET, err := tRepos.EntityTypes.GetDefault(ctx, g.ID, true)
 		require.NoError(t, err)
@@ -355,7 +355,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("extra tag blocks", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-tag-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-tag-"+fk.Str(4))
 		require.NoError(t, err)
 		for i := 0; i <= len(defaultTags()); i++ {
 			_, err := tRepos.Tags.Create(ctx, g.ID, repo.TagCreate{Name: fk.Str(8)})
@@ -367,7 +367,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("extra location blocks", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-loc-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-loc-"+fk.Str(4))
 		require.NoError(t, err)
 		locET, err := tRepos.EntityTypes.GetDefault(ctx, g.ID, true)
 		require.NoError(t, err)
@@ -381,7 +381,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("notifier blocks", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-not-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-not-"+fk.Str(4))
 		require.NoError(t, err)
 		_, err = tRepos.Notifiers.Create(ctx, g.ID, tUser.ID, repo.NotifierCreate{
 			Name:     "n",
@@ -395,7 +395,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("template blocks", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-tpl-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-tpl-"+fk.Str(4))
 		require.NoError(t, err)
 		_, err = tRepos.EntityTemplates.Create(ctx, g.ID, repo.EntityTemplateCreate{Name: "t"})
 		require.NoError(t, err)
@@ -405,7 +405,7 @@ func TestIsGroupReadyForImport_BlocksUserCreatedRows(t *testing.T) {
 	})
 
 	t.Run("custom entity_type blocks", func(t *testing.T) {
-		g, err := tRepos.Groups.GroupCreate(ctx, "ready-et-"+fk.Str(4), uuid.Nil)
+		g, err := tRepos.Groups.GroupCreate(ctx, "ready-et-"+fk.Str(4))
 		require.NoError(t, err)
 		// Trigger lazy creation of both defaults, then add a third custom type.
 		_, err = tRepos.EntityTypes.GetDefault(ctx, g.ID, true)

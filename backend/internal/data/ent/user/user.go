@@ -25,10 +25,6 @@ const (
 	FieldEmail = "email"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
-	// FieldIsSuperuser holds the string denoting the is_superuser field in the database.
-	FieldIsSuperuser = "is_superuser"
-	// FieldSuperuser holds the string denoting the superuser field in the database.
-	FieldSuperuser = "superuser"
 	// FieldActivatedOn holds the string denoting the activated_on field in the database.
 	FieldActivatedOn = "activated_on"
 	// FieldOidcIssuer holds the string denoting the oidc_issuer field in the database.
@@ -39,8 +35,8 @@ const (
 	FieldDefaultGroupID = "default_group_id"
 	// FieldSettings holds the string denoting the settings field in the database.
 	FieldSettings = "settings"
-	// EdgeGroups holds the string denoting the groups edge name in mutations.
-	EdgeGroups = "groups"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// EdgeAuthTokens holds the string denoting the auth_tokens edge name in mutations.
 	EdgeAuthTokens = "auth_tokens"
 	// EdgePasswordResetTokens holds the string denoting the password_reset_tokens edge name in mutations.
@@ -49,15 +45,13 @@ const (
 	EdgeAPIKeys = "api_keys"
 	// EdgeNotifiers holds the string denoting the notifiers edge name in mutations.
 	EdgeNotifiers = "notifiers"
-	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
-	EdgeUserGroups = "user_groups"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
-	GroupsTable = "user_groups"
-	// GroupsInverseTable is the table name for the Group entity.
-	// It exists in this package in order to avoid circular dependency with the "group" package.
-	GroupsInverseTable = "groups"
+	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
+	RolesTable = "user_roles"
+	// RolesInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RolesInverseTable = "roles"
 	// AuthTokensTable is the table that holds the auth_tokens relation/edge.
 	AuthTokensTable = "auth_tokens"
 	// AuthTokensInverseTable is the table name for the AuthTokens entity.
@@ -86,13 +80,6 @@ const (
 	NotifiersInverseTable = "notifiers"
 	// NotifiersColumn is the table column denoting the notifiers relation/edge.
 	NotifiersColumn = "user_id"
-	// UserGroupsTable is the table that holds the user_groups relation/edge.
-	UserGroupsTable = "user_groups"
-	// UserGroupsInverseTable is the table name for the UserGroup entity.
-	// It exists in this package in order to avoid circular dependency with the "usergroup" package.
-	UserGroupsInverseTable = "user_groups"
-	// UserGroupsColumn is the table column denoting the user_groups relation/edge.
-	UserGroupsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -103,8 +90,6 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldPassword,
-	FieldIsSuperuser,
-	FieldSuperuser,
 	FieldActivatedOn,
 	FieldOidcIssuer,
 	FieldOidcSubject,
@@ -113,9 +98,9 @@ var Columns = []string{
 }
 
 var (
-	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
-	// primary key for the groups relation (M2M).
-	GroupsPrimaryKey = []string{"user_id", "group_id"}
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"user_id", "role_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -141,10 +126,6 @@ var (
 	EmailValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func(string) error
-	// DefaultIsSuperuser holds the default value on creation for the "is_superuser" field.
-	DefaultIsSuperuser bool
-	// DefaultSuperuser holds the default value on creation for the "superuser" field.
-	DefaultSuperuser bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -182,16 +163,6 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
-// ByIsSuperuser orders the results by the is_superuser field.
-func ByIsSuperuser(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsSuperuser, opts...).ToFunc()
-}
-
-// BySuperuser orders the results by the superuser field.
-func BySuperuser(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSuperuser, opts...).ToFunc()
-}
-
 // ByActivatedOn orders the results by the activated_on field.
 func ByActivatedOn(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActivatedOn, opts...).ToFunc()
@@ -212,17 +183,17 @@ func ByDefaultGroupID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultGroupID, opts...).ToFunc()
 }
 
-// ByGroupsCount orders the results by groups count.
-func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRolesCount orders the results by roles count.
+func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newRolesStep(), opts...)
 	}
 }
 
-// ByGroups orders the results by groups terms.
-func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByRoles orders the results by roles terms.
+func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -281,25 +252,11 @@ func ByNotifiers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNotifiersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByUserGroupsCount orders the results by user_groups count.
-func ByUserGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUserGroupsStep(), opts...)
-	}
-}
-
-// ByUserGroups orders the results by user_groups terms.
-func ByUserGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newGroupsStep() *sqlgraph.Step {
+func newRolesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(GroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
+		sqlgraph.To(RolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RolesTable, RolesPrimaryKey...),
 	)
 }
 func newAuthTokensStep() *sqlgraph.Step {
@@ -328,12 +285,5 @@ func newNotifiersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotifiersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NotifiersTable, NotifiersColumn),
-	)
-}
-func newUserGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserGroupsInverseTable, UserGroupsColumn),
-		sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
 	)
 }

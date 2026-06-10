@@ -2,15 +2,15 @@ package services
 
 import (
 	"errors"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
-	"github.com/sysadminsmedia/homebox/backend/pkgs/hasher"
 )
 
 type GroupService struct {
 	repos *repo.AllRepos
+	// user service owns the default-data seeding helpers reused on
+	// collection creation.
+	users *UserService
 }
 
 func (svc *GroupService) UpdateGroup(ctx Context, data repo.GroupUpdate) (repo.Group, error) {
@@ -25,76 +25,24 @@ func (svc *GroupService) UpdateGroup(ctx Context, data repo.GroupUpdate) (repo.G
 	return svc.repos.Groups.GroupUpdate(ctx.Context, ctx.GID, data)
 }
 
+// CreateGroup creates a site-owned collection seeded with the default tags
+// and locations. Access to it is controlled by role permissions.
 func (svc *GroupService) CreateGroup(ctx Context, name string) (repo.Group, error) {
 	if name == "" {
 		return repo.Group{}, errors.New("group name cannot be empty")
 	}
 
-	if ctx.UID == uuid.Nil {
-		return repo.Group{}, errors.New("user ID cannot be empty when creating a group")
+	group, err := svc.repos.Groups.GroupCreate(ctx.Context, name)
+	if err != nil {
+		return repo.Group{}, err
 	}
 
-	return svc.repos.Groups.GroupCreate(ctx.Context, name, ctx.UID)
+	if err := svc.users.bootstrapCollectionDefaults(ctx.Context, group.ID); err != nil {
+		return repo.Group{}, err
+	}
+	return group, nil
 }
 
 func (svc *GroupService) DeleteGroup(ctx Context) error {
 	return svc.repos.Groups.GroupDelete(ctx.Context, ctx.GID)
-}
-
-func (svc *GroupService) NewInvitation(ctx Context, uses int, expiresAt time.Time) (repo.GroupInvitation, string, error) {
-	token := hasher.GenerateToken()
-
-	invitation, err := svc.repos.Groups.InvitationCreate(ctx, ctx.GID, repo.GroupInvitationCreate{
-		Token:     token.Hash,
-		Uses:      uses,
-		ExpiresAt: expiresAt,
-	})
-	if err != nil {
-		return repo.GroupInvitation{}, "", err
-	}
-
-	return invitation, token.Raw, nil
-}
-
-func (svc *GroupService) RemoveMember(ctx Context, userID uuid.UUID) error {
-	if userID == uuid.Nil {
-		return errors.New("user ID cannot be empty")
-	}
-
-	err := svc.repos.Groups.RemoveMember(ctx.Context, ctx.GID, userID)
-	if err != nil {
-		return err
-	}
-
-	// If the removed group was the user's default group, reassign to another group
-	removedUser, err := svc.repos.Users.GetOneID(ctx.Context, userID)
-	if err != nil {
-		return err
-	}
-
-	if removedUser.DefaultGroupID == ctx.GID {
-		// Find another group the user is still a member of
-		var newDefaultGroupID uuid.UUID
-		for _, gid := range removedUser.GroupIDs {
-			if gid != ctx.GID {
-				newDefaultGroupID = gid
-				break
-			}
-		}
-		// Update to another group, or uuid.Nil if the user has no remaining groups
-		if err := svc.repos.Users.UpdateDefaultGroup(ctx.Context, userID, newDefaultGroupID); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (svc *GroupService) DeleteInvitation(ctx Context, id uuid.UUID) error {
-	return svc.repos.Groups.InvitationDelete(ctx.Context, ctx.GID, id)
-}
-
-func (svc *GroupService) AcceptInvitation(ctx Context, token string) (repo.Group, error) {
-	hashedToken := hasher.HashToken(token)
-	return svc.repos.Groups.InvitationAccept(ctx.Context, hashedToken, ctx.UID)
 }

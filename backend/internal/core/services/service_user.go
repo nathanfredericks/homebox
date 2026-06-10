@@ -26,6 +26,9 @@ var (
 	ErrorMailerNotConfigured  = errors.New("password reset by email is unavailable: SMTP is not configured")
 	ErrorPasswordResetInvalid = errors.New("password reset link is invalid or has expired")
 	ErrorPasswordTooShort     = fmt.Errorf("password must be at least %d characters", PasswordMinLength)
+	// ErrorSetupComplete is returned when the first-user setup endpoint is hit
+	// after a user already exists. New users are created by admins only.
+	ErrorSetupComplete = errors.New("setup already completed")
 )
 
 // PasswordMinLength is the minimum length enforced server-side for any flow
@@ -40,10 +43,9 @@ type UserService struct {
 
 type (
 	UserRegistration struct {
-		GroupToken string `json:"token"`
-		Name       string `json:"name"`
-		Email      string `json:"email"`
-		Password   string `json:"password"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	UserAuthTokenDetail struct {
 		Raw             string    `json:"raw"`
@@ -70,104 +72,53 @@ func SkipPasswordValidation() RegisterOption {
 	return func(o *registerOptions) { o.skipPasswordValidation = true }
 }
 
-// RegisterUser creates a new user and group in the data with the provided data. It also bootstraps the user's group
-// with default Tags and Locations.
-func (svc *UserService) RegisterUser(ctx context.Context, data UserRegistration, opts ...RegisterOption) (repo.UserOut, error) {
+// SetupFirstUser bootstraps an empty instance: it creates the first user,
+// grants them the Super Admin role, and creates an initial collection with
+// default tags and locations. It refuses to run once any user exists — after
+// setup, users are created by admins only.
+func (svc *UserService) SetupFirstUser(ctx context.Context, data UserRegistration, opts ...RegisterOption) (repo.UserOut, error) {
 	options := registerOptions{}
 	for _, o := range opts {
 		o(&options)
 	}
 
-	ctx, span := entityServiceTracer().Start(ctx, "service.UserService.RegisterUser",
+	ctx, span := entityServiceTracer().Start(ctx, "service.UserService.SetupFirstUser",
 		trace.WithAttributes(
 			attribute.Int("user.name.length", len(data.Name)),
 			attribute.Int("user.email.length", len(data.Email)),
 			attribute.Int("user.password.length", len(data.Password)),
-			attribute.Bool("registration.has_group_token", data.GroupToken != ""),
 		))
 	defer span.End()
 
 	// Reject too-short (and empty) passwords before any DB work. The reset and
 	// change-password flows enforce the same floor; registration was the gap.
 	if !options.skipPasswordValidation && len(data.Password) < PasswordMinLength {
-		span.SetAttributes(attribute.String("registration.outcome", "password_too_short"))
+		span.SetAttributes(attribute.String("setup.outcome", "password_too_short"))
 		return repo.UserOut{}, ErrorPasswordTooShort
 	}
 
-	// Don't log the raw invitation token — it's a single-use credential that
-	// grants group membership and is replayable from log aggregators until it
-	// expires. The boolean is enough for diagnostics.
+	count, err := svc.repos.Users.Count(ctx)
+	if err != nil {
+		recordServiceSpanError(span, err)
+		return repo.UserOut{}, err
+	}
+	if count > 0 {
+		span.SetAttributes(attribute.String("setup.outcome", "already_complete"))
+		return repo.UserOut{}, ErrorSetupComplete
+	}
+
 	log.Debug().
 		Str("name", data.Name).
 		Str("email", data.Email).
-		Bool("hasGroupToken", data.GroupToken != "").
-		Msg("Registering new user")
+		Msg("Running first-user setup")
 
-	var (
-		err   error
-		group repo.Group
-		token repo.GroupInvitation
-
-		// creatingGroup is true if the user is creating a new group.
-		creatingGroup = false
-	)
-
-	switch data.GroupToken {
-	case "":
-		groupCtx, groupSpan := entityServiceTracer().Start(ctx, "service.UserService.RegisterUser.createGroup")
-		log.Debug().Msg("creating new group")
-		creatingGroup = true
-		group, err = svc.repos.Groups.GroupCreate(groupCtx, fmt.Sprintf("%s's Home", data.Name), uuid.Nil)
-		if err != nil {
-			recordServiceSpanError(groupSpan, err)
-			groupSpan.End()
-			recordServiceSpanError(span, err)
-			log.Err(err).Msg("Failed to create group")
-			return repo.UserOut{}, err
-		}
-		groupSpan.SetAttributes(attribute.String("group.id", group.ID.String()))
-		groupSpan.End()
-	default:
-		joinCtx, joinSpan := entityServiceTracer().Start(ctx, "service.UserService.RegisterUser.joinGroup")
-		log.Debug().Msg("joining existing group")
-		token, err = svc.repos.Groups.InvitationGet(joinCtx, hasher.HashToken(data.GroupToken))
-		if err != nil {
-			recordServiceSpanError(joinSpan, err)
-			joinSpan.End()
-			recordServiceSpanError(span, err)
-			log.Err(err).Msg("Failed to get invitation token")
-			return repo.UserOut{}, err
-		}
-
-		if token.ExpiresAt.Before(time.Now()) {
-			err := errors.New("invitation expired")
-			joinSpan.SetAttributes(attribute.String("invitation.error", "expired"))
-			recordServiceSpanError(joinSpan, err)
-			joinSpan.End()
-			recordServiceSpanError(span, err)
-			return repo.UserOut{}, err
-		}
-		if token.Uses <= 0 {
-			err := errors.New("invitation used up")
-			joinSpan.SetAttributes(attribute.String("invitation.error", "used_up"))
-			recordServiceSpanError(joinSpan, err)
-			joinSpan.End()
-			recordServiceSpanError(span, err)
-			return repo.UserOut{}, err
-		}
-
-		group = token.Group
-		joinSpan.SetAttributes(
-			attribute.String("group.id", group.ID.String()),
-			attribute.Int("invitation.uses_remaining", token.Uses),
-		)
-		joinSpan.End()
+	group, err := svc.repos.Groups.GroupCreate(ctx, "Home")
+	if err != nil {
+		recordServiceSpanError(span, err)
+		log.Err(err).Msg("Failed to create initial collection")
+		return repo.UserOut{}, err
 	}
-
-	span.SetAttributes(
-		attribute.String("group.id", group.ID.String()),
-		attribute.Bool("registration.creating_group", creatingGroup),
-	)
+	span.SetAttributes(attribute.String("group.id", group.ID.String()))
 
 	hashed, err := hasher.HashPasswordCtx(ctx, data.Password)
 	if err != nil {
@@ -179,9 +130,7 @@ func (svc *UserService) RegisterUser(ctx context.Context, data UserRegistration,
 		Name:           data.Name,
 		Email:          data.Email,
 		Password:       &hashed,
-		IsSuperuser:    false,
 		DefaultGroupID: group.ID,
-		IsOwner:        creatingGroup,
 	}
 
 	usr, err := svc.repos.Users.Create(ctx, usrCreate)
@@ -190,59 +139,54 @@ func (svc *UserService) RegisterUser(ctx context.Context, data UserRegistration,
 		return repo.UserOut{}, err
 	}
 	span.SetAttributes(attribute.String("user.id", usr.ID.String()))
-	log.Debug().Msg("user created")
 
-	// Create the default tags and locations for the group.
-	if creatingGroup {
-		bootstrapCtx, bootstrapSpan := entityServiceTracer().Start(ctx, "service.UserService.RegisterUser.bootstrap")
-		log.Debug().Msg("creating default tags")
-		tagsCreated := 0
-		for _, tag := range defaultTags() {
-			_, err := svc.repos.Tags.Create(bootstrapCtx, usr.DefaultGroupID, tag)
-			if err != nil {
-				recordServiceSpanError(bootstrapSpan, err)
-				bootstrapSpan.End()
-				recordServiceSpanError(span, err)
-				return repo.UserOut{}, err
-			}
-			tagsCreated++
-		}
-
-		log.Debug().Msg("creating default locations")
-		locsCreated := 0
-		for _, loc := range defaultLocations() {
-			_, err := svc.repos.Entities.CreateContainer(bootstrapCtx, usr.DefaultGroupID, loc)
-			if err != nil {
-				recordServiceSpanError(bootstrapSpan, err)
-				bootstrapSpan.End()
-				recordServiceSpanError(span, err)
-				return repo.UserOut{}, err
-			}
-			locsCreated++
-		}
-		bootstrapSpan.SetAttributes(
-			attribute.Int("tags.created.count", tagsCreated),
-			attribute.Int("locations.created.count", locsCreated),
-		)
-		bootstrapSpan.End()
+	// The first user is always a Super Admin — the system can never be without one.
+	superAdminID, err := svc.repos.Roles.EnsureSuperAdmin(ctx)
+	if err != nil {
+		recordServiceSpanError(span, err)
+		return repo.UserOut{}, err
+	}
+	if err := svc.repos.Roles.SetUserRoles(ctx, usr.ID, []uuid.UUID{superAdminID}); err != nil {
+		recordServiceSpanError(span, err)
+		return repo.UserOut{}, err
 	}
 
-	// Decrement the invitation token if it was used.
-	if token.ID != uuid.Nil {
-		decCtx, decSpan := entityServiceTracer().Start(ctx, "service.UserService.RegisterUser.decrementInvitation")
-		log.Debug().Msg("decrementing invitation token")
-		err = svc.repos.Groups.InvitationDecrement(decCtx, token.ID)
-		if err != nil {
-			recordServiceSpanError(decSpan, err)
-			decSpan.End()
-			recordServiceSpanError(span, err)
-			log.Err(err).Msg("Failed to update invitation token")
-			return repo.UserOut{}, err
-		}
-		decSpan.End()
+	if err := svc.bootstrapCollectionDefaults(ctx, group.ID); err != nil {
+		recordServiceSpanError(span, err)
+		return repo.UserOut{}, err
 	}
 
 	return usr, nil
+}
+
+// bootstrapCollectionDefaults seeds a fresh collection with the default tags
+// and locations.
+func (svc *UserService) bootstrapCollectionDefaults(ctx context.Context, groupID uuid.UUID) error {
+	bootstrapCtx, bootstrapSpan := entityServiceTracer().Start(ctx, "service.UserService.bootstrapCollectionDefaults")
+	defer bootstrapSpan.End()
+
+	tagsCreated := 0
+	for _, tag := range defaultTags() {
+		if _, err := svc.repos.Tags.Create(bootstrapCtx, groupID, tag); err != nil {
+			recordServiceSpanError(bootstrapSpan, err)
+			return err
+		}
+		tagsCreated++
+	}
+
+	locsCreated := 0
+	for _, loc := range defaultLocations() {
+		if _, err := svc.repos.Entities.CreateContainer(bootstrapCtx, groupID, loc); err != nil {
+			recordServiceSpanError(bootstrapSpan, err)
+			return err
+		}
+		locsCreated++
+	}
+	bootstrapSpan.SetAttributes(
+		attribute.Int("tags.created.count", tagsCreated),
+		attribute.Int("locations.created.count", locsCreated),
+	)
+	return nil
 }
 
 // GetSelf returns the user that is currently logged in based of the token provided within
@@ -428,8 +372,9 @@ func (svc *UserService) Login(ctx context.Context, username, password string, ex
 }
 
 // LoginOIDC creates a session token for a user authenticated via OIDC.
-// It now uses issuer + subject for identity association (OIDC spec compliance).
-// If the user doesn't exist, it will create one.
+// It uses issuer + subject for identity association (OIDC spec compliance).
+// OIDC never provisions accounts: only users created by an admin (matched by
+// issuer+subject, or migrated once by email) can log in.
 func (svc *UserService) LoginOIDC(ctx context.Context, issuer, subject, email, name string) (UserAuthTokenDetail, error) {
 	ctx, span := entityServiceTracer().Start(ctx, "service.UserService.LoginOIDC",
 		trace.WithAttributes(
@@ -483,31 +428,13 @@ func (svc *UserService) LoginOIDC(ctx context.Context, issuer, subject, email, n
 		}
 	}
 
-	// Create user if still not resolved
+	// OIDC users must be provisioned by an admin first; never auto-create.
 	if usr.ID == uuid.Nil {
-		log.Debug().Str("issuer", issuer).Str("subject", subject).Msg("OIDC user not found, creating new user")
-		span.SetAttributes(attribute.String("oidc.outcome", "creating_user"))
-		usr, err = svc.registerOIDCUser(ctx, issuer, subject, email, name)
-		if err != nil {
-			if ent.IsConstraintError(err) {
-				if usr2, gerr := svc.repos.Users.GetOneOIDC(ctx, issuer, subject); gerr == nil {
-					log.Info().Str("issuer", issuer).Str("subject", subject).Msg("OIDC user created concurrently; proceeding")
-					usr = usr2
-					span.SetAttributes(attribute.String("oidc.outcome", "concurrent_create_resolved"))
-				} else {
-					recordServiceSpanError(span, gerr)
-					log.Err(gerr).Str("issuer", issuer).Str("subject", subject).Msg("failed to fetch user after constraint error")
-					return UserAuthTokenDetail{}, gerr
-				}
-			} else {
-				recordServiceSpanError(span, err)
-				log.Err(err).Str("issuer", issuer).Str("subject", subject).Msg("failed to create OIDC user")
-				return UserAuthTokenDetail{}, err
-			}
-		}
-	} else {
-		span.SetAttributes(attribute.String("oidc.outcome", "existing_user"))
+		log.Warn().Str("issuer", issuer).Msg("OIDC login rejected: user not provisioned")
+		span.SetAttributes(attribute.String("oidc.outcome", "not_provisioned"))
+		return UserAuthTokenDetail{}, ErrorInvalidLogin
 	}
+	span.SetAttributes(attribute.String("oidc.outcome", "existing_user"))
 
 	span.SetAttributes(attribute.String("user.id", usr.ID.String()))
 	out, err := svc.createSessionToken(ctx, usr.ID, true)
@@ -515,72 +442,6 @@ func (svc *UserService) LoginOIDC(ctx context.Context, issuer, subject, email, n
 		recordServiceSpanError(span, err)
 	}
 	return out, err
-}
-
-// registerOIDCUser creates a new user for OIDC authentication with issuer+subject identity.
-func (svc *UserService) registerOIDCUser(ctx context.Context, issuer, subject, email, name string) (repo.UserOut, error) {
-	ctx, span := entityServiceTracer().Start(ctx, "service.UserService.registerOIDCUser",
-		trace.WithAttributes(
-			attribute.String("oidc.issuer", issuer),
-			attribute.Int("oidc.subject.length", len(subject)),
-		))
-	defer span.End()
-
-	group, err := svc.repos.Groups.GroupCreate(ctx, "Home", uuid.Nil)
-	if err != nil {
-		recordServiceSpanError(span, err)
-		log.Err(err).Msg("Failed to create group for OIDC user")
-		return repo.UserOut{}, err
-	}
-	span.SetAttributes(attribute.String("group.id", group.ID.String()))
-
-	usrCreate := repo.UserCreate{
-		Name:           name,
-		Email:          email,
-		Password:       nil,
-		IsSuperuser:    false,
-		DefaultGroupID: group.ID,
-		IsOwner:        true,
-	}
-
-	entUser, err := svc.repos.Users.CreateWithOIDC(ctx, usrCreate, issuer, subject)
-	if err != nil {
-		recordServiceSpanError(span, err)
-		return repo.UserOut{}, err
-	}
-	span.SetAttributes(attribute.String("user.id", entUser.ID.String()))
-
-	bootstrapCtx, bootstrapSpan := entityServiceTracer().Start(ctx, "service.UserService.registerOIDCUser.bootstrap")
-	log.Debug().Str("issuer", issuer).Str("subject", subject).Msg("creating default tags for OIDC user")
-	tagsCreated := 0
-	for _, tag := range defaultTags() {
-		_, err := svc.repos.Tags.Create(bootstrapCtx, group.ID, tag)
-		if err != nil {
-			recordServiceSpanError(bootstrapSpan, err)
-			log.Err(err).Msg("Failed to create default tag")
-			continue
-		}
-		tagsCreated++
-	}
-
-	log.Debug().Str("issuer", issuer).Str("subject", subject).Msg("creating default locations for OIDC user")
-	locsCreated := 0
-	for _, loc := range defaultLocations() {
-		_, err := svc.repos.Entities.CreateContainer(bootstrapCtx, group.ID, loc)
-		if err != nil {
-			recordServiceSpanError(bootstrapSpan, err)
-			log.Err(err).Msg("Failed to create default location")
-			continue
-		}
-		locsCreated++
-	}
-	bootstrapSpan.SetAttributes(
-		attribute.Int("tags.created.count", tagsCreated),
-		attribute.Int("locations.created.count", locsCreated),
-	)
-	bootstrapSpan.End()
-
-	return entUser, nil
 }
 
 func (svc *UserService) Logout(ctx context.Context, token string) error {
@@ -643,6 +504,12 @@ func (svc *UserService) DeleteSelf(ctx context.Context, id uuid.UUID) error {
 	ctx, span := entityServiceTracer().Start(ctx, "service.UserService.DeleteSelf",
 		trace.WithAttributes(attribute.String("user.id", id.String())))
 	defer span.End()
+
+	// The last super admin can never delete themselves.
+	if err := svc.guardLastSuperAdmin(ctx, id); err != nil {
+		recordServiceSpanError(span, err)
+		return err
+	}
 
 	err := svc.repos.Users.Delete(ctx, id)
 	recordServiceSpanError(span, err)

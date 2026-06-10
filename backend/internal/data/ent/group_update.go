@@ -17,11 +17,10 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/rolepermission"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
 // GroupUpdate is the builder for updating Group entities.
@@ -71,21 +70,6 @@ func (_u *GroupUpdate) SetNillableCurrency(v *string) *GroupUpdate {
 	return _u
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (_u *GroupUpdate) AddUserIDs(ids ...uuid.UUID) *GroupUpdate {
-	_u.mutation.AddUserIDs(ids...)
-	return _u
-}
-
-// AddUsers adds the "users" edges to the User entity.
-func (_u *GroupUpdate) AddUsers(v ...*User) *GroupUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserIDs(ids...)
-}
-
 // AddEntityTypeIDs adds the "entity_types" edge to the EntityType entity by IDs.
 func (_u *GroupUpdate) AddEntityTypeIDs(ids ...uuid.UUID) *GroupUpdate {
 	_u.mutation.AddEntityTypeIDs(ids...)
@@ -131,19 +115,19 @@ func (_u *GroupUpdate) AddTags(v ...*Tag) *GroupUpdate {
 	return _u.AddTagIDs(ids...)
 }
 
-// AddInvitationTokenIDs adds the "invitation_tokens" edge to the GroupInvitationToken entity by IDs.
-func (_u *GroupUpdate) AddInvitationTokenIDs(ids ...uuid.UUID) *GroupUpdate {
-	_u.mutation.AddInvitationTokenIDs(ids...)
+// AddRolePermissionIDs adds the "role_permissions" edge to the RolePermission entity by IDs.
+func (_u *GroupUpdate) AddRolePermissionIDs(ids ...uuid.UUID) *GroupUpdate {
+	_u.mutation.AddRolePermissionIDs(ids...)
 	return _u
 }
 
-// AddInvitationTokens adds the "invitation_tokens" edges to the GroupInvitationToken entity.
-func (_u *GroupUpdate) AddInvitationTokens(v ...*GroupInvitationToken) *GroupUpdate {
+// AddRolePermissions adds the "role_permissions" edges to the RolePermission entity.
+func (_u *GroupUpdate) AddRolePermissions(v ...*RolePermission) *GroupUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddInvitationTokenIDs(ids...)
+	return _u.AddRolePermissionIDs(ids...)
 }
 
 // AddNotifierIDs adds the "notifiers" edge to the Notifier entity by IDs.
@@ -194,27 +178,6 @@ func (_u *GroupUpdate) AddExports(v ...*Export) *GroupUpdate {
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdate) Mutation() *GroupMutation {
 	return _u.mutation
-}
-
-// ClearUsers clears all "users" edges to the User entity.
-func (_u *GroupUpdate) ClearUsers() *GroupUpdate {
-	_u.mutation.ClearUsers()
-	return _u
-}
-
-// RemoveUserIDs removes the "users" edge to User entities by IDs.
-func (_u *GroupUpdate) RemoveUserIDs(ids ...uuid.UUID) *GroupUpdate {
-	_u.mutation.RemoveUserIDs(ids...)
-	return _u
-}
-
-// RemoveUsers removes "users" edges to User entities.
-func (_u *GroupUpdate) RemoveUsers(v ...*User) *GroupUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserIDs(ids...)
 }
 
 // ClearEntityTypes clears all "entity_types" edges to the EntityType entity.
@@ -280,25 +243,25 @@ func (_u *GroupUpdate) RemoveTags(v ...*Tag) *GroupUpdate {
 	return _u.RemoveTagIDs(ids...)
 }
 
-// ClearInvitationTokens clears all "invitation_tokens" edges to the GroupInvitationToken entity.
-func (_u *GroupUpdate) ClearInvitationTokens() *GroupUpdate {
-	_u.mutation.ClearInvitationTokens()
+// ClearRolePermissions clears all "role_permissions" edges to the RolePermission entity.
+func (_u *GroupUpdate) ClearRolePermissions() *GroupUpdate {
+	_u.mutation.ClearRolePermissions()
 	return _u
 }
 
-// RemoveInvitationTokenIDs removes the "invitation_tokens" edge to GroupInvitationToken entities by IDs.
-func (_u *GroupUpdate) RemoveInvitationTokenIDs(ids ...uuid.UUID) *GroupUpdate {
-	_u.mutation.RemoveInvitationTokenIDs(ids...)
+// RemoveRolePermissionIDs removes the "role_permissions" edge to RolePermission entities by IDs.
+func (_u *GroupUpdate) RemoveRolePermissionIDs(ids ...uuid.UUID) *GroupUpdate {
+	_u.mutation.RemoveRolePermissionIDs(ids...)
 	return _u
 }
 
-// RemoveInvitationTokens removes "invitation_tokens" edges to GroupInvitationToken entities.
-func (_u *GroupUpdate) RemoveInvitationTokens(v ...*GroupInvitationToken) *GroupUpdate {
+// RemoveRolePermissions removes "role_permissions" edges to RolePermission entities.
+func (_u *GroupUpdate) RemoveRolePermissions(v ...*RolePermission) *GroupUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveInvitationTokenIDs(ids...)
+	return _u.RemoveRolePermissionIDs(ids...)
 }
 
 // ClearNotifiers clears all "notifiers" edges to the Notifier entity.
@@ -430,63 +393,6 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(group.FieldCurrency, field.TypeString, value)
-	}
-	if _u.mutation.UsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUsersIDs(); len(nodes) > 0 && !_u.mutation.UsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UsersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.EntityTypesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -623,28 +529,28 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.InvitationTokensCleared() {
+	if _u.mutation.RolePermissionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedInvitationTokensIDs(); len(nodes) > 0 && !_u.mutation.InvitationTokensCleared() {
+	if nodes := _u.mutation.RemovedRolePermissionsIDs(); len(nodes) > 0 && !_u.mutation.RolePermissionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -652,15 +558,15 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.InvitationTokensIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RolePermissionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -857,21 +763,6 @@ func (_u *GroupUpdateOne) SetNillableCurrency(v *string) *GroupUpdateOne {
 	return _u
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (_u *GroupUpdateOne) AddUserIDs(ids ...uuid.UUID) *GroupUpdateOne {
-	_u.mutation.AddUserIDs(ids...)
-	return _u
-}
-
-// AddUsers adds the "users" edges to the User entity.
-func (_u *GroupUpdateOne) AddUsers(v ...*User) *GroupUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserIDs(ids...)
-}
-
 // AddEntityTypeIDs adds the "entity_types" edge to the EntityType entity by IDs.
 func (_u *GroupUpdateOne) AddEntityTypeIDs(ids ...uuid.UUID) *GroupUpdateOne {
 	_u.mutation.AddEntityTypeIDs(ids...)
@@ -917,19 +808,19 @@ func (_u *GroupUpdateOne) AddTags(v ...*Tag) *GroupUpdateOne {
 	return _u.AddTagIDs(ids...)
 }
 
-// AddInvitationTokenIDs adds the "invitation_tokens" edge to the GroupInvitationToken entity by IDs.
-func (_u *GroupUpdateOne) AddInvitationTokenIDs(ids ...uuid.UUID) *GroupUpdateOne {
-	_u.mutation.AddInvitationTokenIDs(ids...)
+// AddRolePermissionIDs adds the "role_permissions" edge to the RolePermission entity by IDs.
+func (_u *GroupUpdateOne) AddRolePermissionIDs(ids ...uuid.UUID) *GroupUpdateOne {
+	_u.mutation.AddRolePermissionIDs(ids...)
 	return _u
 }
 
-// AddInvitationTokens adds the "invitation_tokens" edges to the GroupInvitationToken entity.
-func (_u *GroupUpdateOne) AddInvitationTokens(v ...*GroupInvitationToken) *GroupUpdateOne {
+// AddRolePermissions adds the "role_permissions" edges to the RolePermission entity.
+func (_u *GroupUpdateOne) AddRolePermissions(v ...*RolePermission) *GroupUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddInvitationTokenIDs(ids...)
+	return _u.AddRolePermissionIDs(ids...)
 }
 
 // AddNotifierIDs adds the "notifiers" edge to the Notifier entity by IDs.
@@ -980,27 +871,6 @@ func (_u *GroupUpdateOne) AddExports(v ...*Export) *GroupUpdateOne {
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdateOne) Mutation() *GroupMutation {
 	return _u.mutation
-}
-
-// ClearUsers clears all "users" edges to the User entity.
-func (_u *GroupUpdateOne) ClearUsers() *GroupUpdateOne {
-	_u.mutation.ClearUsers()
-	return _u
-}
-
-// RemoveUserIDs removes the "users" edge to User entities by IDs.
-func (_u *GroupUpdateOne) RemoveUserIDs(ids ...uuid.UUID) *GroupUpdateOne {
-	_u.mutation.RemoveUserIDs(ids...)
-	return _u
-}
-
-// RemoveUsers removes "users" edges to User entities.
-func (_u *GroupUpdateOne) RemoveUsers(v ...*User) *GroupUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserIDs(ids...)
 }
 
 // ClearEntityTypes clears all "entity_types" edges to the EntityType entity.
@@ -1066,25 +936,25 @@ func (_u *GroupUpdateOne) RemoveTags(v ...*Tag) *GroupUpdateOne {
 	return _u.RemoveTagIDs(ids...)
 }
 
-// ClearInvitationTokens clears all "invitation_tokens" edges to the GroupInvitationToken entity.
-func (_u *GroupUpdateOne) ClearInvitationTokens() *GroupUpdateOne {
-	_u.mutation.ClearInvitationTokens()
+// ClearRolePermissions clears all "role_permissions" edges to the RolePermission entity.
+func (_u *GroupUpdateOne) ClearRolePermissions() *GroupUpdateOne {
+	_u.mutation.ClearRolePermissions()
 	return _u
 }
 
-// RemoveInvitationTokenIDs removes the "invitation_tokens" edge to GroupInvitationToken entities by IDs.
-func (_u *GroupUpdateOne) RemoveInvitationTokenIDs(ids ...uuid.UUID) *GroupUpdateOne {
-	_u.mutation.RemoveInvitationTokenIDs(ids...)
+// RemoveRolePermissionIDs removes the "role_permissions" edge to RolePermission entities by IDs.
+func (_u *GroupUpdateOne) RemoveRolePermissionIDs(ids ...uuid.UUID) *GroupUpdateOne {
+	_u.mutation.RemoveRolePermissionIDs(ids...)
 	return _u
 }
 
-// RemoveInvitationTokens removes "invitation_tokens" edges to GroupInvitationToken entities.
-func (_u *GroupUpdateOne) RemoveInvitationTokens(v ...*GroupInvitationToken) *GroupUpdateOne {
+// RemoveRolePermissions removes "role_permissions" edges to RolePermission entities.
+func (_u *GroupUpdateOne) RemoveRolePermissions(v ...*RolePermission) *GroupUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveInvitationTokenIDs(ids...)
+	return _u.RemoveRolePermissionIDs(ids...)
 }
 
 // ClearNotifiers clears all "notifiers" edges to the Notifier entity.
@@ -1247,63 +1117,6 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(group.FieldCurrency, field.TypeString, value)
 	}
-	if _u.mutation.UsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUsersIDs(); len(nodes) > 0 && !_u.mutation.UsersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UsersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.EntityTypesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1439,28 +1252,28 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.InvitationTokensCleared() {
+	if _u.mutation.RolePermissionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedInvitationTokensIDs(); len(nodes) > 0 && !_u.mutation.InvitationTokensCleared() {
+	if nodes := _u.mutation.RemovedRolePermissionsIDs(); len(nodes) > 0 && !_u.mutation.RolePermissionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1468,15 +1281,15 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.InvitationTokensIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RolePermissionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

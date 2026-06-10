@@ -32,22 +32,22 @@ type Tx struct {
 	Export *ExportClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
-	// GroupInvitationToken is the client for interacting with the GroupInvitationToken builders.
-	GroupInvitationToken *GroupInvitationTokenClient
 	// MaintenanceEntry is the client for interacting with the MaintenanceEntry builders.
 	MaintenanceEntry *MaintenanceEntryClient
 	// Notifier is the client for interacting with the Notifier builders.
 	Notifier *NotifierClient
 	// PasswordResetTokens is the client for interacting with the PasswordResetTokens builders.
 	PasswordResetTokens *PasswordResetTokensClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// RolePermission is the client for interacting with the RolePermission builders.
+	RolePermission *RolePermissionClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
 	TemplateField *TemplateFieldClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserGroup is the client for interacting with the UserGroup builders.
-	UserGroup *UserGroupClient
 
 	// lazily loaded.
 	client     *Client
@@ -189,14 +189,14 @@ func (tx *Tx) init() {
 	tx.EntityType = NewEntityTypeClient(tx.config)
 	tx.Export = NewExportClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
-	tx.GroupInvitationToken = NewGroupInvitationTokenClient(tx.config)
 	tx.MaintenanceEntry = NewMaintenanceEntryClient(tx.config)
 	tx.Notifier = NewNotifierClient(tx.config)
 	tx.PasswordResetTokens = NewPasswordResetTokensClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
+	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TemplateField = NewTemplateFieldClient(tx.config)
 	tx.User = NewUserClient(tx.config)
-	tx.UserGroup = NewUserGroupClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

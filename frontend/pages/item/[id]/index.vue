@@ -57,6 +57,7 @@
   const route = useRoute();
   const router = useRouter();
   const api = useUserApi();
+  const { can } = usePermissions();
 
   const itemId = computed<string>(() => route.params.id as string);
   const preferences = useViewPreferences();
@@ -398,16 +399,24 @@
         name: "global.details",
         to: `/item/${itemId.value}`,
       },
-      {
-        id: "log",
-        name: "global.maintenance",
-        to: `/item/${itemId.value}/maintenance`,
-      },
-      {
-        id: "edit",
-        name: "global.edit",
-        to: `/item/${itemId.value}/edit`,
-      },
+      ...(can("maintenance", "view")
+        ? [
+            {
+              id: "log",
+              name: "global.maintenance",
+              to: `/item/${itemId.value}/maintenance`,
+            },
+          ]
+        : []),
+      ...(can("items", "edit")
+        ? [
+            {
+              id: "edit",
+              name: "global.edit",
+              to: `/item/${itemId.value}/edit`,
+            },
+          ]
+        : []),
     ];
   });
 
@@ -655,29 +664,38 @@
                 :location="item.parent?.name"
                 :quantity="item.quantity"
               />
-              <Button class="w-9 md:w-auto" :aria-label="$t('global.create_subitem')" @click="createSubitem">
+              <Button
+                v-if="can('items', 'create')"
+                class="w-9 md:w-auto"
+                :aria-label="$t('global.create_subitem')"
+                @click="createSubitem"
+              >
                 <MdiPlus />
                 <span class="hidden md:inline">{{ $t("global.create_subitem") }}</span>
               </Button>
 
-              <!-- More actions dropdown -->
-              <DropdownMenu>
+              <!-- More actions dropdown; hidden entirely when no action is permitted -->
+              <DropdownMenu v-if="can('items', 'create') || can('templates', 'create') || can('items', 'delete')">
                 <DropdownMenuTrigger as-child>
                   <Button variant="outline" size="icon" :aria-label="$t('global.more_actions')">
                     <MdiDotsVertical class="size-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="w-48">
-                  <DropdownMenuItem @click="handleDuplicateClick">
+                  <DropdownMenuItem v-if="can('items', 'create')" @click="handleDuplicateClick">
                     <MdiPlusBoxMultipleOutline class="mr-2 size-4" />
                     {{ $t("global.duplicate") }}
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click="saveAsTemplate">
+                  <DropdownMenuItem v-if="can('templates', 'create')" @click="saveAsTemplate">
                     <MdiContentSaveEdit class="mr-2 size-4" />
                     {{ $t("components.template.save_as_template") }}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem class="text-destructive focus:text-destructive" @click="deleteItem">
+                  <DropdownMenuSeparator v-if="can('items', 'delete')" />
+                  <DropdownMenuItem
+                    v-if="can('items', 'delete')"
+                    class="text-destructive focus:text-destructive"
+                    @click="deleteItem"
+                  >
                     <MdiDelete class="mr-2 size-4" />
                     {{ $t("global.delete") }}
                   </DropdownMenuItem>

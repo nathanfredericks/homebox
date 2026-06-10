@@ -20,30 +20,12 @@ test("invalid login", async ({ page }) => {
   await expect(page).toHaveURL("/");
 });
 
-test("registration", async ({ page }) => {
-  test.slow();
-  // Register a new user
-  await page.goto("/home");
-  await expect(page).toHaveURL("/");
-  await page.getByTestId("register-button").click();
-
-  await page.waitForTimeout(1000);
-
-  await page.getByTestId("email-input").locator("input").fill("test@example.com");
-  await page.getByTestId("name-input").locator("input").fill("Test User");
-  await page.getByTestId("password-input").locator("input").fill("ThisIsAStrongDemoPass");
-  await page.getByTestId("confirm-register-button").click();
-  await expect(page).toHaveURL("/");
-
-  // Try to register the same user again (it should fail)
-  await page.goto("/home");
-  await expect(page).toHaveURL("/");
-  await page.getByTestId("register-button").click();
-  await page.getByTestId("email-input").locator("input").fill("test@example.com");
-  await page.getByTestId("name-input").locator("input").fill("Test User");
-  await page.getByTestId("password-input").locator("input").fill("ThisIsAStrongDemoPass");
-  await page.getByTestId("confirm-register-button").click();
-  await expect(page).toHaveURL("/");
-  await page.waitForTimeout(500);
-  await expect(page.locator("div[class*='login-error']").first()).toHaveText("Problem registering user");
+test("self-registration does not exist once setup has completed", async ({ page }) => {
+  // Users are created by administrators; the login page must offer no
+  // registration entry point at all (a user already exists in demo mode, so
+  // the first-time setup card is not shown either).
+  await page.goto("/");
+  await expect(page.locator("#login-form")).toBeVisible();
+  await expect(page.getByTestId("register-button")).toHaveCount(0);
+  await expect(page.locator("#setup-form")).toHaveCount(0);
 });

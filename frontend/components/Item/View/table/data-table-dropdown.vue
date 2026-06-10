@@ -21,6 +21,7 @@
   const confirm = useConfirm();
   const preferences = useViewPreferences();
   const { openDialog } = useDialog();
+  const { can } = usePermissions();
 
   const props = defineProps<{
     item?: EntitySummary;
@@ -193,6 +194,7 @@
       <DropdownMenuSeparator />
       <!-- change location -->
       <DropdownMenuItem
+        v-if="can('items', 'edit')"
         @click="
           openDialog(DialogID.ItemChangeDetails, {
             params: { items: multi ? multi.items.map(row => row.original) : [item!], changeLocation: true },
@@ -209,6 +211,7 @@
       </DropdownMenuItem>
       <!-- change tags -->
       <DropdownMenuItem
+        v-if="can('items', 'edit')"
         @click="
           openDialog(DialogID.ItemChangeDetails, {
             params: {
@@ -229,6 +232,7 @@
       </DropdownMenuItem>
       <!-- maintenance -->
       <DropdownMenuItem
+        v-if="can('maintenance', 'create')"
         @click="
           openDialog(DialogID.EditMaintenance, {
             params: { type: 'create', itemId: multi ? multi.items.map(row => row.original.id) : item!.id },
@@ -261,7 +265,10 @@
         }}
       </DropdownMenuItem>
       <!-- duplicate -->
-      <DropdownMenuItem @click="duplicateItems(multi ? multi.items.map(row => row.original.id) : [item!.id])">
+      <DropdownMenuItem
+        v-if="can('items', 'create')"
+        @click="duplicateItems(multi ? multi.items.map(row => row.original.id) : [item!.id])"
+      >
         {{
           multi
             ? t("components.item.view.table.dropdown.duplicate_selected")
@@ -269,7 +276,10 @@
         }}
       </DropdownMenuItem>
       <!-- delete -->
-      <DropdownMenuItem @click="deleteItems(multi ? multi.items.map(row => row.original.id) : [item!.id])">
+      <DropdownMenuItem
+        v-if="can('items', 'delete')"
+        @click="deleteItems(multi ? multi.items.map(row => row.original.id) : [item!.id])"
+      >
         {{
           multi
             ? t("components.item.view.table.dropdown.delete_selected")

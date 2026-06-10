@@ -96,9 +96,7 @@ func (r *APIKeyRepository) GetUserFromToken(ctx context.Context, tokenHash []byt
 
 	key, err := r.db.APIKey.Query().
 		Where(apikey.Token(tokenHash)).
-		WithUser(func(uq *ent.UserQuery) {
-			uq.WithGroups()
-		}).
+		WithUser().
 		Only(ctx)
 	if err != nil {
 		span.SetAttributes(

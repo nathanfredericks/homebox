@@ -16,10 +16,9 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/rolepermission"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
 // GroupCreate is the builder for creating a Group entity.
@@ -91,21 +90,6 @@ func (_c *GroupCreate) SetNillableID(v *uuid.UUID) *GroupCreate {
 	return _c
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (_c *GroupCreate) AddUserIDs(ids ...uuid.UUID) *GroupCreate {
-	_c.mutation.AddUserIDs(ids...)
-	return _c
-}
-
-// AddUsers adds the "users" edges to the User entity.
-func (_c *GroupCreate) AddUsers(v ...*User) *GroupCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddUserIDs(ids...)
-}
-
 // AddEntityTypeIDs adds the "entity_types" edge to the EntityType entity by IDs.
 func (_c *GroupCreate) AddEntityTypeIDs(ids ...uuid.UUID) *GroupCreate {
 	_c.mutation.AddEntityTypeIDs(ids...)
@@ -151,19 +135,19 @@ func (_c *GroupCreate) AddTags(v ...*Tag) *GroupCreate {
 	return _c.AddTagIDs(ids...)
 }
 
-// AddInvitationTokenIDs adds the "invitation_tokens" edge to the GroupInvitationToken entity by IDs.
-func (_c *GroupCreate) AddInvitationTokenIDs(ids ...uuid.UUID) *GroupCreate {
-	_c.mutation.AddInvitationTokenIDs(ids...)
+// AddRolePermissionIDs adds the "role_permissions" edge to the RolePermission entity by IDs.
+func (_c *GroupCreate) AddRolePermissionIDs(ids ...uuid.UUID) *GroupCreate {
+	_c.mutation.AddRolePermissionIDs(ids...)
 	return _c
 }
 
-// AddInvitationTokens adds the "invitation_tokens" edges to the GroupInvitationToken entity.
-func (_c *GroupCreate) AddInvitationTokens(v ...*GroupInvitationToken) *GroupCreate {
+// AddRolePermissions adds the "role_permissions" edges to the RolePermission entity.
+func (_c *GroupCreate) AddRolePermissions(v ...*RolePermission) *GroupCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddInvitationTokenIDs(ids...)
+	return _c.AddRolePermissionIDs(ids...)
 }
 
 // AddNotifierIDs adds the "notifiers" edge to the Notifier entity by IDs.
@@ -334,26 +318,6 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		_spec.SetField(group.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
 	}
-	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &UserGroupCreate{config: _c.config, mutation: newUserGroupMutation(_c.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.EntityTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -402,15 +366,15 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.InvitationTokensIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.RolePermissionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   group.InvitationTokensTable,
-			Columns: []string{group.InvitationTokensColumn},
+			Table:   group.RolePermissionsTable,
+			Columns: []string{group.RolePermissionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(groupinvitationtoken.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rolepermission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

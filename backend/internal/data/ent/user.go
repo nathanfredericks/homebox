@@ -29,10 +29,6 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password *string `json:"-"`
-	// IsSuperuser holds the value of the "is_superuser" field.
-	IsSuperuser bool `json:"is_superuser,omitempty"`
-	// Superuser holds the value of the "superuser" field.
-	Superuser bool `json:"superuser,omitempty"`
 	// ActivatedOn holds the value of the "activated_on" field.
 	ActivatedOn time.Time `json:"activated_on,omitempty"`
 	// OidcIssuer holds the value of the "oidc_issuer" field.
@@ -51,8 +47,8 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Groups holds the value of the groups edge.
-	Groups []*Group `json:"groups,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*Role `json:"roles,omitempty"`
 	// AuthTokens holds the value of the auth_tokens edge.
 	AuthTokens []*AuthTokens `json:"auth_tokens,omitempty"`
 	// PasswordResetTokens holds the value of the password_reset_tokens edge.
@@ -61,20 +57,18 @@ type UserEdges struct {
 	APIKeys []*APIKey `json:"api_keys,omitempty"`
 	// Notifiers holds the value of the notifiers edge.
 	Notifiers []*Notifier `json:"notifiers,omitempty"`
-	// UserGroups holds the value of the user_groups edge.
-	UserGroups []*UserGroup `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [5]bool
 }
 
-// GroupsOrErr returns the Groups value or an error if the edge
+// RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) GroupsOrErr() ([]*Group, error) {
+func (e UserEdges) RolesOrErr() ([]*Role, error) {
 	if e.loadedTypes[0] {
-		return e.Groups, nil
+		return e.Roles, nil
 	}
-	return nil, &NotLoadedError{edge: "groups"}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // AuthTokensOrErr returns the AuthTokens value or an error if the edge
@@ -113,15 +107,6 @@ func (e UserEdges) NotifiersOrErr() ([]*Notifier, error) {
 	return nil, &NotLoadedError{edge: "notifiers"}
 }
 
-// UserGroupsOrErr returns the UserGroups value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) UserGroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[5] {
-		return e.UserGroups, nil
-	}
-	return nil, &NotLoadedError{edge: "user_groups"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -131,8 +116,6 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case user.FieldSettings:
 			values[i] = new([]byte)
-		case user.FieldIsSuperuser, user.FieldSuperuser:
-			values[i] = new(sql.NullBool)
 		case user.FieldName, user.FieldEmail, user.FieldPassword, user.FieldOidcIssuer, user.FieldOidcSubject:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldActivatedOn:
@@ -191,18 +174,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				_m.Password = new(string)
 				*_m.Password = value.String
 			}
-		case user.FieldIsSuperuser:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_superuser", values[i])
-			} else if value.Valid {
-				_m.IsSuperuser = value.Bool
-			}
-		case user.FieldSuperuser:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field superuser", values[i])
-			} else if value.Valid {
-				_m.Superuser = value.Bool
-			}
 		case user.FieldActivatedOn:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field activated_on", values[i])
@@ -251,9 +222,9 @@ func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryGroups queries the "groups" edge of the User entity.
-func (_m *User) QueryGroups() *GroupQuery {
-	return NewUserClient(_m.config).QueryGroups(_m)
+// QueryRoles queries the "roles" edge of the User entity.
+func (_m *User) QueryRoles() *RoleQuery {
+	return NewUserClient(_m.config).QueryRoles(_m)
 }
 
 // QueryAuthTokens queries the "auth_tokens" edge of the User entity.
@@ -274,11 +245,6 @@ func (_m *User) QueryAPIKeys() *APIKeyQuery {
 // QueryNotifiers queries the "notifiers" edge of the User entity.
 func (_m *User) QueryNotifiers() *NotifierQuery {
 	return NewUserClient(_m.config).QueryNotifiers(_m)
-}
-
-// QueryUserGroups queries the "user_groups" edge of the User entity.
-func (_m *User) QueryUserGroups() *UserGroupQuery {
-	return NewUserClient(_m.config).QueryUserGroups(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -317,12 +283,6 @@ func (_m *User) String() string {
 	builder.WriteString(_m.Email)
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
-	builder.WriteString(", ")
-	builder.WriteString("is_superuser=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsSuperuser))
-	builder.WriteString(", ")
-	builder.WriteString("superuser=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Superuser))
 	builder.WriteString(", ")
 	builder.WriteString("activated_on=")
 	builder.WriteString(_m.ActivatedOn.Format(time.ANSIC))

@@ -13,9 +13,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/apikey"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -76,34 +76,6 @@ func (_c *UserCreate) SetPassword(v string) *UserCreate {
 func (_c *UserCreate) SetNillablePassword(v *string) *UserCreate {
 	if v != nil {
 		_c.SetPassword(*v)
-	}
-	return _c
-}
-
-// SetIsSuperuser sets the "is_superuser" field.
-func (_c *UserCreate) SetIsSuperuser(v bool) *UserCreate {
-	_c.mutation.SetIsSuperuser(v)
-	return _c
-}
-
-// SetNillableIsSuperuser sets the "is_superuser" field if the given value is not nil.
-func (_c *UserCreate) SetNillableIsSuperuser(v *bool) *UserCreate {
-	if v != nil {
-		_c.SetIsSuperuser(*v)
-	}
-	return _c
-}
-
-// SetSuperuser sets the "superuser" field.
-func (_c *UserCreate) SetSuperuser(v bool) *UserCreate {
-	_c.mutation.SetSuperuser(v)
-	return _c
-}
-
-// SetNillableSuperuser sets the "superuser" field if the given value is not nil.
-func (_c *UserCreate) SetNillableSuperuser(v *bool) *UserCreate {
-	if v != nil {
-		_c.SetSuperuser(*v)
 	}
 	return _c
 }
@@ -184,19 +156,19 @@ func (_c *UserCreate) SetNillableID(v *uuid.UUID) *UserCreate {
 	return _c
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_c *UserCreate) AddGroupIDs(ids ...uuid.UUID) *UserCreate {
-	_c.mutation.AddGroupIDs(ids...)
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_c *UserCreate) AddRoleIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddRoleIDs(ids...)
 	return _c
 }
 
-// AddGroups adds the "groups" edges to the Group entity.
-func (_c *UserCreate) AddGroups(v ...*Group) *UserCreate {
+// AddRoles adds the "roles" edges to the Role entity.
+func (_c *UserCreate) AddRoles(v ...*Role) *UserCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddGroupIDs(ids...)
+	return _c.AddRoleIDs(ids...)
 }
 
 // AddAuthTokenIDs adds the "auth_tokens" edge to the AuthTokens entity by IDs.
@@ -302,14 +274,6 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.IsSuperuser(); !ok {
-		v := user.DefaultIsSuperuser
-		_c.mutation.SetIsSuperuser(v)
-	}
-	if _, ok := _c.mutation.Superuser(); !ok {
-		v := user.DefaultSuperuser
-		_c.mutation.SetSuperuser(v)
-	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := user.DefaultID()
 		_c.mutation.SetID(v)
@@ -344,12 +308,6 @@ func (_c *UserCreate) check() error {
 		if err := user.PasswordValidator(v); err != nil {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.IsSuperuser(); !ok {
-		return &ValidationError{Name: "is_superuser", err: errors.New(`ent: missing required field "User.is_superuser"`)}
-	}
-	if _, ok := _c.mutation.Superuser(); !ok {
-		return &ValidationError{Name: "superuser", err: errors.New(`ent: missing required field "User.superuser"`)}
 	}
 	return nil
 }
@@ -406,14 +364,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = &value
 	}
-	if value, ok := _c.mutation.IsSuperuser(); ok {
-		_spec.SetField(user.FieldIsSuperuser, field.TypeBool, value)
-		_node.IsSuperuser = value
-	}
-	if value, ok := _c.mutation.Superuser(); ok {
-		_spec.SetField(user.FieldSuperuser, field.TypeBool, value)
-		_node.Superuser = value
-	}
 	if value, ok := _c.mutation.ActivatedOn(); ok {
 		_spec.SetField(user.FieldActivatedOn, field.TypeTime, value)
 		_node.ActivatedOn = value
@@ -434,24 +384,20 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldSettings, field.TypeJSON, value)
 		_node.Settings = value
 	}
-	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &UserGroupCreate{config: _c.config, mutation: newUserGroupMutation(_c.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.AuthTokensIDs(); len(nodes) > 0 {

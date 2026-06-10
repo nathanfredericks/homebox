@@ -45,13 +45,6 @@ func registerRecurringTasks(app *app, cfg *config.Config, runner *graceful.Runne
 		}
 	}))
 
-	runner.AddPlugin(NewTask("purge-invitations", 24*time.Hour, func(ctx context.Context) {
-		_, err := app.repos.Groups.InvitationPurge(ctx)
-		if err != nil {
-			log.Error().Err(err).Msg("failed to purge expired invitations")
-		}
-	}))
-
 	runner.AddPlugin(NewTask("purge-stale-exports", 24*time.Hour, func(ctx context.Context) {
 		purgeStaleExports(ctx, app)
 	}))

@@ -81,16 +81,6 @@ func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
 }
 
-// IsSuperuser applies equality check predicate on the "is_superuser" field. It's identical to IsSuperuserEQ.
-func IsSuperuser(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldIsSuperuser, v))
-}
-
-// Superuser applies equality check predicate on the "superuser" field. It's identical to SuperuserEQ.
-func Superuser(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSuperuser, v))
-}
-
 // ActivatedOn applies equality check predicate on the "activated_on" field. It's identical to ActivatedOnEQ.
 func ActivatedOn(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldActivatedOn, v))
@@ -396,26 +386,6 @@ func PasswordContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPassword, v))
 }
 
-// IsSuperuserEQ applies the EQ predicate on the "is_superuser" field.
-func IsSuperuserEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldIsSuperuser, v))
-}
-
-// IsSuperuserNEQ applies the NEQ predicate on the "is_superuser" field.
-func IsSuperuserNEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldIsSuperuser, v))
-}
-
-// SuperuserEQ applies the EQ predicate on the "superuser" field.
-func SuperuserEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSuperuser, v))
-}
-
-// SuperuserNEQ applies the NEQ predicate on the "superuser" field.
-func SuperuserNEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldSuperuser, v))
-}
-
 // ActivatedOnEQ applies the EQ predicate on the "activated_on" field.
 func ActivatedOnEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldActivatedOn, v))
@@ -676,21 +646,21 @@ func SettingsNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldSettings))
 }
 
-// HasGroups applies the HasEdge predicate on the "groups" edge.
-func HasGroups() predicate.User {
+// HasRoles applies the HasEdge predicate on the "roles" edge.
+func HasRoles() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, GroupsTable, GroupsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, RolesTable, RolesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGroupsWith applies the HasEdge predicate on the "groups" edge with a given conditions (other predicates).
-func HasGroupsWith(preds ...predicate.Group) predicate.User {
+// HasRolesWith applies the HasEdge predicate on the "roles" edge with a given conditions (other predicates).
+func HasRolesWith(preds ...predicate.Role) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newGroupsStep()
+		step := newRolesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -783,29 +753,6 @@ func HasNotifiers() predicate.User {
 func HasNotifiersWith(preds ...predicate.Notifier) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newNotifiersStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasUserGroups applies the HasEdge predicate on the "user_groups" edge.
-func HasUserGroups() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserGroupsWith applies the HasEdge predicate on the "user_groups" edge with a given conditions (other predicates).
-func HasUserGroupsWith(preds ...predicate.UserGroup) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := newUserGroupsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

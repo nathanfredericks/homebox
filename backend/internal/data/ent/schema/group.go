@@ -42,14 +42,10 @@ func (Group) Edges() []ent.Edge {
 	}
 
 	return []ent.Edge{
-		// M:M between users and groups; the user_groups join carries per-membership role.
-		edge.From("users", User.Type).
-			Ref("groups").
-			Through("user_groups", UserGroup.Type),
 		owned("entity_types", EntityType.Type),
 		owned("entities", Entity.Type),
 		owned("tags", Tag.Type),
-		owned("invitation_tokens", GroupInvitationToken.Type),
+		owned("role_permissions", RolePermission.Type),
 		owned("notifiers", Notifier.Type),
 		owned("entity_templates", EntityTemplate.Type),
 		owned("exports", Export.Type),

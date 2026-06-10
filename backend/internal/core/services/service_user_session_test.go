@@ -114,12 +114,12 @@ func TestChangePassword_NoSessionToken_RevokesAll(t *testing.T) {
 	assert.Equal(t, 0, countUserSessions(t, ctx, usr.ID), "all sessions should be revoked when no current session is in context")
 }
 
-// M4: RegisterUser must reject passwords shorter than PasswordMinLength.
-func TestRegisterUser_RejectsShortPassword(t *testing.T) {
+// M4: SetupFirstUser must reject passwords shorter than PasswordMinLength.
+func TestSetupFirstUser_RejectsShortPassword(t *testing.T) {
 	ctx := context.Background()
 	short := strings.Repeat("a", PasswordMinLength-1)
 
-	_, err := tSvc.User.RegisterUser(ctx, UserRegistration{
+	_, err := tSvc.User.SetupFirstUser(ctx, UserRegistration{
 		Name:     "Short Pwd User",
 		Email:    fk.Email(),
 		Password: short,
@@ -127,8 +127,8 @@ func TestRegisterUser_RejectsShortPassword(t *testing.T) {
 	require.ErrorIs(t, err, ErrorPasswordTooShort)
 }
 
-func TestRegisterUser_RejectsEmptyPassword(t *testing.T) {
-	_, err := tSvc.User.RegisterUser(context.Background(), UserRegistration{
+func TestSetupFirstUser_RejectsEmptyPassword(t *testing.T) {
+	_, err := tSvc.User.SetupFirstUser(context.Background(), UserRegistration{
 		Name:     "Empty Pwd User",
 		Email:    fk.Email(),
 		Password: "",
@@ -136,8 +136,18 @@ func TestRegisterUser_RejectsEmptyPassword(t *testing.T) {
 	require.ErrorIs(t, err, ErrorPasswordTooShort)
 }
 
-func TestRegisterUser_AcceptsMinLengthPassword(t *testing.T) {
-	usr, err := tSvc.User.RegisterUser(context.Background(), UserRegistration{
+// Once any user exists, setup is permanently closed.
+func TestSetupFirstUser_RejectsWhenUsersExist(t *testing.T) {
+	_, err := tSvc.User.SetupFirstUser(context.Background(), UserRegistration{
+		Name:     "Late User",
+		Email:    fk.Email(),
+		Password: strings.Repeat("a", PasswordMinLength),
+	})
+	require.ErrorIs(t, err, ErrorSetupComplete)
+}
+
+func TestAdminCreate_AcceptsMinLengthPassword(t *testing.T) {
+	usr, err := tSvc.User.AdminCreate(context.Background(), UserAdminCreate{
 		Name:     "Min Pwd User",
 		Email:    fk.Email(),
 		Password: strings.Repeat("a", PasswordMinLength),

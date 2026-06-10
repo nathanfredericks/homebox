@@ -17,8 +17,6 @@
       <AppQuickMenuModal :actions="quickMenuActions" />
       <AppScannerModal />
       <CollectionCreateModal />
-      <CollectionJoinModal />
-      <CollectionInviteCreateModal />
     </ClientOnly>
     <SidebarProvider :default-open="sidebarState">
       <Sidebar collapsible="icon">
@@ -34,7 +32,7 @@
 
           <CollectionSelector />
 
-          <DropdownMenu>
+          <DropdownMenu v-if="dropdown.length">
             <DropdownMenuTrigger as-child>
               <SidebarMenuButton
                 class="flex justify-center bg-primary text-primary-foreground drop-shadow-md hover:bg-primary/90 active:bg-primary/90 active:text-primary-foreground group-data-[collapsible=icon]:justify-start"
@@ -291,8 +289,7 @@
   import AppHeaderText from "~/components/App/HeaderText.vue";
   import CollectionSelector from "~/components/Collection/Selector.vue";
   import CollectionCreateModal from "~/components/Collection/CreateModal.vue";
-  import CollectionJoinModal from "~/components/Collection/JoinModal.vue";
-  import CollectionInviteCreateModal from "~/components/Collection/InviteCreateModal.vue";
+  import MdiShieldCrown from "~icons/mdi/shield-crown";
 
   const { t, locale } = useI18n();
   const username = computed(() => authCtx.user?.name || "User");
@@ -354,31 +351,39 @@
     dialogId: NoParamDialogIDs | OptionalDialogIDs;
   };
 
-  const dropdown: DropdownItem[] = [
-    {
-      id: 0,
-      name: computed(() => t("menu.create_item")),
-      shortcut: "Shift+1",
-      dialogId: DialogID.CreateItem,
-    },
-    {
-      id: 1,
-      name: computed(() => t("menu.create_location")),
-      shortcut: "Shift+3",
-      dialogId: DialogID.CreateLocation,
-    },
-    {
-      id: 2,
-      name: computed(() => t("menu.create_tag")),
-      shortcut: "Shift+2",
-      dialogId: DialogID.CreateTag,
-    },
-  ];
+  const { can, canAny, canAdminArea } = usePermissions();
+
+  // Anything the user cannot do is removed outright — hidden features do not
+  // exist for them.
+  const dropdown = computed<DropdownItem[]>(() =>
+    [
+      {
+        id: 0,
+        name: computed(() => t("menu.create_item")),
+        shortcut: "Shift+1",
+        dialogId: DialogID.CreateItem as NoParamDialogIDs | OptionalDialogIDs,
+        visible: can("items", "create"),
+      },
+      {
+        id: 1,
+        name: computed(() => t("menu.create_location")),
+        shortcut: "Shift+3",
+        dialogId: DialogID.CreateLocation as NoParamDialogIDs | OptionalDialogIDs,
+        visible: can("locations", "create"),
+      },
+      {
+        id: 2,
+        name: computed(() => t("menu.create_tag")),
+        shortcut: "Shift+2",
+        dialogId: DialogID.CreateTag as NoParamDialogIDs | OptionalDialogIDs,
+        visible: can("tags", "create"),
+      },
+    ].filter(v => v.visible)
+  );
 
   const route = useRoute();
-  const router = useRouter();
 
-  const nav: {
+  type NavItem = {
     icon: Component;
     active: ComputedRef<boolean>;
     id: number;
@@ -390,112 +395,155 @@
       name: ComputedRef<string>;
       to: string;
     }[];
-  }[] = [
-    {
-      icon: MdiHome,
-      active: computed(() => route.path === "/home"),
-      id: 0,
-      name: computed(() => t("menu.home")),
-      to: "/home",
-    },
-    {
-      icon: MdiFileTree,
-      id: 1,
-      active: computed(() => route.path === "/locations"),
-      name: computed(() => t("menu.locations")),
-      to: "/locations",
-    },
-    {
-      icon: MdiTagMultiple,
-      id: 2,
-      active: computed(() => route.path === "/tags"),
-      name: computed(() => t("global.tags")),
-      to: "/tags",
-    },
-    {
-      icon: MdiMagnify,
-      id: 3,
-      active: computed(() => route.path === "/items"),
-      name: computed(() => t("menu.search")),
-      to: "/items",
-    },
-    {
-      icon: MdiFileDocumentMultiple,
-      id: 4,
-      active: computed(() => route.path === "/templates"),
-      name: computed(() => t("menu.templates")),
-      to: "/templates",
-    },
-    {
-      icon: MdiWrench,
-      id: 5,
-      active: computed(() => route.path === "/maintenance"),
-      name: computed(() => t("menu.maintenance")),
-      to: "/maintenance",
-    },
-    {
-      icon: MdiAccount,
-      id: 6,
-      active: computed(() => route.path === "/profile"),
-      name: computed(() => t("menu.profile")),
-      to: "/profile",
-    },
-    {
-      icon: MdiCog,
-      id: 7,
-      active: computed(() => route.path.includes("/collection")),
-      name: computed(() => t("menu.collection")),
-      to: "/collection/members",
-      collapsible: [
-        {
-          id: 61,
-          active: computed(() => route.path === "/collection/members"),
-          name: computed(() => t("collection.tabs.members")),
-          to: "/collection/members",
-        },
-        {
-          id: 62,
-          active: computed(() => route.path === "/collection/invites"),
-          name: computed(() => t("collection.tabs.invites")),
-          to: "/collection/invites",
-        },
-        {
-          id: 63,
-          active: computed(() => route.path === "/collection/notifiers"),
-          name: computed(() => t("collection.tabs.notifiers")),
-          to: "/collection/notifiers",
-        },
-        {
-          id: 64,
-          active: computed(() => route.path === "/collection/settings"),
-          name: computed(() => t("collection.tabs.settings")),
-          to: "/collection/settings",
-        },
-        {
-          id: 65,
-          active: computed(() => route.path === "/collection/entity-types"),
-          name: computed(() => t("collection.tabs.entity_types")),
-          to: "/collection/entity-types",
-        },
-        {
-          id: 66,
-          active: computed(() => route.path === "/collection/tools"),
-          name: computed(() => t("collection.tabs.tools")),
-          to: "/collection/tools",
-        },
-      ],
-    },
-  ];
+  };
 
-  const quickMenuActions = reactive([
-    ...dropdown.map(v => ({
-      text: computed(() => v.name.value),
+  const nav = computed<NavItem[]>(() => {
+    const collectionTabs = [
+      {
+        id: 61,
+        active: computed(() => route.path === "/collection/access"),
+        name: computed(() => t("collection.tabs.access")),
+        to: "/collection/access",
+        visible: can("roles", "view"),
+      },
+      {
+        id: 63,
+        active: computed(() => route.path === "/collection/notifiers"),
+        name: computed(() => t("collection.tabs.notifiers")),
+        to: "/collection/notifiers",
+        visible: can("notifiers", "view"),
+      },
+      {
+        id: 64,
+        active: computed(() => route.path === "/collection/settings"),
+        name: computed(() => t("collection.tabs.settings")),
+        to: "/collection/settings",
+        visible: can("collection_settings", "view"),
+      },
+      {
+        id: 65,
+        active: computed(() => route.path === "/collection/entity-types"),
+        name: computed(() => t("collection.tabs.entity_types")),
+        to: "/collection/entity-types",
+        visible: can("entity_types", "view"),
+      },
+      {
+        id: 66,
+        active: computed(() => route.path === "/collection/tools"),
+        name: computed(() => t("collection.tabs.tools")),
+        to: "/collection/tools",
+        visible: can("tools", "view"),
+      },
+    ].filter(tab => tab.visible);
+
+    const adminTabs = [
+      {
+        id: 81,
+        active: computed(() => route.path === "/admin/users"),
+        name: computed(() => t("admin.tabs.users")),
+        to: "/admin/users",
+        visible: can("users", "view"),
+      },
+      {
+        id: 82,
+        active: computed(() => route.path.startsWith("/admin/groups")),
+        name: computed(() => t("admin.tabs.groups")),
+        to: "/admin/groups",
+        visible: can("roles", "view"),
+      },
+    ].filter(tab => tab.visible);
+
+    const items: (NavItem & { visible: boolean })[] = [
+      {
+        icon: MdiHome,
+        active: computed(() => route.path === "/home"),
+        id: 0,
+        name: computed(() => t("menu.home")),
+        to: "/home",
+        visible: true,
+      },
+      {
+        icon: MdiFileTree,
+        id: 1,
+        active: computed(() => route.path === "/locations"),
+        name: computed(() => t("menu.locations")),
+        to: "/locations",
+        visible: canAny("locations", "view"),
+      },
+      {
+        icon: MdiTagMultiple,
+        id: 2,
+        active: computed(() => route.path === "/tags"),
+        name: computed(() => t("global.tags")),
+        to: "/tags",
+        visible: canAny("tags", "view"),
+      },
+      {
+        icon: MdiMagnify,
+        id: 3,
+        active: computed(() => route.path === "/items"),
+        name: computed(() => t("menu.search")),
+        to: "/items",
+        visible: canAny("items", "view"),
+      },
+      {
+        icon: MdiFileDocumentMultiple,
+        id: 4,
+        active: computed(() => route.path === "/templates"),
+        name: computed(() => t("menu.templates")),
+        to: "/templates",
+        visible: canAny("templates", "view"),
+      },
+      {
+        icon: MdiWrench,
+        id: 5,
+        active: computed(() => route.path === "/maintenance"),
+        name: computed(() => t("menu.maintenance")),
+        to: "/maintenance",
+        visible: canAny("maintenance", "view"),
+      },
+      {
+        icon: MdiAccount,
+        id: 6,
+        active: computed(() => route.path === "/profile"),
+        name: computed(() => t("menu.profile")),
+        to: "/profile",
+        visible: true,
+      },
+      {
+        icon: MdiCog,
+        active: computed(() => route.path.includes("/collection")),
+        id: 7,
+        name: computed(() => t("menu.collection")),
+        to: collectionTabs[0]?.to ?? "/collection",
+        collapsible: collectionTabs,
+        visible: collectionTabs.length > 0,
+      },
+      {
+        icon: MdiShieldCrown,
+        active: computed(() => route.path.startsWith("/admin")),
+        id: 8,
+        name: computed(() => t("admin.title")),
+        to: adminTabs[0]?.to ?? "/admin",
+        collapsible: adminTabs,
+        visible: canAdminArea.value && adminTabs.length > 0,
+      },
+    ];
+
+    return items.filter(item => item.visible);
+  });
+
+  // The whole list recomputes when permissions or locale change, so plain
+  // strings are fine here.
+  const quickMenuActions = computed(() => [
+    ...dropdown.value.map(v => ({
+      text: v.name.value,
       dialogId: v.dialogId as NoParamDialogIDs,
       shortcut: v.shortcut.split("+")[1] as string,
       type: "create" as const,
     })),
-    ...nav.map(v => ({
-      text: computed(() => v.name.value),
+    ...nav.value.map(v => ({
+      text: v.name.value,
       href: v.to,
       type: "navigate" as const,
     })),
@@ -505,37 +553,31 @@
   const locationStore = useLocationStore();
 
   // Awaited so the sidebar's tags/locations are rendered during SSR (the
-  // fetched data reaches the client via the serialized Pinia state)
-  await Promise.all([
-    useAsyncData("sidebar-tags", async () => {
-      await tagStore.ensureAllTagsFetched();
-      return true;
-    }),
-    useAsyncData("sidebar-locations", async () => {
-      await locationStore.ensureLocationsFetched();
-      return true;
-    }),
-  ]);
+  // fetched data reaches the client via the serialized Pinia state). Data the
+  // user cannot view is never fetched.
+  const sidebarFetches: Promise<unknown>[] = [];
+  if (canAny("tags", "view")) {
+    sidebarFetches.push(
+      useAsyncData("sidebar-tags", async () => {
+        await tagStore.ensureAllTagsFetched();
+        return true;
+      })
+    );
+  }
+  if (canAny("locations", "view")) {
+    sidebarFetches.push(
+      useAsyncData("sidebar-locations", async () => {
+        await locationStore.ensureLocationsFetched();
+        return true;
+      })
+    );
+  }
+  await Promise.all(sidebarFetches);
 
   onMounted(() => {
-    locationStore.refreshParents();
-    locationStore.refreshTree();
-
-    // Auto-open JoinModal when invitation token is in URL
-    const token = route.query.token;
-    if (typeof token === "string" && token.length > 0) {
-      // Remove token from browser URL
-      const url = new URL(window.location.href);
-      url.searchParams.delete("token");
-      window.history.replaceState(history.state, "", url.toString());
-
-      // Sync router's state to clear route.query.token
-      const { token: _, ...cleanQuery } = route.query;
-      router.replace({ query: cleanQuery });
-
-      openDialog(DialogID.JoinCollection, {
-        params: { inviteCode: token },
-      });
+    if (canAny("locations", "view")) {
+      locationStore.refreshParents();
+      locationStore.refreshTree();
     }
   });
 

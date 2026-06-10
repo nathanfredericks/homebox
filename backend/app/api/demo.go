@@ -53,17 +53,18 @@ func (a *app) SetupDemo() error {
 		return nil
 	}
 
-	// Otherwise, register the demo user. Skip PasswordMinLength so operators
-	// can use any HBOX_DEMO_PASSWORD; public registration still enforces it.
-	log.Debug().Msg("Registering demo user")
-	_, err := a.services.User.RegisterUser(ctx, registration, services.SkipPasswordValidation())
+	// Otherwise, seed the demo user via first-time setup (only valid on an
+	// empty database; the demo user becomes the Super Admin). Skip
+	// PasswordMinLength so operators can use any HBOX_DEMO_PASSWORD.
+	log.Debug().Msg("Seeding demo user via first-time setup")
+	_, err := a.services.User.SetupFirstUser(ctx, registration, services.SkipPasswordValidation())
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			// Concurrent creation race: treat as exists and skip
-			log.Info().Msg("Demo user concurrently created; skipping seeding")
+		if ent.IsConstraintError(err) || errors.Is(err, services.ErrorSetupComplete) {
+			// Concurrent creation race or already-populated DB: skip seeding.
+			log.Info().Msg("Demo seeding skipped: setup already completed")
 			return nil
 		}
-		log.Err(err).Msg("Failed to register demo user")
+		log.Err(err).Msg("Failed to seed demo user")
 		return errors.New("failed to setup demo")
 	}
 

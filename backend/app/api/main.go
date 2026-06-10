@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/currencies"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
@@ -164,6 +163,13 @@ func run(cfg *config.Config) error {
 	app.db = c
 	app.repos = repo.New(c, app.bus, cfg.Storage, cfg.Database.PubSubConnString, cfg.Thumbnail)
 
+	// Safety net alongside the migration seed: the Super Admin role must
+	// always exist.
+	if _, err := app.repos.Roles.EnsureSuperAdmin(context.Background()); err != nil {
+		log.Error().Err(err).Msg("failed to ensure Super Admin role")
+		return err
+	}
+
 	// Attachment-key escaping in fileblob only flattens paths on Windows
 	// (where os.PathSeparator is "\"), so the legacy-path rename is a Windows-
 	// only concern; skip the disk scan everywhere else.
@@ -304,7 +310,7 @@ func run(cfg *config.Config) error {
 // ensureAssetIDs assigns asset IDs to any entities that don't have one,
 // covering locations that were migrated from the old schema.
 func ensureAssetIDs(app *app) {
-	groups, err := app.repos.Groups.GetAllGroups(context.Background(), uuid.Nil)
+	groups, err := app.repos.Groups.GetAllGroups(context.Background())
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to get groups for asset ID assignment")
 		return

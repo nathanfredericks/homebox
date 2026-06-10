@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/containrrr/shoutrrr"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/types"
@@ -29,7 +28,7 @@ type BackgroundService struct {
 
 func (svc *BackgroundService) SendNotifiersToday(ctx context.Context) error {
 	// Get All Groups
-	groups, err := svc.repos.Groups.GetAllGroups(ctx, uuid.Nil)
+	groups, err := svc.repos.Groups.GetAllGroups(ctx)
 	if err != nil {
 		return err
 	}

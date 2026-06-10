@@ -23,31 +23,22 @@ const (
 	FieldName = "name"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
-	// EdgeUsers holds the string denoting the users edge name in mutations.
-	EdgeUsers = "users"
 	// EdgeEntityTypes holds the string denoting the entity_types edge name in mutations.
 	EdgeEntityTypes = "entity_types"
 	// EdgeEntities holds the string denoting the entities edge name in mutations.
 	EdgeEntities = "entities"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
-	// EdgeInvitationTokens holds the string denoting the invitation_tokens edge name in mutations.
-	EdgeInvitationTokens = "invitation_tokens"
+	// EdgeRolePermissions holds the string denoting the role_permissions edge name in mutations.
+	EdgeRolePermissions = "role_permissions"
 	// EdgeNotifiers holds the string denoting the notifiers edge name in mutations.
 	EdgeNotifiers = "notifiers"
 	// EdgeEntityTemplates holds the string denoting the entity_templates edge name in mutations.
 	EdgeEntityTemplates = "entity_templates"
 	// EdgeExports holds the string denoting the exports edge name in mutations.
 	EdgeExports = "exports"
-	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
-	EdgeUserGroups = "user_groups"
 	// Table holds the table name of the group in the database.
 	Table = "groups"
-	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
-	UsersTable = "user_groups"
-	// UsersInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UsersInverseTable = "users"
 	// EntityTypesTable is the table that holds the entity_types relation/edge.
 	EntityTypesTable = "entity_types"
 	// EntityTypesInverseTable is the table name for the EntityType entity.
@@ -69,13 +60,13 @@ const (
 	TagsInverseTable = "tags"
 	// TagsColumn is the table column denoting the tags relation/edge.
 	TagsColumn = "group_tags"
-	// InvitationTokensTable is the table that holds the invitation_tokens relation/edge.
-	InvitationTokensTable = "group_invitation_tokens"
-	// InvitationTokensInverseTable is the table name for the GroupInvitationToken entity.
-	// It exists in this package in order to avoid circular dependency with the "groupinvitationtoken" package.
-	InvitationTokensInverseTable = "group_invitation_tokens"
-	// InvitationTokensColumn is the table column denoting the invitation_tokens relation/edge.
-	InvitationTokensColumn = "group_invitation_tokens"
+	// RolePermissionsTable is the table that holds the role_permissions relation/edge.
+	RolePermissionsTable = "role_permissions"
+	// RolePermissionsInverseTable is the table name for the RolePermission entity.
+	// It exists in this package in order to avoid circular dependency with the "rolepermission" package.
+	RolePermissionsInverseTable = "role_permissions"
+	// RolePermissionsColumn is the table column denoting the role_permissions relation/edge.
+	RolePermissionsColumn = "collection_id"
 	// NotifiersTable is the table that holds the notifiers relation/edge.
 	NotifiersTable = "notifiers"
 	// NotifiersInverseTable is the table name for the Notifier entity.
@@ -97,13 +88,6 @@ const (
 	ExportsInverseTable = "exports"
 	// ExportsColumn is the table column denoting the exports relation/edge.
 	ExportsColumn = "group_id"
-	// UserGroupsTable is the table that holds the user_groups relation/edge.
-	UserGroupsTable = "user_groups"
-	// UserGroupsInverseTable is the table name for the UserGroup entity.
-	// It exists in this package in order to avoid circular dependency with the "usergroup" package.
-	UserGroupsInverseTable = "user_groups"
-	// UserGroupsColumn is the table column denoting the user_groups relation/edge.
-	UserGroupsColumn = "group_id"
 )
 
 // Columns holds all SQL columns for group fields.
@@ -114,12 +98,6 @@ var Columns = []string{
 	FieldName,
 	FieldCurrency,
 }
-
-var (
-	// UsersPrimaryKey and UsersColumn2 are the table columns denoting the
-	// primary key for the users relation (M2M).
-	UsersPrimaryKey = []string{"user_id", "group_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -174,20 +152,6 @@ func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
 }
 
-// ByUsersCount orders the results by users count.
-func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUsersStep(), opts...)
-	}
-}
-
-// ByUsers orders the results by users terms.
-func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByEntityTypesCount orders the results by entity_types count.
 func ByEntityTypesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -230,17 +194,17 @@ func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByInvitationTokensCount orders the results by invitation_tokens count.
-func ByInvitationTokensCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRolePermissionsCount orders the results by role_permissions count.
+func ByRolePermissionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newInvitationTokensStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newRolePermissionsStep(), opts...)
 	}
 }
 
-// ByInvitationTokens orders the results by invitation_tokens terms.
-func ByInvitationTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByRolePermissions orders the results by role_permissions terms.
+func ByRolePermissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newInvitationTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRolePermissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -285,27 +249,6 @@ func ByExports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newExportsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByUserGroupsCount orders the results by user_groups count.
-func ByUserGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUserGroupsStep(), opts...)
-	}
-}
-
-// ByUserGroups orders the results by user_groups terms.
-func ByUserGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newUsersStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UsersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, UsersTable, UsersPrimaryKey...),
-	)
-}
 func newEntityTypesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -327,11 +270,11 @@ func newTagsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, TagsTable, TagsColumn),
 	)
 }
-func newInvitationTokensStep() *sqlgraph.Step {
+func newRolePermissionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(InvitationTokensInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, InvitationTokensTable, InvitationTokensColumn),
+		sqlgraph.To(RolePermissionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RolePermissionsTable, RolePermissionsColumn),
 	)
 }
 func newNotifiersStep() *sqlgraph.Step {
@@ -353,12 +296,5 @@ func newExportsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ExportsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ExportsTable, ExportsColumn),
-	)
-}
-func newUserGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserGroupsInverseTable, UserGroupsColumn),
-		sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
 	)
 }

@@ -584,67 +584,21 @@ definitions:
         items:
           $ref: '#/definitions/ent.Export'
         type: array
-      invitation_tokens:
-        description: InvitationTokens holds the value of the invitation_tokens edge.
-        items:
-          $ref: '#/definitions/ent.GroupInvitationToken'
-        type: array
       notifiers:
         description: Notifiers holds the value of the notifiers edge.
         items:
           $ref: '#/definitions/ent.Notifier'
+        type: array
+      role_permissions:
+        description: RolePermissions holds the value of the role_permissions edge.
+        items:
+          $ref: '#/definitions/ent.RolePermission'
         type: array
       tags:
         description: Tags holds the value of the tags edge.
         items:
           $ref: '#/definitions/ent.Tag'
         type: array
-      user_groups:
-        description: UserGroups holds the value of the user_groups edge.
-        items:
-          $ref: '#/definitions/ent.UserGroup'
-        type: array
-      users:
-        description: Users holds the value of the users edge.
-        items:
-          $ref: '#/definitions/ent.User'
-        type: array
-    type: object
-  ent.GroupInvitationToken:
-    properties:
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      edges:
-        allOf:
-        - $ref: '#/definitions/ent.GroupInvitationTokenEdges'
-        description: |-
-          Edges holds the relations/edges for other nodes in the graph.
-          The values are being populated by the GroupInvitationTokenQuery when eager-loading is set.
-      expires_at:
-        description: ExpiresAt holds the value of the "expires_at" field.
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      token:
-        description: Token holds the value of the "token" field.
-        items:
-          type: integer
-        type: array
-      updated_at:
-        description: UpdatedAt holds the value of the "updated_at" field.
-        type: string
-      uses:
-        description: Uses holds the value of the "uses" field.
-        type: integer
-    type: object
-  ent.GroupInvitationTokenEdges:
-    properties:
-      group:
-        allOf:
-        - $ref: '#/definitions/ent.Group'
-        description: Group holds the value of the group edge.
     type: object
   ent.MaintenanceEntry:
     properties:
@@ -765,6 +719,96 @@ definitions:
         allOf:
         - $ref: '#/definitions/ent.User'
         description: User holds the value of the user edge.
+    type: object
+  ent.Role:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.RoleEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the RoleQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      is_super_admin:
+        description: IsSuperAdmin holds the value of the "is_super_admin" field.
+        type: boolean
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+    type: object
+  ent.RoleEdges:
+    properties:
+      permissions:
+        description: Permissions holds the value of the permissions edge.
+        items:
+          $ref: '#/definitions/ent.RolePermission'
+        type: array
+      users:
+        description: Users holds the value of the users edge.
+        items:
+          $ref: '#/definitions/ent.User'
+        type: array
+    type: object
+  ent.RolePermission:
+    properties:
+      can_create:
+        description: CanCreate holds the value of the "can_create" field.
+        type: boolean
+      can_delete:
+        description: CanDelete holds the value of the "can_delete" field.
+        type: boolean
+      can_edit:
+        description: CanEdit holds the value of the "can_edit" field.
+        type: boolean
+      can_view:
+        description: CanView holds the value of the "can_view" field.
+        type: boolean
+      collection_id:
+        description: CollectionID holds the value of the "collection_id" field.
+        type: string
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.RolePermissionEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the RolePermissionQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      role_id:
+        description: RoleID holds the value of the "role_id" field.
+        type: string
+      section:
+        description: Section holds the value of the "section" field.
+        type: string
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+    type: object
+  ent.RolePermissionEdges:
+    properties:
+      collection:
+        allOf:
+        - $ref: '#/definitions/ent.Group'
+        description: Collection holds the value of the collection edge.
+      role:
+        allOf:
+        - $ref: '#/definitions/ent.Role'
+        description: Role holds the value of the role edge.
     type: object
   ent.Tag:
     properties:
@@ -887,9 +931,6 @@ definitions:
       id:
         description: ID of the ent.
         type: string
-      is_superuser:
-        description: IsSuperuser holds the value of the "is_superuser" field.
-        type: boolean
       name:
         description: Name holds the value of the "name" field.
         type: string
@@ -903,9 +944,6 @@ definitions:
         additionalProperties: true
         description: Settings holds the value of the "settings" field.
         type: object
-      superuser:
-        description: Superuser holds the value of the "superuser" field.
-        type: boolean
       updated_at:
         description: UpdatedAt holds the value of the "updated_at" field.
         type: string
@@ -922,11 +960,6 @@ definitions:
         items:
           $ref: '#/definitions/ent.AuthTokens'
         type: array
-      groups:
-        description: Groups holds the value of the groups edge.
-        items:
-          $ref: '#/definitions/ent.Group'
-        type: array
       notifiers:
         description: Notifiers holds the value of the notifiers edge.
         items:
@@ -938,41 +971,11 @@ definitions:
         items:
           $ref: '#/definitions/ent.PasswordResetTokens'
         type: array
-      user_groups:
-        description: UserGroups holds the value of the user_groups edge.
+      roles:
+        description: Roles holds the value of the roles edge.
         items:
-          $ref: '#/definitions/ent.UserGroup'
+          $ref: '#/definitions/ent.Role'
         type: array
-    type: object
-  ent.UserGroup:
-    properties:
-      edges:
-        allOf:
-        - $ref: '#/definitions/ent.UserGroupEdges'
-        description: |-
-          Edges holds the relations/edges for other nodes in the graph.
-          The values are being populated by the UserGroupQuery when eager-loading is set.
-      group_id:
-        description: GroupID holds the value of the "group_id" field.
-        type: string
-      role:
-        allOf:
-        - $ref: '#/definitions/usergroup.Role'
-        description: Role holds the value of the "role" field.
-      user_id:
-        description: UserID holds the value of the "user_id" field.
-        type: string
-    type: object
-  ent.UserGroupEdges:
-    properties:
-      group:
-        allOf:
-        - $ref: '#/definitions/ent.Group'
-        description: Group holds the value of the group edge.
-      user:
-        allOf:
-        - $ref: '#/definitions/ent.User'
-        description: User holds the value of the user edge.
     type: object
   entityfield.Type:
     enum:
@@ -1722,17 +1725,6 @@ definitions:
       updatedAt:
         type: string
     type: object
-  repo.GroupInvitation:
-    properties:
-      expiresAt:
-        type: string
-      group:
-        $ref: '#/definitions/repo.Group'
-      id:
-        type: string
-      uses:
-        type: integer
-    type: object
   repo.GroupStatistics:
     properties:
       totalItemPrice:
@@ -1921,6 +1913,94 @@ definitions:
       total:
         type: integer
     type: object
+  repo.RoleCreate:
+    properties:
+      description:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/repo.RolePermissionInput'
+        type: array
+    required:
+    - name
+    type: object
+  repo.RoleOut:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      isSuperAdmin:
+        type: boolean
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/repo.RolePermissionOut'
+        type: array
+      userCount:
+        type: integer
+    type: object
+  repo.RolePermissionInput:
+    properties:
+      canCreate:
+        type: boolean
+      canDelete:
+        type: boolean
+      canEdit:
+        type: boolean
+      canView:
+        type: boolean
+      collectionId:
+        type: string
+        x-nullable: true
+      section:
+        type: string
+    type: object
+  repo.RolePermissionOut:
+    properties:
+      canCreate:
+        type: boolean
+      canDelete:
+        type: boolean
+      canEdit:
+        type: boolean
+      canView:
+        type: boolean
+      collectionId:
+        type: string
+        x-nullable: true
+      section:
+        type: string
+    type: object
+  repo.RoleSummary:
+    properties:
+      id:
+        type: string
+      isSuperAdmin:
+        type: boolean
+      name:
+        type: string
+    type: object
+  repo.RoleUpdate:
+    properties:
+      description:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/repo.RolePermissionInput'
+        type: array
+    required:
+    - name
+    type: object
   repo.TagCreate:
     properties:
       color:
@@ -2064,35 +2144,24 @@ definitions:
       type:
         type: string
     type: object
-  repo.UserOut:
+  repo.UserAdminOut:
     properties:
       defaultGroupId:
         type: string
       email:
         type: string
-      groupIds:
-        items:
-          type: string
-        type: array
       id:
         type: string
-      isSuperuser:
-        type: boolean
       name:
         type: string
       oidcIssuer:
         type: string
       oidcSubject:
         type: string
-    type: object
-  repo.UserSummary:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
+      roles:
+        items:
+          $ref: '#/definitions/repo.RoleSummary'
+        type: array
     type: object
   repo.UserUpdate:
     properties:
@@ -2132,6 +2201,42 @@ definitions:
       version:
         type: string
     type: object
+  services.UserAdminCreate:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      password:
+        type: string
+      roleIds:
+        items:
+          type: string
+        type: array
+    required:
+    - email
+    - name
+    - password
+    type: object
+  services.UserAdminUpdate:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      password:
+        description: Password optionally resets the user's password when non-empty.
+        type: string
+      roleIds:
+        items:
+          type: string
+        type: array
+    required:
+    - email
+    - name
+    type: object
   services.UserRegistration:
     properties:
       email:
@@ -2139,8 +2244,6 @@ definitions:
       name:
         type: string
       password:
-        type: string
-      token:
         type: string
     type: object
   templatefield.Type:
@@ -2155,16 +2258,6 @@ definitions:
     - TypeNumber
     - TypeBoolean
     - TypeTime
-  usergroup.Role:
-    enum:
-    - user
-    - user
-    - owner
-    type: string
-    x-enum-varnames:
-    - DefaultRole
-    - RoleUser
-    - RoleOwner
   v1.APISummary:
     properties:
       allowRegistration:
@@ -2183,6 +2276,11 @@ definitions:
         type: string
       oidc:
         $ref: '#/definitions/v1.OIDCStatus'
+      setup:
+        description: |-
+          Setup is true while no user exists; the frontend shows the
+          first-time setup flow instead of the login form.
+        type: boolean
       telemetry:
         $ref: '#/definitions/v1.TelemetryStatus'
       title:
@@ -2249,35 +2347,6 @@ definitions:
     required:
     - email
     type: object
-  v1.GroupAcceptInvitationResponse:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  v1.GroupInvitation:
-    properties:
-      expiresAt:
-        type: string
-      id:
-        type: string
-      token:
-        type: string
-      uses:
-        type: integer
-    type: object
-  v1.GroupInvitationCreate:
-    properties:
-      expiresAt:
-        type: string
-      uses:
-        maximum: 100
-        minimum: 1
-        type: integer
-    required:
-    - uses
-    type: object
   v1.LoginForm:
     properties:
       password:
@@ -2298,6 +2367,22 @@ definitions:
       buttonText:
         type: string
       enabled:
+        type: boolean
+    type: object
+  v1.PermissionGrantOut:
+    properties:
+      collectionId:
+        type: string
+        x-nullable: true
+      create:
+        type: boolean
+      delete:
+        type: boolean
+      edit:
+        type: boolean
+      section:
+        type: string
+      view:
         type: boolean
     type: object
   v1.ResetPasswordRequest:
@@ -2332,6 +2417,31 @@ definitions:
         type: string
       token:
         type: string
+    type: object
+  v1.UserSelfOut:
+    properties:
+      defaultGroupId:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isSuperAdmin:
+        type: boolean
+      name:
+        type: string
+      oidcIssuer:
+        type: string
+      oidcSubject:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/v1.PermissionGrantOut'
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/repo.RoleSummary'
+        type: array
     type: object
   v1.Wrapped:
     properties:
@@ -3189,116 +3299,7 @@ paths:
             type: array
       security:
       - Bearer: []
-      summary: Get All Groups
-      tags:
-      - Group
-  /v1/groups/invitations:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/repo.GroupInvitation'
-            type: array
-      security:
-      - Bearer: []
-      summary: Get All Group Invitations
-      tags:
-      - Group
-    post:
-      operationId: groupInvitationCreate
-      parameters:
-      - description: User Data
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/v1.GroupInvitationCreate'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.GroupInvitation'
-      security:
-      - Bearer: []
-      summary: Create Group Invitation
-      tags:
-      - Group
-  /v1/groups/invitations/{id}:
-    delete:
-      parameters:
-      - description: Invitation ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      security:
-      - Bearer: []
-      summary: Delete Group Invitation
-      tags:
-      - Group
-    post:
-      operationId: groupInvitationAccept
-      parameters:
-      - description: Invitation Token
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.GroupAcceptInvitationResponse'
-      security:
-      - Bearer: []
-      summary: Accept Group Invitation
-      tags:
-      - Group
-  /v1/groups/members:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/repo.UserSummary'
-            type: array
-      security:
-      - Bearer: []
-      summary: Get All Group Members
-      tags:
-      - Group
-  /v1/groups/members/{user_id}:
-    delete:
-      parameters:
-      - description: User ID
-        in: path
-        name: user_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      security:
-      - Bearer: []
-      summary: Remove User from Group
+      summary: Get All Accessible Groups
       tags:
       - Group
   /v1/groups/statistics:
@@ -3660,6 +3661,104 @@ paths:
       summary: Export Bill of Materials
       tags:
       - Reporting
+  /v1/roles:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repo.RoleOut'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get All Roles (Groups)
+      tags:
+      - Roles
+    post:
+      parameters:
+      - description: Role Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.RoleCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/repo.RoleOut'
+      security:
+      - Bearer: []
+      summary: Create Role (Group)
+      tags:
+      - Roles
+  /v1/roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete Role (Group)
+      tags:
+      - Roles
+    get:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.RoleOut'
+      security:
+      - Bearer: []
+      summary: Get Role (Group)
+      tags:
+      - Roles
+    put:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.RoleUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.RoleOut'
+      security:
+      - Bearer: []
+      summary: Update Role (Group)
+      tags:
+      - Roles
   /v1/status:
     get:
       produces:
@@ -3894,6 +3993,85 @@ paths:
       summary: Create Entity from Template
       tags:
       - Entity Templates
+  /v1/users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repo.UserAdminOut'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get All Users
+      tags:
+      - Users
+    post:
+      parameters:
+      - description: User Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/services.UserAdminCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/repo.UserAdminOut'
+      security:
+      - Bearer: []
+      summary: Create User
+      tags:
+      - Users
+  /v1/users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete User
+      tags:
+      - Users
+    put:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/services.UserAdminUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.UserAdminOut'
+      security:
+      - Bearer: []
+      summary: Update User (name, email, roles, optional password reset)
+      tags:
+      - Users
   /v1/users/change-password:
     put:
       parameters:
@@ -4038,10 +4216,10 @@ paths:
         "204":
           description: No Content
         "403":
-          description: Local login is not enabled
+          description: Setup already completed
           schema:
             type: string
-      summary: Register New User
+      summary: 'First-Time Setup: Create Administrator Account'
       tags:
       - User
   /v1/users/reset-password:
@@ -4102,7 +4280,7 @@ paths:
             - $ref: '#/definitions/v1.Wrapped'
             - properties:
                 item:
-                  $ref: '#/definitions/repo.UserOut'
+                  $ref: '#/definitions/v1.UserSelfOut'
               type: object
       security:
       - Bearer: []

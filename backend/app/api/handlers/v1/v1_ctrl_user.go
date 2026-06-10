@@ -9,6 +9,7 @@ import (
 	"github.com/hay-kot/httpkit/errchain"
 	"github.com/hay-kot/httpkit/server"
 	"github.com/rs/zerolog/log"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
@@ -18,12 +19,12 @@ import (
 
 // HandleUserRegistration godoc
 //
-//		@Summary	Register New User
+//		@Summary	First-Time Setup: Create Administrator Account
 //		@Tags		User
 //		@Produce	json
 //		@Param		payload	body	services.UserRegistration	true	"User Data"
 //		@Success	204
-//	 @Failure    403 {string} string "Local login is not enabled"
+//	 @Failure    403 {string} string "Setup already completed"
 //		@Router		/v1/users/register [Post]
 func (ctrl *V1Controller) HandleUserRegistration() errchain.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -47,19 +48,16 @@ func (ctrl *V1Controller) HandleUserRegistration() errchain.HandlerFunc {
 			attribute.Int("user.name.length", len(regData.Name)),
 			attribute.Int("user.email.length", len(regData.Email)),
 			attribute.Int("user.password.length", len(regData.Password)),
-			attribute.Bool("registration.has_group_token", regData.GroupToken != ""),
 		)
 
-		if !ctrl.allowRegistration && regData.GroupToken == "" {
-			span.SetAttributes(attribute.String("registration.outcome", "registration_disabled"))
-			return validate.NewRequestError(fmt.Errorf("user registration disabled"), http.StatusForbidden)
-		}
-
-		usr, err := ctrl.svc.User.RegisterUser(spanCtx, regData)
+		usr, err := ctrl.svc.User.SetupFirstUser(spanCtx, regData)
 		if err != nil {
 			recordCtrlSpanError(span, err)
-			span.SetAttributes(attribute.String("registration.outcome", "register_failed"))
-			log.Err(err).Msg("failed to register user")
+			span.SetAttributes(attribute.String("registration.outcome", "setup_failed"))
+			if errors.Is(err, services.ErrorSetupComplete) {
+				return validate.NewRequestError(err, http.StatusForbidden)
+			}
+			log.Err(err).Msg("failed to run first-user setup")
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
 		span.SetAttributes(
@@ -72,12 +70,52 @@ func (ctrl *V1Controller) HandleUserRegistration() errchain.HandlerFunc {
 	}
 }
 
+type (
+	// PermissionGrantOut is one effective permission grant in the
+	// /users/self payload. A nil collectionId means the grant covers all
+	// collections (or the site scope for site-level sections).
+	PermissionGrantOut struct {
+		Section      string     `json:"section"`
+		CollectionID *uuid.UUID `json:"collectionId" extensions:"x-nullable"`
+		View         bool       `json:"view"`
+		Create       bool       `json:"create"`
+		Edit         bool       `json:"edit"`
+		Delete       bool       `json:"delete"`
+	}
+
+	// UserSelfOut is the authenticated user plus their roles and full
+	// effective permission grant list, so the frontend can gate the UI
+	// without additional requests.
+	UserSelfOut struct {
+		repo.UserOut
+		IsSuperAdmin bool                 `json:"isSuperAdmin"`
+		Roles        []repo.RoleSummary   `json:"roles"`
+		Permissions  []PermissionGrantOut `json:"permissions"`
+	}
+)
+
+func mapPermissionGrants(set *permissions.Set) []PermissionGrantOut {
+	grants := set.Grants()
+	out := make([]PermissionGrantOut, 0, len(grants))
+	for _, g := range grants {
+		out = append(out, PermissionGrantOut{
+			Section:      string(g.Section),
+			CollectionID: g.CollectionID,
+			View:         g.Actions&permissions.ActionView != 0,
+			Create:       g.Actions&permissions.ActionCreate != 0,
+			Edit:         g.Actions&permissions.ActionEdit != 0,
+			Delete:       g.Actions&permissions.ActionDelete != 0,
+		})
+	}
+	return out
+}
+
 // HandleUserSelf godoc
 //
 //	@Summary	Get User Self
 //	@Tags		User
 //	@Produce	json
-//	@Success	200	{object}	Wrapped{item=repo.UserOut}
+//	@Success	200	{object}	Wrapped{item=v1.UserSelfOut}
 //	@Router		/v1/users/self [GET]
 //	@Security	Bearer
 func (ctrl *V1Controller) HandleUserSelf() errchain.HandlerFunc {
@@ -95,7 +133,21 @@ func (ctrl *V1Controller) HandleUserSelf() errchain.HandlerFunc {
 		}
 		span.SetAttributes(attribute.String("user.id", usr.ID.String()))
 
-		return server.JSON(w, http.StatusOK, Wrap(*usr))
+		perms := services.UsePermissionsCtx(spanCtx)
+		roles, err := ctrl.repo.Roles.GetUserRoles(spanCtx, usr.ID)
+		if err != nil {
+			recordCtrlSpanError(span, err)
+			return validate.NewRequestError(err, http.StatusInternalServerError)
+		}
+
+		out := UserSelfOut{
+			UserOut:      *usr,
+			IsSuperAdmin: perms.SuperAdmin,
+			Roles:        roles,
+			Permissions:  mapPermissionGrants(perms),
+		}
+
+		return server.JSON(w, http.StatusOK, Wrap(out))
 	}
 }
 
@@ -158,6 +210,9 @@ func (ctrl *V1Controller) HandleUserSelfDelete() errchain.HandlerFunc {
 		if err := ctrl.svc.User.DeleteSelf(spanCtx, actor.ID); err != nil {
 			recordCtrlSpanError(span, err)
 			span.SetAttributes(attribute.String("delete.outcome", "delete_failed"))
+			if errors.Is(err, services.ErrLastSuperAdmin) {
+				return validate.NewRequestError(err, http.StatusConflict)
+			}
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
 		span.SetAttributes(attribute.String("delete.outcome", "success"))

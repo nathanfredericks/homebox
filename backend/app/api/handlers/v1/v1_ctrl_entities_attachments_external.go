@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hay-kot/httpkit/errchain"
 	"github.com/rs/zerolog/log"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
@@ -122,6 +123,12 @@ func (ctrl *V1Controller) HandleEntityAttachmentExternalCreate() errchain.Handle
 
 		ctx := services.NewContext(r.Context())
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
+
+		// Attachments are part of the parent entity: adding one is editing it.
+		if err := ctrl.checkEntityPermission(r, id, permissions.ActionEdit); err != nil {
+			recordCtrlSpanError(span, err)
+			return repo.EntityOut{}, err
+		}
 
 		attType := attachment.Type(strings.TrimSpace(body.AttachmentType))
 		switch attType {

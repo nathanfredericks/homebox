@@ -14,7 +14,6 @@ func userFactory() UserCreate {
 		Name:           fk.Str(10),
 		Email:          fk.Email(),
 		Password:       new(fk.Str(10)),
-		IsSuperuser:    fk.Bool(),
 		DefaultGroupID: tGroup.ID,
 	}
 }
@@ -86,9 +85,7 @@ func TestUserRepo_GetAll(t *testing.T) {
 			if usr.ID == usr2.ID {
 				assert.Equal(t, usr.Email, usr2.Email)
 
-				// Check groups are loaded
 				assert.NotEqual(t, uuid.Nil, usr2.DefaultGroupID)
-				assert.NotEmpty(t, usr2.GroupIDs)
 			}
 		}
 	}
@@ -140,36 +137,4 @@ func TestUserRepo_Delete(t *testing.T) {
 
 	allUsers, _ = tRepos.Users.GetAll(ctx)
 	assert.Empty(t, allUsers)
-}
-
-func TestUserRepo_GetSuperusers(t *testing.T) {
-	// Create 10 Users
-	superuser := 0
-	users := 0
-
-	for i := 0; i < 10; i++ {
-		user := userFactory()
-		ctx := context.Background()
-		_, _ = tRepos.Users.Create(ctx, user)
-
-		if user.IsSuperuser {
-			superuser++
-		} else {
-			users++
-		}
-	}
-
-	// Delete all
-	ctx := context.Background()
-
-	superUsers, err := tRepos.Users.GetSuperusers(ctx)
-	require.NoError(t, err)
-
-	for _, usr := range superUsers {
-		assert.True(t, usr.IsSuperuser)
-	}
-
-	// Cleanup
-	err = tRepos.Users.DeleteAll(ctx)
-	require.NoError(t, err)
 }

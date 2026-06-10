@@ -44,10 +44,6 @@ func (_m *Group) GetID() uuid.UUID {
 	return _m.ID
 }
 
-func (_m *GroupInvitationToken) GetID() uuid.UUID {
-	return _m.ID
-}
-
 func (_m *MaintenanceEntry) GetID() uuid.UUID {
 	return _m.ID
 }
@@ -57,6 +53,14 @@ func (_m *Notifier) GetID() uuid.UUID {
 }
 
 func (_m *PasswordResetTokens) GetID() uuid.UUID {
+	return _m.ID
+}
+
+func (_m *Role) GetID() uuid.UUID {
+	return _m.ID
+}
+
+func (_m *RolePermission) GetID() uuid.UUID {
 	return _m.ID
 }
 

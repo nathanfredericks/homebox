@@ -1,43 +1,23 @@
-import { beforeAll, expect } from "vitest";
-import { faker } from "@faker-js/faker";
+import { beforeAll } from "vitest";
 import type { UserClient } from "../user";
 import { factories } from "./factories";
 
-const cache = {
-  token: "",
+const cache: { client: UserClient | null } = {
+  client: null,
 };
 
 /*
- * Shared UserApi token for tests where the creation of a user is _not_ import
- * to the test. This is useful for tests that are testing the user API itself.
+ * Shared UserClient for tests where the creation of a user is _not_ important
+ * to the test. Users are provisioned by the bootstrapped admin account since
+ * self-registration only exists for first-time setup.
  */
 export async function sharedUserClient(): Promise<UserClient> {
-  if (cache.token) {
-    return factories.client.user(cache.token);
+  if (cache.client) {
+    return cache.client;
   }
-  const testUser = {
-    email: faker.internet.email(),
-    name: faker.person.fullName(),
-    password: faker.internet.password(),
-    token: "",
-  };
-
-  const api = factories.client.public();
-  const { response: tryLoginResp, data } = await api.login(testUser.email, testUser.password);
-
-  if (tryLoginResp.status === 200) {
-    cache.token = data.token;
-    return factories.client.user(cache.token);
-  }
-
-  const { response: registerResp } = await api.register(testUser);
-  expect(registerResp.status).toBe(204);
-
-  const { response: loginResp, data: loginData } = await api.login(testUser.email, testUser.password);
-  expect(loginResp.status).toBe(200);
-
-  cache.token = loginData.token;
-  return factories.client.user(loginData.token);
+  const { client } = await factories.client.singleUse();
+  cache.client = client;
+  return client;
 }
 
 beforeAll(async () => {

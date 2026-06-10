@@ -3,7 +3,6 @@
 package migrate
 
 import (
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -381,30 +380,6 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
-	// GroupInvitationTokensColumns holds the columns for the "group_invitation_tokens" table.
-	GroupInvitationTokensColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "token", Type: field.TypeBytes, Unique: true},
-		{Name: "expires_at", Type: field.TypeTime},
-		{Name: "uses", Type: field.TypeInt, Default: 0},
-		{Name: "group_invitation_tokens", Type: field.TypeUUID, Nullable: true},
-	}
-	// GroupInvitationTokensTable holds the schema information for the "group_invitation_tokens" table.
-	GroupInvitationTokensTable = &schema.Table{
-		Name:       "group_invitation_tokens",
-		Columns:    GroupInvitationTokensColumns,
-		PrimaryKey: []*schema.Column{GroupInvitationTokensColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "group_invitation_tokens_groups_invitation_tokens",
-				Columns:    []*schema.Column{GroupInvitationTokensColumns[6]},
-				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// MaintenanceEntriesColumns holds the columns for the "maintenance_entries" table.
 	MaintenanceEntriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -515,6 +490,61 @@ var (
 			},
 		},
 	}
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "is_super_admin", Type: field.TypeBool, Default: false},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
+	}
+	// RolePermissionsColumns holds the columns for the "role_permissions" table.
+	RolePermissionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "section", Type: field.TypeString, Size: 64},
+		{Name: "can_view", Type: field.TypeBool, Default: false},
+		{Name: "can_create", Type: field.TypeBool, Default: false},
+		{Name: "can_edit", Type: field.TypeBool, Default: false},
+		{Name: "can_delete", Type: field.TypeBool, Default: false},
+		{Name: "collection_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "role_id", Type: field.TypeUUID},
+	}
+	// RolePermissionsTable holds the schema information for the "role_permissions" table.
+	RolePermissionsTable = &schema.Table{
+		Name:       "role_permissions",
+		Columns:    RolePermissionsColumns,
+		PrimaryKey: []*schema.Column{RolePermissionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "role_permissions_groups_role_permissions",
+				Columns:    []*schema.Column{RolePermissionsColumns[8]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "role_permissions_roles_permissions",
+				Columns:    []*schema.Column{RolePermissionsColumns[9]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "rolepermission_role_id_section_collection_id",
+				Unique:  true,
+				Columns: []*schema.Column{RolePermissionsColumns[9], RolePermissionsColumns[3], RolePermissionsColumns[8]},
+			},
+		},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -583,8 +613,6 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "password", Type: field.TypeString, Nullable: true, Size: 255},
-		{Name: "is_superuser", Type: field.TypeBool, Default: false},
-		{Name: "superuser", Type: field.TypeBool, Default: false},
 		{Name: "activated_on", Type: field.TypeTime, Nullable: true},
 		{Name: "oidc_issuer", Type: field.TypeString, Nullable: true},
 		{Name: "oidc_subject", Type: field.TypeString, Nullable: true},
@@ -600,33 +628,7 @@ var (
 			{
 				Name:    "user_oidc_issuer_oidc_subject",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[9], UsersColumns[10]},
-			},
-		},
-	}
-	// UserGroupsColumns holds the columns for the "user_groups" table.
-	UserGroupsColumns = []*schema.Column{
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "owner"}, Default: "user"},
-		{Name: "user_id", Type: field.TypeUUID},
-		{Name: "group_id", Type: field.TypeUUID},
-	}
-	// UserGroupsTable holds the schema information for the "user_groups" table.
-	UserGroupsTable = &schema.Table{
-		Name:       "user_groups",
-		Columns:    UserGroupsColumns,
-		PrimaryKey: []*schema.Column{UserGroupsColumns[1], UserGroupsColumns[2]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_groups_users_user",
-				Columns:    []*schema.Column{UserGroupsColumns[1]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "user_groups_groups_group",
-				Columns:    []*schema.Column{UserGroupsColumns[2]},
-				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.Cascade,
+				Columns: []*schema.Column{UsersColumns[7], UsersColumns[8]},
 			},
 		},
 	}
@@ -655,6 +657,31 @@ var (
 			},
 		},
 	}
+	// UserRolesColumns holds the columns for the "user_roles" table.
+	UserRolesColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID},
+	}
+	// UserRolesTable holds the schema information for the "user_roles" table.
+	UserRolesTable = &schema.Table{
+		Name:       "user_roles",
+		Columns:    UserRolesColumns,
+		PrimaryKey: []*schema.Column{UserRolesColumns[0], UserRolesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_roles_user_id",
+				Columns:    []*schema.Column{UserRolesColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_roles_role_id",
+				Columns:    []*schema.Column{UserRolesColumns[1]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APIKeysTable,
@@ -667,15 +694,16 @@ var (
 		EntityTypesTable,
 		ExportsTable,
 		GroupsTable,
-		GroupInvitationTokensTable,
 		MaintenanceEntriesTable,
 		NotifiersTable,
 		PasswordResetTokensTable,
+		RolesTable,
+		RolePermissionsTable,
 		TagsTable,
 		TemplateFieldsTable,
 		UsersTable,
-		UserGroupsTable,
 		TagEntitiesTable,
+		UserRolesTable,
 	}
 )
 
@@ -694,19 +722,17 @@ func init() {
 	EntityTypesTable.ForeignKeys[0].RefTable = EntityTemplatesTable
 	EntityTypesTable.ForeignKeys[1].RefTable = GroupsTable
 	ExportsTable.ForeignKeys[0].RefTable = GroupsTable
-	GroupInvitationTokensTable.ForeignKeys[0].RefTable = GroupsTable
 	MaintenanceEntriesTable.ForeignKeys[0].RefTable = EntitiesTable
 	NotifiersTable.ForeignKeys[0].RefTable = GroupsTable
 	NotifiersTable.ForeignKeys[1].RefTable = UsersTable
 	PasswordResetTokensTable.ForeignKeys[0].RefTable = UsersTable
+	RolePermissionsTable.ForeignKeys[0].RefTable = GroupsTable
+	RolePermissionsTable.ForeignKeys[1].RefTable = RolesTable
 	TagsTable.ForeignKeys[0].RefTable = GroupsTable
 	TagsTable.ForeignKeys[1].RefTable = TagsTable
 	TemplateFieldsTable.ForeignKeys[0].RefTable = EntityTemplatesTable
-	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
-	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
-	UserGroupsTable.Annotation = &entsql.Annotation{
-		Table: "user_groups",
-	}
 	TagEntitiesTable.ForeignKeys[0].RefTable = TagsTable
 	TagEntitiesTable.ForeignKeys[1].RefTable = EntitiesTable
+	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

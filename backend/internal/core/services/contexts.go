@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 )
 
@@ -12,10 +13,11 @@ type contextKeys struct {
 }
 
 var (
-	ContextUser      = &contextKeys{name: "User"}
-	ContextUserToken = &contextKeys{name: "UserToken"}
-	ContextTenant    = &contextKeys{name: "Tenant"}
-	ContextAPIKey    = &contextKeys{name: "APIKey"}
+	ContextUser        = &contextKeys{name: "User"}
+	ContextUserToken   = &contextKeys{name: "UserToken"}
+	ContextTenant      = &contextKeys{name: "Tenant"}
+	ContextAPIKey      = &contextKeys{name: "APIKey"}
+	ContextPermissions = &contextKeys{name: "Permissions"}
 )
 
 type Context struct {
@@ -29,6 +31,9 @@ type Context struct {
 
 	// User is the acting user.
 	User *repo.UserOut
+
+	// Perms is the acting user's effective permission set.
+	Perms *permissions.Set
 }
 
 // NewContext is a helper function that returns the service context from the context.
@@ -50,7 +55,22 @@ func NewContext(ctx context.Context) Context {
 		UID:     uid,
 		GID:     gid,
 		User:    user,
+		Perms:   UsePermissionsCtx(ctx),
 	}
+}
+
+// SetPermissionsCtx stores the acting user's effective permission set.
+func SetPermissionsCtx(ctx context.Context, set *permissions.Set) context.Context {
+	return context.WithValue(ctx, ContextPermissions, set)
+}
+
+// UsePermissionsCtx returns the acting user's effective permission set, or an
+// empty (deny-all) set if none was loaded.
+func UsePermissionsCtx(ctx context.Context) *permissions.Set {
+	if val := ctx.Value(ContextPermissions); val != nil {
+		return val.(*permissions.Set)
+	}
+	return permissions.NewSet(false, nil)
 }
 
 // SetUserCtx is a helper function that sets the ContextUser and ContextUserToken

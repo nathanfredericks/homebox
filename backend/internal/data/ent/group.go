@@ -34,42 +34,29 @@ type Group struct {
 
 // GroupEdges holds the relations/edges for other nodes in the graph.
 type GroupEdges struct {
-	// Users holds the value of the users edge.
-	Users []*User `json:"users,omitempty"`
 	// EntityTypes holds the value of the entity_types edge.
 	EntityTypes []*EntityType `json:"entity_types,omitempty"`
 	// Entities holds the value of the entities edge.
 	Entities []*Entity `json:"entities,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
-	// InvitationTokens holds the value of the invitation_tokens edge.
-	InvitationTokens []*GroupInvitationToken `json:"invitation_tokens,omitempty"`
+	// RolePermissions holds the value of the role_permissions edge.
+	RolePermissions []*RolePermission `json:"role_permissions,omitempty"`
 	// Notifiers holds the value of the notifiers edge.
 	Notifiers []*Notifier `json:"notifiers,omitempty"`
 	// EntityTemplates holds the value of the entity_templates edge.
 	EntityTemplates []*EntityTemplate `json:"entity_templates,omitempty"`
 	// Exports holds the value of the exports edge.
 	Exports []*Export `json:"exports,omitempty"`
-	// UserGroups holds the value of the user_groups edge.
-	UserGroups []*UserGroup `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
-}
-
-// UsersOrErr returns the Users value or an error if the edge
-// was not loaded in eager-loading.
-func (e GroupEdges) UsersOrErr() ([]*User, error) {
-	if e.loadedTypes[0] {
-		return e.Users, nil
-	}
-	return nil, &NotLoadedError{edge: "users"}
+	loadedTypes [7]bool
 }
 
 // EntityTypesOrErr returns the EntityTypes value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) EntityTypesOrErr() ([]*EntityType, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.EntityTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "entity_types"}
@@ -78,7 +65,7 @@ func (e GroupEdges) EntityTypesOrErr() ([]*EntityType, error) {
 // EntitiesOrErr returns the Entities value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) EntitiesOrErr() ([]*Entity, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Entities, nil
 	}
 	return nil, &NotLoadedError{edge: "entities"}
@@ -87,25 +74,25 @@ func (e GroupEdges) EntitiesOrErr() ([]*Entity, error) {
 // TagsOrErr returns the Tags value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) TagsOrErr() ([]*Tag, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
 }
 
-// InvitationTokensOrErr returns the InvitationTokens value or an error if the edge
+// RolePermissionsOrErr returns the RolePermissions value or an error if the edge
 // was not loaded in eager-loading.
-func (e GroupEdges) InvitationTokensOrErr() ([]*GroupInvitationToken, error) {
-	if e.loadedTypes[4] {
-		return e.InvitationTokens, nil
+func (e GroupEdges) RolePermissionsOrErr() ([]*RolePermission, error) {
+	if e.loadedTypes[3] {
+		return e.RolePermissions, nil
 	}
-	return nil, &NotLoadedError{edge: "invitation_tokens"}
+	return nil, &NotLoadedError{edge: "role_permissions"}
 }
 
 // NotifiersOrErr returns the Notifiers value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) NotifiersOrErr() ([]*Notifier, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.Notifiers, nil
 	}
 	return nil, &NotLoadedError{edge: "notifiers"}
@@ -114,7 +101,7 @@ func (e GroupEdges) NotifiersOrErr() ([]*Notifier, error) {
 // EntityTemplatesOrErr returns the EntityTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) EntityTemplatesOrErr() ([]*EntityTemplate, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[5] {
 		return e.EntityTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "entity_templates"}
@@ -123,19 +110,10 @@ func (e GroupEdges) EntityTemplatesOrErr() ([]*EntityTemplate, error) {
 // ExportsOrErr returns the Exports value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) ExportsOrErr() ([]*Export, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[6] {
 		return e.Exports, nil
 	}
 	return nil, &NotLoadedError{edge: "exports"}
-}
-
-// UserGroupsOrErr returns the UserGroups value or an error if the edge
-// was not loaded in eager-loading.
-func (e GroupEdges) UserGroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[8] {
-		return e.UserGroups, nil
-	}
-	return nil, &NotLoadedError{edge: "user_groups"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -207,11 +185,6 @@ func (_m *Group) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryUsers queries the "users" edge of the Group entity.
-func (_m *Group) QueryUsers() *UserQuery {
-	return NewGroupClient(_m.config).QueryUsers(_m)
-}
-
 // QueryEntityTypes queries the "entity_types" edge of the Group entity.
 func (_m *Group) QueryEntityTypes() *EntityTypeQuery {
 	return NewGroupClient(_m.config).QueryEntityTypes(_m)
@@ -227,9 +200,9 @@ func (_m *Group) QueryTags() *TagQuery {
 	return NewGroupClient(_m.config).QueryTags(_m)
 }
 
-// QueryInvitationTokens queries the "invitation_tokens" edge of the Group entity.
-func (_m *Group) QueryInvitationTokens() *GroupInvitationTokenQuery {
-	return NewGroupClient(_m.config).QueryInvitationTokens(_m)
+// QueryRolePermissions queries the "role_permissions" edge of the Group entity.
+func (_m *Group) QueryRolePermissions() *RolePermissionQuery {
+	return NewGroupClient(_m.config).QueryRolePermissions(_m)
 }
 
 // QueryNotifiers queries the "notifiers" edge of the Group entity.
@@ -245,11 +218,6 @@ func (_m *Group) QueryEntityTemplates() *EntityTemplateQuery {
 // QueryExports queries the "exports" edge of the Group entity.
 func (_m *Group) QueryExports() *ExportQuery {
 	return NewGroupClient(_m.config).QueryExports(_m)
-}
-
-// QueryUserGroups queries the "user_groups" edge of the Group entity.
-func (_m *Group) QueryUserGroups() *UserGroupQuery {
-	return NewGroupClient(_m.config).QueryUserGroups(_m)
 }
 
 // Update returns a builder for updating this Group.

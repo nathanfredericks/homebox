@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
@@ -30,7 +29,7 @@ func bootstrap() {
 		ctx = context.Background()
 	)
 
-	tGroup, err = tRepos.Groups.GroupCreate(ctx, "test-group", uuid.Nil)
+	tGroup, err = tRepos.Groups.GroupCreate(ctx, "test-group")
 	if err != nil {
 		log.Fatal(err)
 	}

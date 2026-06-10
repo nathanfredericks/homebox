@@ -204,15 +204,9 @@ func (ctrl *V1Controller) HandleCollectionImport() errchain.HandlerFunc {
 			return validate.NewRequestError(errors.New("import is not allowed in demo mode"), http.StatusForbidden)
 		}
 
+		// Authorization is handled by the route's tools:create permission
+		// middleware; ownership no longer exists in the site-owned model.
 		ctx := services.NewContext(r.Context())
-
-		isOwner, err := ctrl.repo.Groups.IsOwnerOf(ctx, ctx.UID, ctx.GID)
-		if err != nil {
-			return validate.NewRequestError(err, http.StatusInternalServerError)
-		}
-		if !isOwner {
-			return validate.NewRequestError(errors.New("only group owners can import"), http.StatusForbidden)
-		}
 
 		// Precondition: no items yet. Default seeded locations/tags are fine —
 		// the worker wipes them as part of the restore. Front-loading the

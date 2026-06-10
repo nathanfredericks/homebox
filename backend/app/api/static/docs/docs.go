@@ -1344,7 +1344,7 @@ const docTemplate = `{
                 "tags": [
                     "Group"
                 ],
-                "summary": "Get All Groups",
+                "summary": "Get All Accessible Groups",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1354,186 +1354,6 @@ const docTemplate = `{
                                 "$ref": "#/definitions/repo.Group"
                             }
                         }
-                    }
-                }
-            }
-        },
-        "/v1/groups/invitations": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Get All Group Invitations",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/repo.GroupInvitation"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Create Group Invitation",
-                "operationId": "groupInvitationCreate",
-                "parameters": [
-                    {
-                        "description": "User Data",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.GroupInvitationCreate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.GroupInvitation"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/groups/invitations/{id}": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Accept Group Invitation",
-                "operationId": "groupInvitationAccept",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Invitation Token",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.GroupAcceptInvitationResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Delete Group Invitation",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Invitation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/v1/groups/members": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Get All Group Members",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/repo.UserSummary"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/groups/members/{user_id}": {
-            "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Remove User from Group",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
                     }
                 }
             }
@@ -2130,6 +1950,167 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/roles": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Get All Roles (Groups)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/repo.RoleOut"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Create Role (Group)",
+                "parameters": [
+                    {
+                        "description": "Role Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.RoleCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/repo.RoleOut"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/roles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Get Role (Group)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.RoleOut"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Update Role (Group)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Role Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.RoleUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.RoleOut"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Delete Role (Group)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/status": {
             "get": {
                 "produces": [
@@ -2513,6 +2494,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get All Users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/repo.UserAdminOut"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create User",
+                "parameters": [
+                    {
+                        "description": "User Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.UserAdminCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/repo.UserAdminOut"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/change-password": {
             "put": {
                 "security": [
@@ -2721,7 +2762,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Register New User",
+                "summary": "First-Time Setup: Create Administrator Account",
                 "parameters": [
                     {
                         "description": "User Data",
@@ -2738,7 +2779,7 @@ const docTemplate = `{
                         "description": "No Content"
                     },
                     "403": {
-                        "description": "Local login is not enabled",
+                        "description": "Setup already completed",
                         "schema": {
                             "type": "string"
                         }
@@ -2821,7 +2862,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "item": {
-                                            "$ref": "#/definitions/repo.UserOut"
+                                            "$ref": "#/definitions/v1.UserSelfOut"
                                         }
                                     }
                                 }
@@ -3062,6 +3103,76 @@ const docTemplate = `{
                                 }
                             ]
                         }
+                    }
+                }
+            }
+        },
+        "/v1/users/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update User (name, email, roles, optional password reset)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.UserAdminUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.UserAdminOut"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -3913,18 +4024,18 @@ const docTemplate = `{
                         "$ref": "#/definitions/ent.Export"
                     }
                 },
-                "invitation_tokens": {
-                    "description": "InvitationTokens holds the value of the invitation_tokens edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ent.GroupInvitationToken"
-                    }
-                },
                 "notifiers": {
                     "description": "Notifiers holds the value of the notifiers edge.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/ent.Notifier"
+                    }
+                },
+                "role_permissions": {
+                    "description": "RolePermissions holds the value of the role_permissions edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.RolePermission"
                     }
                 },
                 "tags": {
@@ -3933,73 +4044,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ent.Tag"
                     }
-                },
-                "user_groups": {
-                    "description": "UserGroups holds the value of the user_groups edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ent.UserGroup"
-                    }
-                },
-                "users": {
-                    "description": "Users holds the value of the users edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ent.User"
-                    }
-                }
-            }
-        },
-        "ent.GroupInvitationToken": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "edges": {
-                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the GroupInvitationTokenQuery when eager-loading is set.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ent.GroupInvitationTokenEdges"
-                        }
-                    ]
-                },
-                "expires_at": {
-                    "description": "ExpiresAt holds the value of the \"expires_at\" field.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "token": {
-                    "description": "Token holds the value of the \"token\" field.",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "updated_at": {
-                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
-                    "type": "string"
-                },
-                "uses": {
-                    "description": "Uses holds the value of the \"uses\" field.",
-                    "type": "integer"
-                }
-            }
-        },
-        "ent.GroupInvitationTokenEdges": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "description": "Group holds the value of the group edge.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ent.Group"
-                        }
-                    ]
                 }
             }
         },
@@ -4175,6 +4219,136 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/ent.User"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.Role": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description holds the value of the \"description\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the RoleQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.RoleEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "is_super_admin": {
+                    "description": "IsSuperAdmin holds the value of the \"is_super_admin\" field.",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.RoleEdges": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "description": "Permissions holds the value of the permissions edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.RolePermission"
+                    }
+                },
+                "users": {
+                    "description": "Users holds the value of the users edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.User"
+                    }
+                }
+            }
+        },
+        "ent.RolePermission": {
+            "type": "object",
+            "properties": {
+                "can_create": {
+                    "description": "CanCreate holds the value of the \"can_create\" field.",
+                    "type": "boolean"
+                },
+                "can_delete": {
+                    "description": "CanDelete holds the value of the \"can_delete\" field.",
+                    "type": "boolean"
+                },
+                "can_edit": {
+                    "description": "CanEdit holds the value of the \"can_edit\" field.",
+                    "type": "boolean"
+                },
+                "can_view": {
+                    "description": "CanView holds the value of the \"can_view\" field.",
+                    "type": "boolean"
+                },
+                "collection_id": {
+                    "description": "CollectionID holds the value of the \"collection_id\" field.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the RolePermissionQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.RolePermissionEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "role_id": {
+                    "description": "RoleID holds the value of the \"role_id\" field.",
+                    "type": "string"
+                },
+                "section": {
+                    "description": "Section holds the value of the \"section\" field.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.RolePermissionEdges": {
+            "type": "object",
+            "properties": {
+                "collection": {
+                    "description": "Collection holds the value of the collection edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Group"
+                        }
+                    ]
+                },
+                "role": {
+                    "description": "Role holds the value of the role edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Role"
                         }
                     ]
                 }
@@ -4357,10 +4531,6 @@ const docTemplate = `{
                     "description": "ID of the ent.",
                     "type": "string"
                 },
-                "is_superuser": {
-                    "description": "IsSuperuser holds the value of the \"is_superuser\" field.",
-                    "type": "boolean"
-                },
                 "name": {
                     "description": "Name holds the value of the \"name\" field.",
                     "type": "string"
@@ -4377,10 +4547,6 @@ const docTemplate = `{
                     "description": "Settings holds the value of the \"settings\" field.",
                     "type": "object",
                     "additionalProperties": true
-                },
-                "superuser": {
-                    "description": "Superuser holds the value of the \"superuser\" field.",
-                    "type": "boolean"
                 },
                 "updated_at": {
                     "description": "UpdatedAt holds the value of the \"updated_at\" field.",
@@ -4405,13 +4571,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/ent.AuthTokens"
                     }
                 },
-                "groups": {
-                    "description": "Groups holds the value of the groups edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ent.Group"
-                    }
-                },
                 "notifiers": {
                     "description": "Notifiers holds the value of the notifiers edge.",
                     "type": "array",
@@ -4426,62 +4585,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/ent.PasswordResetTokens"
                     }
                 },
-                "user_groups": {
-                    "description": "UserGroups holds the value of the user_groups edge.",
+                "roles": {
+                    "description": "Roles holds the value of the roles edge.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ent.UserGroup"
+                        "$ref": "#/definitions/ent.Role"
                     }
-                }
-            }
-        },
-        "ent.UserGroup": {
-            "type": "object",
-            "properties": {
-                "edges": {
-                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the UserGroupQuery when eager-loading is set.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ent.UserGroupEdges"
-                        }
-                    ]
-                },
-                "group_id": {
-                    "description": "GroupID holds the value of the \"group_id\" field.",
-                    "type": "string"
-                },
-                "role": {
-                    "description": "Role holds the value of the \"role\" field.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/usergroup.Role"
-                        }
-                    ]
-                },
-                "user_id": {
-                    "description": "UserID holds the value of the \"user_id\" field.",
-                    "type": "string"
-                }
-            }
-        },
-        "ent.UserGroupEdges": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "description": "Group holds the value of the group edge.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ent.Group"
-                        }
-                    ]
-                },
-                "user": {
-                    "description": "User holds the value of the user edge.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ent.User"
-                        }
-                    ]
                 }
             }
         },
@@ -5553,23 +5662,6 @@ const docTemplate = `{
                 }
             }
         },
-        "repo.GroupInvitation": {
-            "type": "object",
-            "properties": {
-                "expiresAt": {
-                    "type": "string"
-                },
-                "group": {
-                    "$ref": "#/definitions/repo.Group"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "uses": {
-                    "type": "integer"
-                }
-            }
-        },
         "repo.GroupStatistics": {
             "type": "object",
             "properties": {
@@ -5851,6 +5943,138 @@ const docTemplate = `{
                 }
             }
         },
+        "repo.RoleCreate": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.RolePermissionInput"
+                    }
+                }
+            }
+        },
+        "repo.RoleOut": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isSuperAdmin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.RolePermissionOut"
+                    }
+                },
+                "userCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "repo.RolePermissionInput": {
+            "type": "object",
+            "properties": {
+                "canCreate": {
+                    "type": "boolean"
+                },
+                "canDelete": {
+                    "type": "boolean"
+                },
+                "canEdit": {
+                    "type": "boolean"
+                },
+                "canView": {
+                    "type": "boolean"
+                },
+                "collectionId": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "section": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.RolePermissionOut": {
+            "type": "object",
+            "properties": {
+                "canCreate": {
+                    "type": "boolean"
+                },
+                "canDelete": {
+                    "type": "boolean"
+                },
+                "canEdit": {
+                    "type": "boolean"
+                },
+                "canView": {
+                    "type": "boolean"
+                },
+                "collectionId": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "section": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.RoleSummary": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "isSuperAdmin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.RoleUpdate": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.RolePermissionInput"
+                    }
+                }
+            }
+        },
         "repo.TagCreate": {
             "type": "object",
             "required": [
@@ -6066,7 +6290,7 @@ const docTemplate = `{
                 }
             }
         },
-        "repo.UserOut": {
+        "repo.UserAdminOut": {
             "type": "object",
             "properties": {
                 "defaultGroupId": {
@@ -6075,17 +6299,8 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "groupIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "id": {
                     "type": "string"
-                },
-                "isSuperuser": {
-                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -6095,20 +6310,12 @@ const docTemplate = `{
                 },
                 "oidcSubject": {
                     "type": "string"
-                }
-            }
-        },
-        "repo.UserSummary": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
                 },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.RoleSummary"
+                    }
                 }
             }
         },
@@ -6171,6 +6378,58 @@ const docTemplate = `{
                 }
             }
         },
+        "services.UserAdminCreate": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roleIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "services.UserAdminUpdate": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "description": "Password optionally resets the user's password when non-empty.",
+                    "type": "string"
+                },
+                "roleIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "services.UserRegistration": {
             "type": "object",
             "properties": {
@@ -6181,9 +6440,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
-                },
-                "token": {
                     "type": "string"
                 }
             }
@@ -6201,19 +6457,6 @@ const docTemplate = `{
                 "TypeNumber",
                 "TypeBoolean",
                 "TypeTime"
-            ]
-        },
-        "usergroup.Role": {
-            "type": "string",
-            "enum": [
-                "user",
-                "user",
-                "owner"
-            ],
-            "x-enum-varnames": [
-                "DefaultRole",
-                "RoleUser",
-                "RoleOwner"
             ]
         },
         "v1.APISummary": {
@@ -6242,6 +6485,10 @@ const docTemplate = `{
                 },
                 "oidc": {
                     "$ref": "#/definitions/v1.OIDCStatus"
+                },
+                "setup": {
+                    "description": "Setup is true while no user exists; the frontend shows the\nfirst-time setup flow instead of the login form.",
+                    "type": "boolean"
                 },
                 "telemetry": {
                     "$ref": "#/definitions/v1.TelemetryStatus"
@@ -6343,50 +6590,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.GroupAcceptInvitationResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.GroupInvitation": {
-            "type": "object",
-            "properties": {
-                "expiresAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "uses": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.GroupInvitationCreate": {
-            "type": "object",
-            "required": [
-                "uses"
-            ],
-            "properties": {
-                "expiresAt": {
-                    "type": "string"
-                },
-                "uses": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 1
-                }
-            }
-        },
         "v1.LoginForm": {
             "type": "object",
             "properties": {
@@ -6416,6 +6619,30 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "v1.PermissionGrantOut": {
+            "type": "object",
+            "properties": {
+                "collectionId": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "delete": {
+                    "type": "boolean"
+                },
+                "edit": {
+                    "type": "boolean"
+                },
+                "section": {
+                    "type": "string"
+                },
+                "view": {
                     "type": "boolean"
                 }
             }
@@ -6467,6 +6694,44 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.UserSelfOut": {
+            "type": "object",
+            "properties": {
+                "defaultGroupId": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isSuperAdmin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "oidcIssuer": {
+                    "type": "string"
+                },
+                "oidcSubject": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PermissionGrantOut"
+                    }
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.RoleSummary"
+                    }
                 }
             }
         },

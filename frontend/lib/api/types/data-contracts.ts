@@ -11,12 +11,6 @@
  * ---------------------------------------------------------------
  */
 
-export enum UsergroupRole {
-  DefaultRole = "user",
-  RoleUser = "user",
-  RoleOwner = "owner",
-}
-
 export enum TemplatefieldType {
   TypeText = "text",
   TypeNumber = "number",
@@ -435,41 +429,12 @@ export interface EntGroupEdges {
   entity_types: EntEntityType[];
   /** Exports holds the value of the exports edge. */
   exports: EntExport[];
-  /** InvitationTokens holds the value of the invitation_tokens edge. */
-  invitation_tokens: EntGroupInvitationToken[];
   /** Notifiers holds the value of the notifiers edge. */
   notifiers: EntNotifier[];
+  /** RolePermissions holds the value of the role_permissions edge. */
+  role_permissions: EntRolePermission[];
   /** Tags holds the value of the tags edge. */
   tags: EntTag[];
-  /** UserGroups holds the value of the user_groups edge. */
-  user_groups: EntUserGroup[];
-  /** Users holds the value of the users edge. */
-  users: EntUser[];
-}
-
-export interface EntGroupInvitationToken {
-  /** CreatedAt holds the value of the "created_at" field. */
-  created_at: string;
-  /**
-   * Edges holds the relations/edges for other nodes in the graph.
-   * The values are being populated by the GroupInvitationTokenQuery when eager-loading is set.
-   */
-  edges: EntGroupInvitationTokenEdges;
-  /** ExpiresAt holds the value of the "expires_at" field. */
-  expires_at: string;
-  /** ID of the ent. */
-  id: string;
-  /** Token holds the value of the "token" field. */
-  token: number[];
-  /** UpdatedAt holds the value of the "updated_at" field. */
-  updated_at: string;
-  /** Uses holds the value of the "uses" field. */
-  uses: number;
-}
-
-export interface EntGroupInvitationTokenEdges {
-  /** Group holds the value of the group edge. */
-  group: EntGroup;
 }
 
 export interface EntMaintenanceEntry {
@@ -557,6 +522,68 @@ export interface EntPasswordResetTokensEdges {
   user: EntUser;
 }
 
+export interface EntRole {
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /** Description holds the value of the "description" field. */
+  description: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the RoleQuery when eager-loading is set.
+   */
+  edges: EntRoleEdges;
+  /** ID of the ent. */
+  id: string;
+  /** IsSuperAdmin holds the value of the "is_super_admin" field. */
+  is_super_admin: boolean;
+  /** Name holds the value of the "name" field. */
+  name: string;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+}
+
+export interface EntRoleEdges {
+  /** Permissions holds the value of the permissions edge. */
+  permissions: EntRolePermission[];
+  /** Users holds the value of the users edge. */
+  users: EntUser[];
+}
+
+export interface EntRolePermission {
+  /** CanCreate holds the value of the "can_create" field. */
+  can_create: boolean;
+  /** CanDelete holds the value of the "can_delete" field. */
+  can_delete: boolean;
+  /** CanEdit holds the value of the "can_edit" field. */
+  can_edit: boolean;
+  /** CanView holds the value of the "can_view" field. */
+  can_view: boolean;
+  /** CollectionID holds the value of the "collection_id" field. */
+  collection_id: string;
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the RolePermissionQuery when eager-loading is set.
+   */
+  edges: EntRolePermissionEdges;
+  /** ID of the ent. */
+  id: string;
+  /** RoleID holds the value of the "role_id" field. */
+  role_id: string;
+  /** Section holds the value of the "section" field. */
+  section: string;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+}
+
+export interface EntRolePermissionEdges {
+  /** Collection holds the value of the collection edge. */
+  collection: EntGroup;
+  /** Role holds the value of the role edge. */
+  role: EntRole;
+}
+
 export interface EntTag {
   /** Color holds the value of the "color" field. */
   color: string;
@@ -639,8 +666,6 @@ export interface EntUser {
   email: string;
   /** ID of the ent. */
   id: string;
-  /** IsSuperuser holds the value of the "is_superuser" field. */
-  is_superuser: boolean;
   /** Name holds the value of the "name" field. */
   name: string;
   /** OidcIssuer holds the value of the "oidc_issuer" field. */
@@ -649,8 +674,6 @@ export interface EntUser {
   oidc_subject: string;
   /** Settings holds the value of the "settings" field. */
   settings: Record<string, any>;
-  /** Superuser holds the value of the "superuser" field. */
-  superuser: boolean;
   /** UpdatedAt holds the value of the "updated_at" field. */
   updated_at: string;
 }
@@ -660,35 +683,12 @@ export interface EntUserEdges {
   api_keys: EntAPIKey[];
   /** AuthTokens holds the value of the auth_tokens edge. */
   auth_tokens: EntAuthTokens[];
-  /** Groups holds the value of the groups edge. */
-  groups: EntGroup[];
   /** Notifiers holds the value of the notifiers edge. */
   notifiers: EntNotifier[];
   /** PasswordResetTokens holds the value of the password_reset_tokens edge. */
   password_reset_tokens: EntPasswordResetTokens[];
-  /** UserGroups holds the value of the user_groups edge. */
-  user_groups: EntUserGroup[];
-}
-
-export interface EntUserGroup {
-  /**
-   * Edges holds the relations/edges for other nodes in the graph.
-   * The values are being populated by the UserGroupQuery when eager-loading is set.
-   */
-  edges: EntUserGroupEdges;
-  /** GroupID holds the value of the "group_id" field. */
-  group_id: string;
-  /** Role holds the value of the "role" field. */
-  role: UsergroupRole;
-  /** UserID holds the value of the "user_id" field. */
-  user_id: string;
-}
-
-export interface EntUserGroupEdges {
-  /** Group holds the value of the group edge. */
-  group: EntGroup;
-  /** User holds the value of the user edge. */
-  user: EntUser;
+  /** Roles holds the value of the roles edge. */
+  roles: EntRole[];
 }
 
 export interface APIKeyCreate {
@@ -1078,13 +1078,6 @@ export interface Group {
   updatedAt: Date | string;
 }
 
-export interface GroupInvitation {
-  expiresAt: Date | string;
-  group: Group;
-  id: string;
-  uses: number;
-}
-
 export interface GroupStatistics {
   totalItemPrice: number;
   totalItems: number;
@@ -1195,6 +1188,55 @@ export interface PaginationResultEntitySummary {
   total: number;
 }
 
+export interface RoleCreate {
+  /** @maxLength 1000 */
+  description: string;
+  /** @maxLength 255 */
+  name: string;
+  permissions: RolePermissionInput[];
+}
+
+export interface RoleOut {
+  description: string;
+  id: string;
+  isSuperAdmin: boolean;
+  name: string;
+  permissions: RolePermissionOut[];
+  userCount: number;
+}
+
+export interface RolePermissionInput {
+  canCreate: boolean;
+  canDelete: boolean;
+  canEdit: boolean;
+  canView: boolean;
+  collectionId?: string | null;
+  section: string;
+}
+
+export interface RolePermissionOut {
+  canCreate: boolean;
+  canDelete: boolean;
+  canEdit: boolean;
+  canView: boolean;
+  collectionId?: string | null;
+  section: string;
+}
+
+export interface RoleSummary {
+  id: string;
+  isSuperAdmin: boolean;
+  name: string;
+}
+
+export interface RoleUpdate {
+  /** @maxLength 1000 */
+  description: string;
+  /** @maxLength 255 */
+  name: string;
+  permissions: RolePermissionInput[];
+}
+
 export interface TagCreate {
   color: string;
   /** @maxLength 1000 */
@@ -1281,21 +1323,14 @@ export interface TreeItem {
   type: string;
 }
 
-export interface UserOut {
+export interface UserAdminOut {
   defaultGroupId: string;
   email: string;
-  groupIds: string[];
   id: string;
-  isSuperuser: boolean;
   name: string;
   oidcIssuer: string;
   oidcSubject: string;
-}
-
-export interface UserSummary {
-  email: string;
-  id: string;
-  name: string;
+  roles: RoleSummary[];
 }
 
 export interface UserUpdate {
@@ -1322,11 +1357,27 @@ export interface Latest {
   version: string;
 }
 
+export interface UserAdminCreate {
+  email: string;
+  /** @maxLength 255 */
+  name: string;
+  password: string;
+  roleIds: string[];
+}
+
+export interface UserAdminUpdate {
+  email: string;
+  /** @maxLength 255 */
+  name: string;
+  /** Password optionally resets the user's password when non-empty. */
+  password: string;
+  roleIds: string[];
+}
+
 export interface UserRegistration {
   email: string;
   name: string;
   password: string;
-  token: string;
 }
 
 export interface APISummary {
@@ -1338,6 +1389,11 @@ export interface APISummary {
   latest: Latest;
   message: string;
   oidc: OIDCStatus;
+  /**
+   * Setup is true while no user exists; the frontend shows the
+   * first-time setup flow instead of the login form.
+   */
+  setup: boolean;
   telemetry: TelemetryStatus;
   title: string;
   versions: string[];
@@ -1380,27 +1436,6 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
-export interface GroupAcceptInvitationResponse {
-  id: string;
-  name: string;
-}
-
-export interface GroupInvitation {
-  expiresAt: Date | string;
-  id: string;
-  token: string;
-  uses: number;
-}
-
-export interface GroupInvitationCreate {
-  expiresAt: Date | string;
-  /**
-   * @min 1
-   * @max 100
-   */
-  uses: number;
-}
-
 export interface LoginForm {
   /** @example "admin" */
   password: string;
@@ -1414,6 +1449,15 @@ export interface OIDCStatus {
   autoRedirect: boolean;
   buttonText: string;
   enabled: boolean;
+}
+
+export interface PermissionGrantOut {
+  collectionId?: string | null;
+  create: boolean;
+  delete: boolean;
+  edit: boolean;
+  section: string;
+  view: boolean;
 }
 
 export interface ResetPasswordRequest {
@@ -1435,6 +1479,18 @@ export interface TokenResponse {
   attachmentToken: string;
   expiresAt: Date | string;
   token: string;
+}
+
+export interface UserSelfOut {
+  defaultGroupId: string;
+  email: string;
+  id: string;
+  isSuperAdmin: boolean;
+  name: string;
+  oidcIssuer: string;
+  oidcSubject: string;
+  permissions: PermissionGrantOut[];
+  roles: RoleSummary[];
 }
 
 export interface Wrapped {

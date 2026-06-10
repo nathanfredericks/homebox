@@ -26,6 +26,7 @@
   const api = useUserApi();
   const confirm = useConfirm();
   const { openDialog, closeDialog } = useDialog();
+  const { can } = usePermissions();
 
   const notifiers = await useAsyncData("notifiers", async () => {
     const { data } = await api.notifiers.getAll();
@@ -174,7 +175,12 @@
             <TooltipProvider :delay-duration="0" class="flex justify-end gap-2">
               <Tooltip>
                 <TooltipTrigger as-child>
-                  <Button variant="destructive" size="icon" @click="deleteNotifier(n.id)">
+                  <Button
+                    v-if="can('notifiers', 'delete')"
+                    variant="destructive"
+                    size="icon"
+                    @click="deleteNotifier(n.id)"
+                  >
                     <MdiDelete />
                   </Button>
                 </TooltipTrigger>
@@ -182,7 +188,7 @@
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger as-child>
-                  <Button variant="outline" size="icon" @click="openNotifierDialog(n)">
+                  <Button v-if="can('notifiers', 'edit')" variant="outline" size="icon" @click="openNotifierDialog(n)">
                     <MdiPencil />
                   </Button>
                 </TooltipTrigger>
@@ -204,7 +210,7 @@
       </div>
 
       <div class="mt-4">
-        <Button variant="secondary" size="sm" @click="openNotifierDialog(null)">
+        <Button v-if="can('notifiers', 'create')" variant="secondary" size="sm" @click="openNotifierDialog(null)">
           {{ $t("global.create") }}
         </Button>
       </div>

@@ -34,6 +34,7 @@
       <Command :ignore-filter="true">
         <CommandGroup>
           <CommandItem
+            v-if="can('collections', 'create')"
             value="create-collection"
             @select="
               () => {
@@ -44,19 +45,8 @@
           >
             <Plus class="mr-2 size-4" /> {{ t("components.collection.selector.create_collection") }}
           </CommandItem>
-          <CommandItem
-            value="join-collection"
-            @select="
-              () => {
-                open = false;
-                openDialog(DialogID.JoinCollection);
-              }
-            "
-          >
-            <UserPlus class="mr-2 size-4" /> {{ t("components.collection.selector.join_collection") }}
-          </CommandItem>
-          <CommandItem as-child value="collection-settings">
-            <NuxtLink to="/collection/members" class="flex w-full items-center" @click="open = false">
+          <CommandItem v-if="canSeeCollectionOptions" as-child value="collection-settings">
+            <NuxtLink to="/collection" class="flex w-full items-center" @click="open = false">
               <Settings class="mr-2 size-4" />
               {{ t("components.collection.selector.collection_options") }}
             </NuxtLink>
@@ -92,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-  import { Check, ChevronsUpDown, Plus, UserPlus, Settings } from "lucide-vue-next";
+  import { Check, ChevronsUpDown, Plus, Settings } from "lucide-vue-next";
   import MdiHomeGroup from "~icons/mdi/home-group";
   import fuzzysort from "fuzzysort";
   import { Button } from "~/components/ui/button";
@@ -108,6 +98,17 @@
   const { openDialog } = useDialog();
 
   const { t } = useI18n();
+
+  const { can } = usePermissions();
+
+  const canSeeCollectionOptions = computed(
+    () =>
+      can("roles", "view") ||
+      can("notifiers", "view") ||
+      can("collection_settings", "view") ||
+      can("entity_types", "view") ||
+      can("tools", "view")
+  );
 
   const open = ref(false);
   const search = ref("");

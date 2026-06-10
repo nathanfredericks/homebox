@@ -15,12 +15,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/apikey"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/usergroup"
 )
 
 // UserQuery is the builder for querying User entities.
@@ -30,12 +29,11 @@ type UserQuery struct {
 	order                   []user.OrderOption
 	inters                  []Interceptor
 	predicates              []predicate.User
-	withGroups              *GroupQuery
+	withRoles               *RoleQuery
 	withAuthTokens          *AuthTokensQuery
 	withPasswordResetTokens *PasswordResetTokensQuery
 	withAPIKeys             *APIKeyQuery
 	withNotifiers           *NotifierQuery
-	withUserGroups          *UserGroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -72,9 +70,9 @@ func (_q *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return _q
 }
 
-// QueryGroups chains the current query on the "groups" edge.
-func (_q *UserQuery) QueryGroups() *GroupQuery {
-	query := (&GroupClient{config: _q.config}).Query()
+// QueryRoles chains the current query on the "roles" edge.
+func (_q *UserQuery) QueryRoles() *RoleQuery {
+	query := (&RoleClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -85,8 +83,8 @@ func (_q *UserQuery) QueryGroups() *GroupQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.GroupsTable, user.GroupsPrimaryKey...),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.RolesTable, user.RolesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -175,28 +173,6 @@ func (_q *UserQuery) QueryNotifiers() *NotifierQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(notifier.Table, notifier.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.NotifiersTable, user.NotifiersColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryUserGroups chains the current query on the "user_groups" edge.
-func (_q *UserQuery) QueryUserGroups() *UserGroupQuery {
-	query := (&UserGroupClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(usergroup.Table, usergroup.UserColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.UserGroupsTable, user.UserGroupsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -396,26 +372,25 @@ func (_q *UserQuery) Clone() *UserQuery {
 		order:                   append([]user.OrderOption{}, _q.order...),
 		inters:                  append([]Interceptor{}, _q.inters...),
 		predicates:              append([]predicate.User{}, _q.predicates...),
-		withGroups:              _q.withGroups.Clone(),
+		withRoles:               _q.withRoles.Clone(),
 		withAuthTokens:          _q.withAuthTokens.Clone(),
 		withPasswordResetTokens: _q.withPasswordResetTokens.Clone(),
 		withAPIKeys:             _q.withAPIKeys.Clone(),
 		withNotifiers:           _q.withNotifiers.Clone(),
-		withUserGroups:          _q.withUserGroups.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithGroups tells the query-builder to eager-load the nodes that are connected to
-// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithGroups(opts ...func(*GroupQuery)) *UserQuery {
-	query := (&GroupClient{config: _q.config}).Query()
+// WithRoles tells the query-builder to eager-load the nodes that are connected to
+// the "roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRoles(opts ...func(*RoleQuery)) *UserQuery {
+	query := (&RoleClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withGroups = query
+	_q.withRoles = query
 	return _q
 }
 
@@ -460,17 +435,6 @@ func (_q *UserQuery) WithNotifiers(opts ...func(*NotifierQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withNotifiers = query
-	return _q
-}
-
-// WithUserGroups tells the query-builder to eager-load the nodes that are connected to
-// the "user_groups" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithUserGroups(opts ...func(*UserGroupQuery)) *UserQuery {
-	query := (&UserGroupClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withUserGroups = query
 	return _q
 }
 
@@ -552,13 +516,12 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
-			_q.withGroups != nil,
+		loadedTypes = [5]bool{
+			_q.withRoles != nil,
 			_q.withAuthTokens != nil,
 			_q.withPasswordResetTokens != nil,
 			_q.withAPIKeys != nil,
 			_q.withNotifiers != nil,
-			_q.withUserGroups != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -579,10 +542,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withGroups; query != nil {
-		if err := _q.loadGroups(ctx, query, nodes,
-			func(n *User) { n.Edges.Groups = []*Group{} },
-			func(n *User, e *Group) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
+	if query := _q.withRoles; query != nil {
+		if err := _q.loadRoles(ctx, query, nodes,
+			func(n *User) { n.Edges.Roles = []*Role{} },
+			func(n *User, e *Role) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -616,17 +579,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := _q.withUserGroups; query != nil {
-		if err := _q.loadUserGroups(ctx, query, nodes,
-			func(n *User) { n.Edges.UserGroups = []*UserGroup{} },
-			func(n *User, e *UserGroup) { n.Edges.UserGroups = append(n.Edges.UserGroups, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
-func (_q *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []*User, init func(*User), assign func(*User, *Group)) error {
+func (_q *UserQuery) loadRoles(ctx context.Context, query *RoleQuery, nodes []*User, init func(*User), assign func(*User, *Role)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*User)
 	nids := make(map[uuid.UUID]map[*User]struct{})
@@ -638,11 +594,11 @@ func (_q *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(user.GroupsTable)
-		s.Join(joinT).On(s.C(group.FieldID), joinT.C(user.GroupsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(user.GroupsPrimaryKey[0]), edgeIDs...))
+		joinT := sql.Table(user.RolesTable)
+		s.Join(joinT).On(s.C(role.FieldID), joinT.C(user.RolesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.RolesPrimaryKey[0]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(user.GroupsPrimaryKey[0]))
+		s.Select(joinT.C(user.RolesPrimaryKey[0]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -672,14 +628,14 @@ func (_q *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []
 			}
 		})
 	})
-	neighbors, err := withInterceptors[[]*Group](ctx, query, qr, query.inters)
+	neighbors, err := withInterceptors[[]*Role](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "roles" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)
@@ -804,36 +760,6 @@ func (_q *UserQuery) loadNotifiers(ctx context.Context, query *NotifierQuery, no
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *UserQuery) loadUserGroups(ctx context.Context, query *UserGroupQuery, nodes []*User, init func(*User), assign func(*User, *UserGroup)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(usergroup.FieldUserID)
-	}
-	query.Where(predicate.UserGroup(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.UserGroupsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.UserID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}

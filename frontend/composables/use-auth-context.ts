@@ -1,7 +1,7 @@
 import type { CookieRef, NuxtApp } from "nuxt/app";
 import type { Ref } from "vue";
 import type { PublicApi } from "~~/lib/api/public";
-import type { UserOut } from "~~/lib/api/types/data-contracts";
+import type { UserSelfOut } from "~~/lib/api/types/data-contracts";
 import type { UserClient } from "~~/lib/api/user";
 
 export interface IAuthContext {
@@ -11,7 +11,7 @@ export interface IAuthContext {
   /**
    * The current user object for the session. This is undefined if the session is not authorized.
    */
-  user?: UserOut;
+  user?: UserSelfOut;
 
   /**
    * Returns true if the session is authorized.
@@ -40,7 +40,7 @@ class AuthContext implements IAuthContext {
   private static readonly cookieTokenKey = "hb.auth.session";
   private static readonly cookieAttachmentTokenKey = "hb.auth.attachment_token";
 
-  private _user: Ref<UserOut | undefined>;
+  private _user: Ref<UserSelfOut | undefined>;
   private _token: CookieRef<string | null>;
   private _attachmentToken: CookieRef<string | null>;
 
@@ -48,7 +48,7 @@ class AuthContext implements IAuthContext {
     return this._user.value;
   }
 
-  set user(user: UserOut | undefined) {
+  set user(user: UserSelfOut | undefined) {
     this._user.value = user;
   }
 
@@ -64,7 +64,9 @@ class AuthContext implements IAuthContext {
   constructor(private readonly nuxtApp: NuxtApp) {
     // cast needed because the auto-imported global Ref and the "vue" Ref types
     // don't unify in this codebase
-    this._user = useState<UserOut | undefined>("auth.user", () => undefined) as unknown as Ref<UserOut | undefined>;
+    this._user = useState<UserSelfOut | undefined>("auth.user", () => undefined) as unknown as Ref<
+      UserSelfOut | undefined
+    >;
     this._token = useCookie(AuthContext.cookieTokenKey);
     this._attachmentToken = useCookie(AuthContext.cookieAttachmentTokenKey);
   }

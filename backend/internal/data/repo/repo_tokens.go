@@ -48,7 +48,6 @@ func (r *TokenRepository) GetUserFromToken(ctx context.Context, token []byte) (U
 		Where(authtokens.ExpiresAtGTE(time.Now())).
 		WithUser().
 		QueryUser().
-		WithGroups().
 		Only(ctx)
 	if err != nil {
 		span.SetAttributes(

@@ -1,71 +1,56 @@
 import { faker } from "@faker-js/faker";
 import { describe, expect, test } from "vitest";
 import { factories } from "../factories";
-import { sharedUserClient } from "../test-utils";
 
-describe("first time user workflow (register, login, join group)", () => {
-  test("user should be able to update group", async () => {
+describe("collections (site-owned groups)", () => {
+  test("user with collection_settings:edit should be able to update the collection", async () => {
     const { client } = await factories.client.singleUse();
 
-    const { data: user } = await client.user.self();
     const name = faker.person.firstName();
 
-    const { response, data: group } = await client.group.update(
-      {
-        name,
-        currency: "eur",
-      },
-      user.item.defaultGroupId
-    );
+    const { response, data: group } = await client.group.update({
+      name,
+      currency: "eur",
+    });
 
     expect(response.status).toBe(200);
     expect(group.name).toBe(name);
   });
 
-  test("user should be able to get own group", async () => {
+  test("user should be able to get the current collection", async () => {
     const { client } = await factories.client.singleUse();
 
-    const { data: user } = await client.user.self();
-    const { response, data: group } = await client.group.get(user.item.defaultGroupId);
+    const { response, data: group } = await client.group.get();
 
     expect(response.status).toBe(200);
     expect(group.name).toBeTruthy();
     expect(group.currency).toBe("USD");
   });
 
-  test("user should be able to join create join token and have user signup", async () => {
-    const api = factories.client.public();
+  test("user with collections:create should be able to create a collection", async () => {
+    const { client } = await factories.client.singleUse();
 
-    // Setup User 1 Token
-    const client = await sharedUserClient();
-    const { data: user1 } = await client.user.self();
-
-    const { response, data } = await client.group.createInvitation({
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-      uses: 1,
-    });
+    const name = "created-" + faker.string.alphanumeric(8);
+    const { response, data: group } = await client.group.create(name);
 
     expect(response.status).toBe(201);
-    expect(data.token).toBeTruthy();
+    expect(group.name).toBe(name);
 
-    // Create User 2 with token
-    const duplicateUser = factories.user();
-    duplicateUser.token = data.token;
+    // The new collection is visible in the accessible list (the test role
+    // holds all-collections grants).
+    const { data: all } = await client.group.getAll();
+    expect(all.some(g => g.id === group.id)).toBe(true);
+  });
 
-    const { response: registerResp } = await api.register(duplicateUser);
-    expect(registerResp.status).toBe(204);
+  test("users and roles are managed at the site level", async () => {
+    const admin = await factories.client.admin();
 
-    const { response: loginResp, data: loginData } = await api.login(duplicateUser.email, duplicateUser.password);
-    expect(loginResp.status).toBe(200);
+    const { response: usersResp, data: users } = await admin.adminUsers.getAll();
+    expect(usersResp.status).toBe(200);
+    expect(users.length).toBeGreaterThan(0);
 
-    // Get Self and Assert
-    const client2 = factories.client.user(loginData.token);
-    const { data: user2 } = await client2.user.self();
-
-    expect(user2.item.defaultGroupId).toBe(user1.item.defaultGroupId);
-
-    // Cleanup User 2
-    const { response: deleteResp } = await client2.user.delete();
-    expect(deleteResp.status).toBe(204);
+    const { response: rolesResp, data: roles } = await admin.roles.getAll();
+    expect(rolesResp.status).toBe(200);
+    expect(roles.some(r => r.isSuperAdmin)).toBe(true);
   });
 });

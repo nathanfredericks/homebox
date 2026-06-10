@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -10,25 +9,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/usergroup"
 )
 
 type GroupRepository struct {
-	db               *ent.Client
-	groupMapper      MapFunc[*ent.Group, Group]
-	invitationMapper MapFunc[*ent.GroupInvitationToken, GroupInvitation]
-	attachments      *AttachmentRepo
+	db          *ent.Client
+	groupMapper MapFunc[*ent.Group, Group]
+	attachments *AttachmentRepo
 }
 
-func NewGroupRepository(db *ent.Client) *GroupRepository {
+func NewGroupRepository(db *ent.Client, attachments *AttachmentRepo) *GroupRepository {
 	gmap := func(g *ent.Group) Group {
 		return Group{
 			ID:        g.ID,
@@ -39,19 +35,10 @@ func NewGroupRepository(db *ent.Client) *GroupRepository {
 		}
 	}
 
-	imap := func(i *ent.GroupInvitationToken) GroupInvitation {
-		return GroupInvitation{
-			ID:        i.ID,
-			ExpiresAt: i.ExpiresAt,
-			Uses:      i.Uses,
-			Group:     gmap(i.Edges.Group),
-		}
-	}
-
 	return &GroupRepository{
-		db:               db,
-		groupMapper:      gmap,
-		invitationMapper: imap,
+		db:          db,
+		groupMapper: gmap,
+		attachments: attachments,
 	}
 }
 
@@ -67,19 +54,6 @@ type (
 	GroupUpdate struct {
 		Name     string `json:"name"`
 		Currency string `json:"currency"`
-	}
-
-	GroupInvitationCreate struct {
-		Token     []byte    `json:"-"`
-		ExpiresAt time.Time `json:"expiresAt"`
-		Uses      int       `json:"uses"`
-	}
-
-	GroupInvitation struct {
-		ID        uuid.UUID `json:"id"`
-		ExpiresAt time.Time `json:"expiresAt"`
-		Uses      int       `json:"uses"`
-		Group     Group     `json:"group"`
 	}
 
 	GroupStatistics struct {
@@ -112,12 +86,28 @@ type (
 	}
 )
 
-func (r *GroupRepository) GetAllGroups(ctx context.Context, userID uuid.UUID) ([]Group, error) {
-	q := r.db.Group.Query()
-	if userID != uuid.Nil {
-		q.Where(group.HasUsersWith(user.ID(userID)))
+// GetAllGroups returns every collection. For system/background use only —
+// request paths must use GetAccessible.
+func (r *GroupRepository) GetAllGroups(ctx context.Context) ([]Group, error) {
+	return r.groupMapper.MapEachErr(r.db.Group.Query().All(ctx))
+}
+
+// GetAccessible returns the collections visible to a permission set: all of
+// them for super admins, holders of collections:view or an all-collections
+// grant, otherwise only the explicitly granted ones.
+func (r *GroupRepository) GetAccessible(ctx context.Context, set *permissions.Set) ([]Group, error) {
+	if set.Can(permissions.SectionCollections, permissions.ActionView, uuid.Nil) {
+		return r.groupMapper.MapEachErr(r.db.Group.Query().All(ctx))
 	}
-	return r.groupMapper.MapEachErr(q.All(ctx))
+
+	all, ids := set.AccessibleCollections()
+	if all {
+		return r.groupMapper.MapEachErr(r.db.Group.Query().All(ctx))
+	}
+	if len(ids) == 0 {
+		return []Group{}, nil
+	}
+	return r.groupMapper.MapEachErr(r.db.Group.Query().Where(group.IDIn(ids...)).All(ctx))
 }
 
 func (r *GroupRepository) StatsLocationsByPurchasePrice(ctx context.Context, gid uuid.UUID) ([]TotalsByOrganizer, error) {
@@ -245,9 +235,20 @@ func (r *GroupRepository) StatsPurchasePrice(ctx context.Context, gid uuid.UUID,
 }
 
 func (r *GroupRepository) StatsGroup(ctx context.Context, gid uuid.UUID) (GroupStatistics, error) {
+	// total_users counts users whose roles give them access to this
+	// collection: super admins, or any view grant scoped to it (or to all
+	// collections) on a collection-scoped section.
 	q := `
 		SELECT
-            (SELECT COUNT(*) FROM user_groups WHERE group_id = $2) AS total_users,
+            (SELECT COUNT(DISTINCT ur.user_id)
+                FROM user_roles ur
+                JOIN roles r ON r.id = ur.role_id
+                LEFT JOIN role_permissions rp ON rp.role_id = r.id
+                WHERE r.is_super_admin = true
+                   OR (rp.can_view = true
+                       AND (rp.collection_id IS NULL OR rp.collection_id = $2)
+                       AND rp.section NOT IN ('users', 'roles', 'collections'))
+            ) AS total_users,
             (SELECT COUNT(*) FROM entities e JOIN entity_types et ON et.id = e.entity_type_entities WHERE e.group_entities = $2 AND e.archived = false AND et.is_location = false) AS total_items,
             (SELECT COUNT(*) FROM entities e JOIN entity_types et ON et.id = e.entity_type_entities WHERE e.group_entities = $2 AND et.is_location = true) AS total_locations,
             (SELECT COUNT(*) FROM tags WHERE group_tags = $2) AS total_tags,
@@ -278,37 +279,10 @@ func (r *GroupRepository) StatsGroup(ctx context.Context, gid uuid.UUID) (GroupS
 	return stats, nil
 }
 
-func (r *GroupRepository) GroupCreate(ctx context.Context, name string, userID uuid.UUID) (Group, error) {
-	if userID == uuid.Nil {
-		return r.groupMapper.MapErr(r.db.Group.Create().SetName(name).Save(ctx))
-	}
-
-	tx, err := r.db.Tx(ctx)
-	if err != nil {
-		return Group{}, err
-	}
-
-	g, err := tx.Group.Create().SetName(name).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return Group{}, err
-	}
-
-	// The user creating a group is its owner. This is the only place a fresh
-	// owner membership comes from outside registration.
-	if _, err := tx.UserGroup.Create().
-		SetUserID(userID).
-		SetGroupID(g.ID).
-		SetRole(usergroup.RoleOwner).
-		Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return Group{}, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return Group{}, err
-	}
-	return r.groupMapper.Map(g), nil
+// GroupCreate creates a collection. Collections belong to the site; access is
+// granted through role permissions, so no membership rows are created.
+func (r *GroupRepository) GroupCreate(ctx context.Context, name string) (Group, error) {
+	return r.groupMapper.MapErr(r.db.Group.Create().SetName(name).Save(ctx))
 }
 
 func (r *GroupRepository) GroupUpdate(ctx context.Context, id uuid.UUID, data GroupUpdate) (Group, error) {
@@ -378,199 +352,4 @@ func (r *GroupRepository) GroupDelete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return tx.Commit()
-}
-
-func (r *GroupRepository) InvitationGet(ctx context.Context, token []byte) (GroupInvitation, error) {
-	return r.invitationMapper.MapErr(r.db.GroupInvitationToken.Query().
-		Where(groupinvitationtoken.Token(token)).
-		WithGroup().
-		Only(ctx))
-}
-
-func (r *GroupRepository) InvitationGetAll(ctx context.Context, groupID uuid.UUID) ([]GroupInvitation, error) {
-	invitations, err := r.db.GroupInvitationToken.Query().
-		Where(groupinvitationtoken.HasGroupWith(group.ID(groupID))).
-		WithGroup().
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.invitationMapper.MapEach(invitations), nil
-}
-
-func (r *GroupRepository) InvitationCreate(ctx context.Context, groupID uuid.UUID, invite GroupInvitationCreate) (GroupInvitation, error) {
-	entity, err := r.db.GroupInvitationToken.Create().
-		SetGroupID(groupID).
-		SetToken(invite.Token).
-		SetExpiresAt(invite.ExpiresAt).
-		SetUses(invite.Uses).
-		Save(ctx)
-	if err != nil {
-		return GroupInvitation{}, err
-	}
-
-	return r.InvitationGet(ctx, entity.Token)
-}
-
-func (r *GroupRepository) InvitationUpdate(ctx context.Context, id uuid.UUID, uses int) error {
-	_, err := r.db.GroupInvitationToken.UpdateOneID(id).SetUses(uses).Save(ctx)
-	return err
-}
-
-func (r *GroupRepository) InvitationDelete(ctx context.Context, groupID uuid.UUID, id uuid.UUID) error {
-	n, err := r.db.GroupInvitationToken.Delete().
-		Where(
-			groupinvitationtoken.ID(id),
-			groupinvitationtoken.HasGroupWith(group.ID(groupID)),
-		).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return &ent.NotFoundError{}
-	}
-	return nil
-}
-
-// InvitationPurge removes all expired invitations or those that have been used up.
-// It returns the number of deleted invitations.
-func (r *GroupRepository) InvitationPurge(ctx context.Context) (amount int, err error) {
-	q := r.db.GroupInvitationToken.Delete()
-	q.Where(groupinvitationtoken.Or(
-		groupinvitationtoken.ExpiresAtLT(time.Now()),
-		groupinvitationtoken.UsesLTE(0),
-	))
-
-	return q.Exec(ctx)
-}
-
-func (r *GroupRepository) IsMember(ctx context.Context, groupID, userID uuid.UUID) (bool, error) {
-	return r.db.Group.Query().
-		Where(group.ID(groupID), group.HasUsersWith(user.ID(userID))).
-		Exist(ctx)
-}
-
-// IsOwnerOf reports whether userID has role=owner on groupID. This is the
-// authoritative per-group ownership check and the only one authorization
-// code should consult — there is intentionally no global owner flag.
-func (r *GroupRepository) IsOwnerOf(ctx context.Context, userID, groupID uuid.UUID) (bool, error) {
-	return r.db.UserGroup.Query().
-		Where(
-			usergroup.UserID(userID),
-			usergroup.GroupID(groupID),
-			usergroup.RoleEQ(usergroup.RoleOwner),
-		).
-		Exist(ctx)
-}
-
-func (r *GroupRepository) RemoveMember(ctx context.Context, groupID, userID uuid.UUID) error {
-	return r.db.Group.UpdateOneID(groupID).RemoveUserIDs(userID).Exec(ctx)
-}
-
-func (r *GroupRepository) InvitationDecrement(ctx context.Context, id uuid.UUID) error {
-	n, err := r.db.GroupInvitationToken.Update().
-		Where(
-			groupinvitationtoken.ID(id),
-			groupinvitationtoken.UsesGT(0),
-		).
-		AddUses(-1).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return fmt.Errorf("invitation used up")
-	}
-	return nil
-}
-
-func (r *GroupRepository) InvitationAccept(ctx context.Context, token []byte, userID uuid.UUID) (Group, error) {
-	tx, err := r.db.Tx(ctx)
-	if err != nil {
-		return Group{}, err
-	}
-
-	// 1. Get invitation
-	invitation, err := tx.GroupInvitationToken.Query().
-		Where(groupinvitationtoken.Token(token)).
-		WithGroup().
-		Only(ctx)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, err
-	}
-
-	// 2. Checks
-	if invitation.ExpiresAt.Before(time.Now()) {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, fmt.Errorf("invitation expired")
-	}
-	if invitation.Uses <= 0 {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, fmt.Errorf("invitation used up")
-	}
-
-	// 3. Check membership
-	isMember, err := tx.Group.Query().
-		Where(group.ID(invitation.Edges.Group.ID), group.HasUsersWith(user.ID(userID))).
-		Exist(ctx)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, err
-	}
-	if isMember {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, fmt.Errorf("user already a member of this group")
-	}
-
-	// 4. Add member with role=user; ownership is reserved for whoever created the group.
-	if _, err := tx.UserGroup.Create().
-		SetUserID(userID).
-		SetGroupID(invitation.Edges.Group.ID).
-		SetRole(usergroup.RoleUser).
-		Save(ctx); err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, err
-	}
-
-	// 5. Decrement uses atomically
-	n, err := tx.GroupInvitationToken.Update().
-		Where(
-			groupinvitationtoken.ID(invitation.ID),
-			groupinvitationtoken.UsesGT(0),
-		).
-		AddUses(-1).
-		Save(ctx)
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, err
-	}
-	if n == 0 {
-		if err := tx.Rollback(); err != nil {
-			log.Warn().Err(err).Msg("failed to rollback transaction")
-		}
-		return Group{}, fmt.Errorf("invitation used up")
-	}
-
-	if err := tx.Commit(); err != nil {
-		return Group{}, err
-	}
-
-	return r.groupMapper.Map(invitation.Edges.Group), nil
 }

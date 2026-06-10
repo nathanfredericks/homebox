@@ -286,29 +286,6 @@ func CurrencyContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldCurrency, v))
 }
 
-// HasUsers applies the HasEdge predicate on the "users" edge.
-func HasUsers() predicate.Group {
-	return predicate.Group(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, UsersTable, UsersPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
-func HasUsersWith(preds ...predicate.User) predicate.Group {
-	return predicate.Group(func(s *sql.Selector) {
-		step := newUsersStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasEntityTypes applies the HasEdge predicate on the "entity_types" edge.
 func HasEntityTypes() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
@@ -378,21 +355,21 @@ func HasTagsWith(preds ...predicate.Tag) predicate.Group {
 	})
 }
 
-// HasInvitationTokens applies the HasEdge predicate on the "invitation_tokens" edge.
-func HasInvitationTokens() predicate.Group {
+// HasRolePermissions applies the HasEdge predicate on the "role_permissions" edge.
+func HasRolePermissions() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, InvitationTokensTable, InvitationTokensColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, RolePermissionsTable, RolePermissionsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasInvitationTokensWith applies the HasEdge predicate on the "invitation_tokens" edge with a given conditions (other predicates).
-func HasInvitationTokensWith(preds ...predicate.GroupInvitationToken) predicate.Group {
+// HasRolePermissionsWith applies the HasEdge predicate on the "role_permissions" edge with a given conditions (other predicates).
+func HasRolePermissionsWith(preds ...predicate.RolePermission) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		step := newInvitationTokensStep()
+		step := newRolePermissionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -462,29 +439,6 @@ func HasExports() predicate.Group {
 func HasExportsWith(preds ...predicate.Export) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := newExportsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasUserGroups applies the HasEdge predicate on the "user_groups" edge.
-func HasUserGroups() predicate.Group {
-	return predicate.Group(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, UserGroupsTable, UserGroupsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserGroupsWith applies the HasEdge predicate on the "user_groups" edge with a given conditions (other predicates).
-func HasUserGroupsWith(preds ...predicate.UserGroup) predicate.Group {
-	return predicate.Group(func(s *sql.Selector) {
-		step := newUserGroupsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

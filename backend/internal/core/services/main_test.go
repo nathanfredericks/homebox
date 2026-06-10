@@ -35,7 +35,7 @@ func bootstrap() {
 		ctx = context.Background()
 	)
 
-	tGroup, err = tRepos.Groups.GroupCreate(ctx, "test-group", uuid.Nil)
+	tGroup, err = tRepos.Groups.GroupCreate(ctx, "test-group")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,10 +44,18 @@ func bootstrap() {
 		Name:           fk.Str(10),
 		Email:          fk.Email(),
 		Password:       new(fk.Str(10)),
-		IsSuperuser:    fk.Bool(),
 		DefaultGroupID: tGroup.ID,
 	})
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The bootstrap user is a Super Admin so service tests run unrestricted.
+	superAdminID, err := tRepos.Roles.EnsureSuperAdmin(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := tRepos.Roles.SetUserRoles(ctx, tUser.ID, []uuid.UUID{superAdminID}); err != nil {
 		log.Fatal(err)
 	}
 }

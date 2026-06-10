@@ -1,4 +1,39 @@
 {
+    "admin": {
+        "groups": {
+            "back": "Back to Groups",
+            "create_group": "Create Group",
+            "created": "Group created",
+            "delete_confirm": "Delete group {name}? Users assigned to it will lose its permissions.",
+            "deleted": "Group deleted",
+            "description": "Description",
+            "members": "Members",
+            "name": "Name",
+            "super_admin": "Super Admin",
+            "updated": "Group updated"
+        },
+        "tabs": {
+            "groups": "Groups",
+            "users": "Users"
+        },
+        "title": "Administration",
+        "users": {
+            "create_user": "Create User",
+            "created": "User created",
+            "delete_confirm": "Delete user {name}? This cannot be undone.",
+            "deleted": "User deleted",
+            "edit_user": "Edit User",
+            "email": "Email",
+            "empty": "No users found.",
+            "groups": "Groups",
+            "name": "Name",
+            "new_password": "New Password (leave blank to keep current)",
+            "no_groups": "No groups exist yet.",
+            "password": "Password",
+            "updated": "User updated",
+            "you": "you"
+        }
+    },
     "collection": {
         "copy_invite": "Copy Invite Link",
         "create_invite": "Create Invite",
@@ -40,9 +75,17 @@
             "members": "Members",
             "notifiers": "Notifiers",
             "settings": "Settings",
-            "tools": "Tools"
+            "tools": "Tools",
+            "access": "Access"
         },
-        "uses": "Uses"
+        "uses": "Uses",
+        "access": {
+            "all_sections": "Full access",
+            "description": "Groups below grant access to this collection. Manage them in Administration.",
+            "empty": "No groups currently grant access to this collection.",
+            "group": "Group",
+            "sections": "Access"
+        }
     },
     "components": {
         "app": {
@@ -459,7 +502,8 @@
         "value": "Value",
         "version": "Version: { version }",
         "welcome": "Welcome, { username }",
-        "yes": "Yes"
+        "yes": "Yes",
+        "remove": "Remove"
     },
     "home": {
         "quick_statistics": "Quick Statistics",
@@ -751,6 +795,40 @@
             "title": "Templates"
         }
     },
+    "permissions": {
+        "actions": {
+            "create": "Create",
+            "delete": "Delete",
+            "edit": "Edit",
+            "view": "View"
+        },
+        "add_scope": "Add collection scope",
+        "all_collections": "All collections",
+        "grant": "Grant",
+        "groups": {
+            "administration": "Administration",
+            "collection": "Collection",
+            "inventory": "Inventory"
+        },
+        "scope": "Scope",
+        "section": "Section",
+        "sections": {
+            "collection_settings": "Collection Settings",
+            "collections": "Collections",
+            "entity_types": "Entity Types",
+            "items": "Items",
+            "locations": "Locations",
+            "maintenance": "Maintenance",
+            "notifiers": "Notifiers",
+            "roles": "Groups",
+            "statistics": "Statistics",
+            "tags": "Tags",
+            "templates": "Templates",
+            "tools": "Tools",
+            "users": "Users"
+        },
+        "site_wide": "Site-wide"
+    },
     "profile": {
         "active": "Active",
         "api_key_copied": "Copied to clipboard",
@@ -880,6 +958,17 @@
         "switch_camera": "Switch Camera",
         "title": "AR Scanner",
         "unsupported": "AR scanning is not supported in this browser"
+    },
+    "setup": {
+        "confirm_password": "Confirm Password",
+        "email": "Email",
+        "name": "Name",
+        "password": "Password",
+        "password_mismatch": "Passwords do not match",
+        "submit": "Create Administrator Account",
+        "subtitle": "Create your administrator account to get started.",
+        "success": "Administrator account created",
+        "title": "Welcome to Homebox"
     },
     "tags": {
         "no_results": "No Tags Found",

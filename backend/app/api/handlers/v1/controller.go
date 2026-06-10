@@ -4,6 +4,7 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,6 +80,7 @@ type V1Controller struct {
 	maxImportSize     int64
 	isDemo            bool
 	allowRegistration bool
+	setupComplete     atomic.Bool
 	bus               *eventbus.EventBus
 	url               string
 	config            *config.Config
@@ -103,9 +105,12 @@ type (
 		Latest            services.Latest `json:"latest"`
 		Demo              bool            `json:"demo"`
 		AllowRegistration bool            `json:"allowRegistration"`
-		LabelPrinting     bool            `json:"labelPrinting"`
-		OIDC              OIDCStatus      `json:"oidc"`
-		Telemetry         TelemetryStatus `json:"telemetry"`
+		// Setup is true while no user exists; the frontend shows the
+		// first-time setup flow instead of the login form.
+		Setup         bool            `json:"setup"`
+		LabelPrinting bool            `json:"labelPrinting"`
+		OIDC          OIDCStatus      `json:"oidc"`
+		Telemetry     TelemetryStatus `json:"telemetry"`
 	}
 
 	OIDCStatus struct {
@@ -159,6 +164,20 @@ func (ctrl *V1Controller) initOIDCProvider() {
 //	@Router		/v1/status [GET]
 func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
+		// Setup mode ends permanently once the first user exists, so cache
+		// the false result and skip the count query afterwards.
+		setup := false
+		if !ctrl.setupComplete.Load() {
+			count, err := ctrl.repo.Users.Count(r.Context())
+			if err != nil {
+				log.Err(err).Msg("failed to count users for setup status")
+			} else if count == 0 {
+				setup = true
+			} else {
+				ctrl.setupComplete.Store(true)
+			}
+		}
+
 		return server.JSON(w, http.StatusOK, APISummary{
 			Healthy:           ready(),
 			Title:             "Homebox",
@@ -166,7 +185,8 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			Build:             build,
 			Latest:            ctrl.svc.BackgroundService.GetLatestVersion(),
 			Demo:              ctrl.isDemo,
-			AllowRegistration: ctrl.allowRegistration,
+			AllowRegistration: false,
+			Setup:             setup,
 			LabelPrinting:     ctrl.config.LabelMaker.PrintCommand != nil,
 			OIDC: OIDCStatus{
 				Enabled:      ctrl.config.OIDC.Enabled,

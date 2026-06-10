@@ -5,15 +5,12 @@
   import { Button, ButtonGroup } from "@/components/ui/button";
   import { toast } from "@/components/ui/sonner";
 
-  import MdiAccountMultiple from "~icons/mdi/account-multiple";
-  import MdiEmailPlus from "~icons/mdi/email-plus";
+  import MdiShieldAccount from "~icons/mdi/shield-account";
   import MdiBell from "~icons/mdi/bell";
   import MdiCog from "~icons/mdi/cog";
   import MdiShape from "~icons/mdi/shape";
   import MdiWrench from "~icons/mdi/wrench";
-  import MdiLogout from "~icons/mdi/logout";
   import MdiDelete from "~icons/mdi/delete";
-  import type { UserSummary } from "~/lib/api/types/data-contracts";
 
   definePageMeta({
     middleware: ["auth"],
@@ -25,140 +22,57 @@
 
   const route = useRoute();
   const api = useUserApi();
-  const auth = useAuthContext();
   const confirm = useConfirm();
+  const { can } = usePermissions();
 
   const currentPath = computed(() => route.path);
 
-  const tabs = computed(() => [
-    {
-      id: "members",
-      label: "collection.tabs.members",
-      to: "/collection/members",
-      icon: MdiAccountMultiple,
-    },
-    {
-      id: "invites",
-      label: "collection.tabs.invites",
-      to: "/collection/invites",
-      icon: MdiEmailPlus,
-    },
-    {
-      id: "notifiers",
-      label: "collection.tabs.notifiers",
-      to: "/collection/notifiers",
-      icon: MdiBell,
-    },
-    {
-      id: "settings",
-      label: "collection.tabs.settings",
-      to: "/collection/settings",
-      icon: MdiCog,
-    },
-    {
-      id: "entity-types",
-      label: "collection.tabs.entity_types",
-      to: "/collection/entity-types",
-      icon: MdiShape,
-    },
-    {
-      id: "tools",
-      label: "collection.tabs.tools",
-      to: "/collection/tools",
-      icon: MdiWrench,
-    },
-  ]);
+  // Tabs the user cannot view do not exist for them.
+  const tabs = computed(() =>
+    [
+      {
+        id: "access",
+        label: "collection.tabs.access",
+        to: "/collection/access",
+        icon: MdiShieldAccount,
+        visible: can("roles", "view"),
+      },
+      {
+        id: "notifiers",
+        label: "collection.tabs.notifiers",
+        to: "/collection/notifiers",
+        icon: MdiBell,
+        visible: can("notifiers", "view"),
+      },
+      {
+        id: "settings",
+        label: "collection.tabs.settings",
+        to: "/collection/settings",
+        icon: MdiCog,
+        visible: can("collection_settings", "view"),
+      },
+      {
+        id: "entity-types",
+        label: "collection.tabs.entity_types",
+        to: "/collection/entity-types",
+        icon: MdiShape,
+        visible: can("entity_types", "view"),
+      },
+      {
+        id: "tools",
+        label: "collection.tabs.tools",
+        to: "/collection/tools",
+        icon: MdiWrench,
+        visible: can("tools", "view"),
+      },
+    ].filter(tab => tab.visible)
+  );
 
   const { selectedCollection, load: reloadCollections } = useCollections();
 
-  const members = ref<Array<UserSummary>>([]);
-  const membersLoading = ref(false);
   const actionLoading = ref(false);
 
-  const currentUserId = computed(() => auth.user?.id ?? "");
-
-  const membersCount = computed(() => members.value.length);
-
-  const isOnlyMember = computed(() => {
-    if (membersCount.value !== 1 || !currentUserId.value) return false;
-    const member = members.value[0];
-    return Boolean(member && member.id && member.id === currentUserId.value);
-  });
-  const isActionDisabled = computed(() => !selectedCollection.value || membersLoading.value || actionLoading.value);
-
-  const loadMembers = async () => {
-    if (!selectedCollection.value) {
-      members.value = [];
-      return;
-    }
-
-    membersLoading.value = true;
-    try {
-      const res = await api.group.getMembers();
-      if (res.error) {
-        const msg = t("errors.api_failure") + String(res.error);
-        toast.error(msg);
-        members.value = [];
-      } else {
-        members.value = Array.isArray(res.data) ? (res.data as Array<UserSummary>) : [];
-      }
-    } catch (e) {
-      const msg = (e as Error).message ?? String(e);
-      toast.error(msg);
-      members.value = [];
-    } finally {
-      membersLoading.value = false;
-    }
-  };
-
-  watch(
-    () => selectedCollection.value?.id,
-    () => {
-      void loadMembers();
-    },
-    { immediate: true }
-  );
-
-  const handleLeaveCollection = async () => {
-    if (!selectedCollection.value) return;
-
-    const result = await confirm.open(t("collection.leave_confirm"));
-    if (result.isCanceled) {
-      return;
-    }
-
-    actionLoading.value = true;
-
-    try {
-      let userId = currentUserId.value;
-      if (!userId) {
-        const { data } = await api.user.self();
-        userId = data?.item.id ?? "";
-      }
-
-      if (!userId) {
-        const msg = t("errors.api_failure") + "Missing user id";
-        toast.error(msg);
-        return;
-      }
-
-      const res = await api.group.removeMember(userId);
-      if (res.error) {
-        const msg = t("errors.api_failure") + String(res.error);
-        toast.error(msg);
-        return;
-      }
-
-      toast.success(t("collection.left_collection"));
-      await reloadCollections();
-      window.location.reload();
-    } catch (e) {
-      const msg = (e as Error).message ?? String(e);
-      toast.error(msg);
-    } finally {
-      actionLoading.value = false;
-    }
-  };
+  const canDelete = computed(() => can("collection_settings", "delete"));
 
   const handleDeleteCollection = async () => {
     if (!selectedCollection.value) return;
@@ -186,16 +100,6 @@
       toast.error(msg);
     } finally {
       actionLoading.value = false;
-    }
-  };
-
-  const handleCollectionPrimaryAction = async () => {
-    if (!selectedCollection.value) return;
-
-    if (isOnlyMember.value) {
-      await handleDeleteCollection();
-    } else {
-      await handleLeaveCollection();
     }
   };
 </script>
@@ -239,14 +143,15 @@
 
         <div id="collection-header-actions" class="ml-auto flex items-center gap-1">
           <Button
+            v-if="canDelete"
             variant="outline"
             size="icon"
             class="size-8"
-            :aria-label="$t(isOnlyMember ? 'collection.delete_collection' : 'collection.leave_collection')"
-            :disabled="isActionDisabled"
-            @click="handleCollectionPrimaryAction"
+            :aria-label="$t('collection.delete_collection')"
+            :disabled="!selectedCollection || actionLoading"
+            @click="handleDeleteCollection"
           >
-            <component :is="isOnlyMember ? MdiDelete : MdiLogout" class="size-4" />
+            <MdiDelete class="size-4" />
           </Button>
         </div>
       </div>

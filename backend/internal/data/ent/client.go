@@ -26,14 +26,14 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/rolepermission"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/usergroup"
 )
 
 // Client is the client that holds all ent builders.
@@ -61,22 +61,22 @@ type Client struct {
 	Export *ExportClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
-	// GroupInvitationToken is the client for interacting with the GroupInvitationToken builders.
-	GroupInvitationToken *GroupInvitationTokenClient
 	// MaintenanceEntry is the client for interacting with the MaintenanceEntry builders.
 	MaintenanceEntry *MaintenanceEntryClient
 	// Notifier is the client for interacting with the Notifier builders.
 	Notifier *NotifierClient
 	// PasswordResetTokens is the client for interacting with the PasswordResetTokens builders.
 	PasswordResetTokens *PasswordResetTokensClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// RolePermission is the client for interacting with the RolePermission builders.
+	RolePermission *RolePermissionClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
 	TemplateField *TemplateFieldClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// UserGroup is the client for interacting with the UserGroup builders.
-	UserGroup *UserGroupClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -98,14 +98,14 @@ func (c *Client) init() {
 	c.EntityType = NewEntityTypeClient(c.config)
 	c.Export = NewExportClient(c.config)
 	c.Group = NewGroupClient(c.config)
-	c.GroupInvitationToken = NewGroupInvitationTokenClient(c.config)
 	c.MaintenanceEntry = NewMaintenanceEntryClient(c.config)
 	c.Notifier = NewNotifierClient(c.config)
 	c.PasswordResetTokens = NewPasswordResetTokensClient(c.config)
+	c.Role = NewRoleClient(c.config)
+	c.RolePermission = NewRolePermissionClient(c.config)
 	c.Tag = NewTagClient(c.config)
 	c.TemplateField = NewTemplateFieldClient(c.config)
 	c.User = NewUserClient(c.config)
-	c.UserGroup = NewUserGroupClient(c.config)
 }
 
 type (
@@ -196,26 +196,26 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		APIKey:               NewAPIKeyClient(cfg),
-		Attachment:           NewAttachmentClient(cfg),
-		AuthRoles:            NewAuthRolesClient(cfg),
-		AuthTokens:           NewAuthTokensClient(cfg),
-		Entity:               NewEntityClient(cfg),
-		EntityField:          NewEntityFieldClient(cfg),
-		EntityTemplate:       NewEntityTemplateClient(cfg),
-		EntityType:           NewEntityTypeClient(cfg),
-		Export:               NewExportClient(cfg),
-		Group:                NewGroupClient(cfg),
-		GroupInvitationToken: NewGroupInvitationTokenClient(cfg),
-		MaintenanceEntry:     NewMaintenanceEntryClient(cfg),
-		Notifier:             NewNotifierClient(cfg),
-		PasswordResetTokens:  NewPasswordResetTokensClient(cfg),
-		Tag:                  NewTagClient(cfg),
-		TemplateField:        NewTemplateFieldClient(cfg),
-		User:                 NewUserClient(cfg),
-		UserGroup:            NewUserGroupClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		APIKey:              NewAPIKeyClient(cfg),
+		Attachment:          NewAttachmentClient(cfg),
+		AuthRoles:           NewAuthRolesClient(cfg),
+		AuthTokens:          NewAuthTokensClient(cfg),
+		Entity:              NewEntityClient(cfg),
+		EntityField:         NewEntityFieldClient(cfg),
+		EntityTemplate:      NewEntityTemplateClient(cfg),
+		EntityType:          NewEntityTypeClient(cfg),
+		Export:              NewExportClient(cfg),
+		Group:               NewGroupClient(cfg),
+		MaintenanceEntry:    NewMaintenanceEntryClient(cfg),
+		Notifier:            NewNotifierClient(cfg),
+		PasswordResetTokens: NewPasswordResetTokensClient(cfg),
+		Role:                NewRoleClient(cfg),
+		RolePermission:      NewRolePermissionClient(cfg),
+		Tag:                 NewTagClient(cfg),
+		TemplateField:       NewTemplateFieldClient(cfg),
+		User:                NewUserClient(cfg),
 	}, nil
 }
 
@@ -233,26 +233,26 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		APIKey:               NewAPIKeyClient(cfg),
-		Attachment:           NewAttachmentClient(cfg),
-		AuthRoles:            NewAuthRolesClient(cfg),
-		AuthTokens:           NewAuthTokensClient(cfg),
-		Entity:               NewEntityClient(cfg),
-		EntityField:          NewEntityFieldClient(cfg),
-		EntityTemplate:       NewEntityTemplateClient(cfg),
-		EntityType:           NewEntityTypeClient(cfg),
-		Export:               NewExportClient(cfg),
-		Group:                NewGroupClient(cfg),
-		GroupInvitationToken: NewGroupInvitationTokenClient(cfg),
-		MaintenanceEntry:     NewMaintenanceEntryClient(cfg),
-		Notifier:             NewNotifierClient(cfg),
-		PasswordResetTokens:  NewPasswordResetTokensClient(cfg),
-		Tag:                  NewTagClient(cfg),
-		TemplateField:        NewTemplateFieldClient(cfg),
-		User:                 NewUserClient(cfg),
-		UserGroup:            NewUserGroupClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		APIKey:              NewAPIKeyClient(cfg),
+		Attachment:          NewAttachmentClient(cfg),
+		AuthRoles:           NewAuthRolesClient(cfg),
+		AuthTokens:          NewAuthTokensClient(cfg),
+		Entity:              NewEntityClient(cfg),
+		EntityField:         NewEntityFieldClient(cfg),
+		EntityTemplate:      NewEntityTemplateClient(cfg),
+		EntityType:          NewEntityTypeClient(cfg),
+		Export:              NewExportClient(cfg),
+		Group:               NewGroupClient(cfg),
+		MaintenanceEntry:    NewMaintenanceEntryClient(cfg),
+		Notifier:            NewNotifierClient(cfg),
+		PasswordResetTokens: NewPasswordResetTokensClient(cfg),
+		Role:                NewRoleClient(cfg),
+		RolePermission:      NewRolePermissionClient(cfg),
+		Tag:                 NewTagClient(cfg),
+		TemplateField:       NewTemplateFieldClient(cfg),
+		User:                NewUserClient(cfg),
 	}, nil
 }
 
@@ -283,9 +283,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
-		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens, c.Tag, c.TemplateField,
-		c.User, c.UserGroup,
+		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.MaintenanceEntry,
+		c.Notifier, c.PasswordResetTokens, c.Role, c.RolePermission, c.Tag,
+		c.TemplateField, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -296,9 +296,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
-		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens, c.Tag, c.TemplateField,
-		c.User, c.UserGroup,
+		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.MaintenanceEntry,
+		c.Notifier, c.PasswordResetTokens, c.Role, c.RolePermission, c.Tag,
+		c.TemplateField, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -327,22 +327,22 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Export.mutate(ctx, m)
 	case *GroupMutation:
 		return c.Group.mutate(ctx, m)
-	case *GroupInvitationTokenMutation:
-		return c.GroupInvitationToken.mutate(ctx, m)
 	case *MaintenanceEntryMutation:
 		return c.MaintenanceEntry.mutate(ctx, m)
 	case *NotifierMutation:
 		return c.Notifier.mutate(ctx, m)
 	case *PasswordResetTokensMutation:
 		return c.PasswordResetTokens.mutate(ctx, m)
+	case *RoleMutation:
+		return c.Role.mutate(ctx, m)
+	case *RolePermissionMutation:
+		return c.RolePermission.mutate(ctx, m)
 	case *TagMutation:
 		return c.Tag.mutate(ctx, m)
 	case *TemplateFieldMutation:
 		return c.TemplateField.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
-	case *UserGroupMutation:
-		return c.UserGroup.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -2005,22 +2005,6 @@ func (c *GroupClient) GetX(ctx context.Context, id uuid.UUID) *Group {
 	return obj
 }
 
-// QueryUsers queries the users edge of a Group.
-func (c *GroupClient) QueryUsers(_m *Group) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(group.Table, group.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, group.UsersTable, group.UsersPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryEntityTypes queries the entity_types edge of a Group.
 func (c *GroupClient) QueryEntityTypes(_m *Group) *EntityTypeQuery {
 	query := (&EntityTypeClient{config: c.config}).Query()
@@ -2069,15 +2053,15 @@ func (c *GroupClient) QueryTags(_m *Group) *TagQuery {
 	return query
 }
 
-// QueryInvitationTokens queries the invitation_tokens edge of a Group.
-func (c *GroupClient) QueryInvitationTokens(_m *Group) *GroupInvitationTokenQuery {
-	query := (&GroupInvitationTokenClient{config: c.config}).Query()
+// QueryRolePermissions queries the role_permissions edge of a Group.
+func (c *GroupClient) QueryRolePermissions(_m *Group) *RolePermissionQuery {
+	query := (&RolePermissionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
-			sqlgraph.To(groupinvitationtoken.Table, groupinvitationtoken.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, group.InvitationTokensTable, group.InvitationTokensColumn),
+			sqlgraph.To(rolepermission.Table, rolepermission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.RolePermissionsTable, group.RolePermissionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2133,22 +2117,6 @@ func (c *GroupClient) QueryExports(_m *Group) *ExportQuery {
 	return query
 }
 
-// QueryUserGroups queries the user_groups edge of a Group.
-func (c *GroupClient) QueryUserGroups(_m *Group) *UserGroupQuery {
-	query := (&UserGroupClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(group.Table, group.FieldID, id),
-			sqlgraph.To(usergroup.Table, usergroup.GroupColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, group.UserGroupsTable, group.UserGroupsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *GroupClient) Hooks() []Hook {
 	return c.hooks.Group
@@ -2171,155 +2139,6 @@ func (c *GroupClient) mutate(ctx context.Context, m *GroupMutation) (Value, erro
 		return (&GroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Group mutation op: %q", m.Op())
-	}
-}
-
-// GroupInvitationTokenClient is a client for the GroupInvitationToken schema.
-type GroupInvitationTokenClient struct {
-	config
-}
-
-// NewGroupInvitationTokenClient returns a client for the GroupInvitationToken from the given config.
-func NewGroupInvitationTokenClient(c config) *GroupInvitationTokenClient {
-	return &GroupInvitationTokenClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `groupinvitationtoken.Hooks(f(g(h())))`.
-func (c *GroupInvitationTokenClient) Use(hooks ...Hook) {
-	c.hooks.GroupInvitationToken = append(c.hooks.GroupInvitationToken, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `groupinvitationtoken.Intercept(f(g(h())))`.
-func (c *GroupInvitationTokenClient) Intercept(interceptors ...Interceptor) {
-	c.inters.GroupInvitationToken = append(c.inters.GroupInvitationToken, interceptors...)
-}
-
-// Create returns a builder for creating a GroupInvitationToken entity.
-func (c *GroupInvitationTokenClient) Create() *GroupInvitationTokenCreate {
-	mutation := newGroupInvitationTokenMutation(c.config, OpCreate)
-	return &GroupInvitationTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of GroupInvitationToken entities.
-func (c *GroupInvitationTokenClient) CreateBulk(builders ...*GroupInvitationTokenCreate) *GroupInvitationTokenCreateBulk {
-	return &GroupInvitationTokenCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *GroupInvitationTokenClient) MapCreateBulk(slice any, setFunc func(*GroupInvitationTokenCreate, int)) *GroupInvitationTokenCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &GroupInvitationTokenCreateBulk{err: fmt.Errorf("calling to GroupInvitationTokenClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*GroupInvitationTokenCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &GroupInvitationTokenCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for GroupInvitationToken.
-func (c *GroupInvitationTokenClient) Update() *GroupInvitationTokenUpdate {
-	mutation := newGroupInvitationTokenMutation(c.config, OpUpdate)
-	return &GroupInvitationTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *GroupInvitationTokenClient) UpdateOne(_m *GroupInvitationToken) *GroupInvitationTokenUpdateOne {
-	mutation := newGroupInvitationTokenMutation(c.config, OpUpdateOne, withGroupInvitationToken(_m))
-	return &GroupInvitationTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *GroupInvitationTokenClient) UpdateOneID(id uuid.UUID) *GroupInvitationTokenUpdateOne {
-	mutation := newGroupInvitationTokenMutation(c.config, OpUpdateOne, withGroupInvitationTokenID(id))
-	return &GroupInvitationTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for GroupInvitationToken.
-func (c *GroupInvitationTokenClient) Delete() *GroupInvitationTokenDelete {
-	mutation := newGroupInvitationTokenMutation(c.config, OpDelete)
-	return &GroupInvitationTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *GroupInvitationTokenClient) DeleteOne(_m *GroupInvitationToken) *GroupInvitationTokenDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GroupInvitationTokenClient) DeleteOneID(id uuid.UUID) *GroupInvitationTokenDeleteOne {
-	builder := c.Delete().Where(groupinvitationtoken.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &GroupInvitationTokenDeleteOne{builder}
-}
-
-// Query returns a query builder for GroupInvitationToken.
-func (c *GroupInvitationTokenClient) Query() *GroupInvitationTokenQuery {
-	return &GroupInvitationTokenQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeGroupInvitationToken},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a GroupInvitationToken entity by its id.
-func (c *GroupInvitationTokenClient) Get(ctx context.Context, id uuid.UUID) (*GroupInvitationToken, error) {
-	return c.Query().Where(groupinvitationtoken.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *GroupInvitationTokenClient) GetX(ctx context.Context, id uuid.UUID) *GroupInvitationToken {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryGroup queries the group edge of a GroupInvitationToken.
-func (c *GroupInvitationTokenClient) QueryGroup(_m *GroupInvitationToken) *GroupQuery {
-	query := (&GroupClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(groupinvitationtoken.Table, groupinvitationtoken.FieldID, id),
-			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, groupinvitationtoken.GroupTable, groupinvitationtoken.GroupColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *GroupInvitationTokenClient) Hooks() []Hook {
-	return c.hooks.GroupInvitationToken
-}
-
-// Interceptors returns the client interceptors.
-func (c *GroupInvitationTokenClient) Interceptors() []Interceptor {
-	return c.inters.GroupInvitationToken
-}
-
-func (c *GroupInvitationTokenClient) mutate(ctx context.Context, m *GroupInvitationTokenMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&GroupInvitationTokenCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&GroupInvitationTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&GroupInvitationTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&GroupInvitationTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown GroupInvitationToken mutation op: %q", m.Op())
 	}
 }
 
@@ -2786,6 +2605,336 @@ func (c *PasswordResetTokensClient) mutate(ctx context.Context, m *PasswordReset
 	}
 }
 
+// RoleClient is a client for the Role schema.
+type RoleClient struct {
+	config
+}
+
+// NewRoleClient returns a client for the Role from the given config.
+func NewRoleClient(c config) *RoleClient {
+	return &RoleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `role.Hooks(f(g(h())))`.
+func (c *RoleClient) Use(hooks ...Hook) {
+	c.hooks.Role = append(c.hooks.Role, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `role.Intercept(f(g(h())))`.
+func (c *RoleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Role = append(c.inters.Role, interceptors...)
+}
+
+// Create returns a builder for creating a Role entity.
+func (c *RoleClient) Create() *RoleCreate {
+	mutation := newRoleMutation(c.config, OpCreate)
+	return &RoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Role entities.
+func (c *RoleClient) CreateBulk(builders ...*RoleCreate) *RoleCreateBulk {
+	return &RoleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RoleClient) MapCreateBulk(slice any, setFunc func(*RoleCreate, int)) *RoleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RoleCreateBulk{err: fmt.Errorf("calling to RoleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RoleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RoleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Role.
+func (c *RoleClient) Update() *RoleUpdate {
+	mutation := newRoleMutation(c.config, OpUpdate)
+	return &RoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RoleClient) UpdateOne(_m *Role) *RoleUpdateOne {
+	mutation := newRoleMutation(c.config, OpUpdateOne, withRole(_m))
+	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RoleClient) UpdateOneID(id uuid.UUID) *RoleUpdateOne {
+	mutation := newRoleMutation(c.config, OpUpdateOne, withRoleID(id))
+	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Role.
+func (c *RoleClient) Delete() *RoleDelete {
+	mutation := newRoleMutation(c.config, OpDelete)
+	return &RoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RoleClient) DeleteOne(_m *Role) *RoleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RoleClient) DeleteOneID(id uuid.UUID) *RoleDeleteOne {
+	builder := c.Delete().Where(role.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RoleDeleteOne{builder}
+}
+
+// Query returns a query builder for Role.
+func (c *RoleClient) Query() *RoleQuery {
+	return &RoleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRole},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Role entity by its id.
+func (c *RoleClient) Get(ctx context.Context, id uuid.UUID) (*Role, error) {
+	return c.Query().Where(role.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RoleClient) GetX(ctx context.Context, id uuid.UUID) *Role {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPermissions queries the permissions edge of a Role.
+func (c *RoleClient) QueryPermissions(_m *Role) *RolePermissionQuery {
+	query := (&RolePermissionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(rolepermission.Table, rolepermission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.PermissionsTable, role.PermissionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a Role.
+func (c *RoleClient) QueryUsers(_m *Role) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, role.UsersTable, role.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RoleClient) Hooks() []Hook {
+	return c.hooks.Role
+}
+
+// Interceptors returns the client interceptors.
+func (c *RoleClient) Interceptors() []Interceptor {
+	return c.inters.Role
+}
+
+func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Role mutation op: %q", m.Op())
+	}
+}
+
+// RolePermissionClient is a client for the RolePermission schema.
+type RolePermissionClient struct {
+	config
+}
+
+// NewRolePermissionClient returns a client for the RolePermission from the given config.
+func NewRolePermissionClient(c config) *RolePermissionClient {
+	return &RolePermissionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rolepermission.Hooks(f(g(h())))`.
+func (c *RolePermissionClient) Use(hooks ...Hook) {
+	c.hooks.RolePermission = append(c.hooks.RolePermission, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rolepermission.Intercept(f(g(h())))`.
+func (c *RolePermissionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RolePermission = append(c.inters.RolePermission, interceptors...)
+}
+
+// Create returns a builder for creating a RolePermission entity.
+func (c *RolePermissionClient) Create() *RolePermissionCreate {
+	mutation := newRolePermissionMutation(c.config, OpCreate)
+	return &RolePermissionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RolePermission entities.
+func (c *RolePermissionClient) CreateBulk(builders ...*RolePermissionCreate) *RolePermissionCreateBulk {
+	return &RolePermissionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RolePermissionClient) MapCreateBulk(slice any, setFunc func(*RolePermissionCreate, int)) *RolePermissionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RolePermissionCreateBulk{err: fmt.Errorf("calling to RolePermissionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RolePermissionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RolePermissionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RolePermission.
+func (c *RolePermissionClient) Update() *RolePermissionUpdate {
+	mutation := newRolePermissionMutation(c.config, OpUpdate)
+	return &RolePermissionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RolePermissionClient) UpdateOne(_m *RolePermission) *RolePermissionUpdateOne {
+	mutation := newRolePermissionMutation(c.config, OpUpdateOne, withRolePermission(_m))
+	return &RolePermissionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RolePermissionClient) UpdateOneID(id uuid.UUID) *RolePermissionUpdateOne {
+	mutation := newRolePermissionMutation(c.config, OpUpdateOne, withRolePermissionID(id))
+	return &RolePermissionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RolePermission.
+func (c *RolePermissionClient) Delete() *RolePermissionDelete {
+	mutation := newRolePermissionMutation(c.config, OpDelete)
+	return &RolePermissionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RolePermissionClient) DeleteOne(_m *RolePermission) *RolePermissionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RolePermissionClient) DeleteOneID(id uuid.UUID) *RolePermissionDeleteOne {
+	builder := c.Delete().Where(rolepermission.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RolePermissionDeleteOne{builder}
+}
+
+// Query returns a query builder for RolePermission.
+func (c *RolePermissionClient) Query() *RolePermissionQuery {
+	return &RolePermissionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRolePermission},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RolePermission entity by its id.
+func (c *RolePermissionClient) Get(ctx context.Context, id uuid.UUID) (*RolePermission, error) {
+	return c.Query().Where(rolepermission.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RolePermissionClient) GetX(ctx context.Context, id uuid.UUID) *RolePermission {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRole queries the role edge of a RolePermission.
+func (c *RolePermissionClient) QueryRole(_m *RolePermission) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rolepermission.Table, rolepermission.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rolepermission.RoleTable, rolepermission.RoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCollection queries the collection edge of a RolePermission.
+func (c *RolePermissionClient) QueryCollection(_m *RolePermission) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rolepermission.Table, rolepermission.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rolepermission.CollectionTable, rolepermission.CollectionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RolePermissionClient) Hooks() []Hook {
+	return c.hooks.RolePermission
+}
+
+// Interceptors returns the client interceptors.
+func (c *RolePermissionClient) Interceptors() []Interceptor {
+	return c.inters.RolePermission
+}
+
+func (c *RolePermissionClient) mutate(ctx context.Context, m *RolePermissionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RolePermissionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RolePermissionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RolePermissionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RolePermissionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RolePermission mutation op: %q", m.Op())
+	}
+}
+
 // TagClient is a client for the Tag schema.
 type TagClient struct {
 	config
@@ -3240,15 +3389,15 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	return obj
 }
 
-// QueryGroups queries the groups edge of a User.
-func (c *UserClient) QueryGroups(_m *User) *GroupQuery {
-	query := (&GroupClient{config: c.config}).Query()
+// QueryRoles queries the roles edge of a User.
+func (c *UserClient) QueryRoles(_m *User) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.GroupsTable, user.GroupsPrimaryKey...),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.RolesTable, user.RolesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3320,22 +3469,6 @@ func (c *UserClient) QueryNotifiers(_m *User) *NotifierQuery {
 	return query
 }
 
-// QueryUserGroups queries the user_groups edge of a User.
-func (c *UserClient) QueryUserGroups(_m *User) *UserGroupQuery {
-	query := (&UserGroupClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(usergroup.Table, usergroup.UserColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.UserGroupsTable, user.UserGroupsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -3361,132 +3494,16 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
-// UserGroupClient is a client for the UserGroup schema.
-type UserGroupClient struct {
-	config
-}
-
-// NewUserGroupClient returns a client for the UserGroup from the given config.
-func NewUserGroupClient(c config) *UserGroupClient {
-	return &UserGroupClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `usergroup.Hooks(f(g(h())))`.
-func (c *UserGroupClient) Use(hooks ...Hook) {
-	c.hooks.UserGroup = append(c.hooks.UserGroup, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `usergroup.Intercept(f(g(h())))`.
-func (c *UserGroupClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UserGroup = append(c.inters.UserGroup, interceptors...)
-}
-
-// Create returns a builder for creating a UserGroup entity.
-func (c *UserGroupClient) Create() *UserGroupCreate {
-	mutation := newUserGroupMutation(c.config, OpCreate)
-	return &UserGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of UserGroup entities.
-func (c *UserGroupClient) CreateBulk(builders ...*UserGroupCreate) *UserGroupCreateBulk {
-	return &UserGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *UserGroupClient) MapCreateBulk(slice any, setFunc func(*UserGroupCreate, int)) *UserGroupCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &UserGroupCreateBulk{err: fmt.Errorf("calling to UserGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*UserGroupCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &UserGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for UserGroup.
-func (c *UserGroupClient) Update() *UserGroupUpdate {
-	mutation := newUserGroupMutation(c.config, OpUpdate)
-	return &UserGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *UserGroupClient) UpdateOne(_m *UserGroup) *UserGroupUpdateOne {
-	mutation := newUserGroupMutation(c.config, OpUpdateOne)
-	mutation.user = &_m.UserID
-	mutation.group = &_m.GroupID
-	return &UserGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for UserGroup.
-func (c *UserGroupClient) Delete() *UserGroupDelete {
-	mutation := newUserGroupMutation(c.config, OpDelete)
-	return &UserGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Query returns a query builder for UserGroup.
-func (c *UserGroupClient) Query() *UserGroupQuery {
-	return &UserGroupQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeUserGroup},
-		inters: c.Interceptors(),
-	}
-}
-
-// QueryUser queries the user edge of a UserGroup.
-func (c *UserGroupClient) QueryUser(_m *UserGroup) *UserQuery {
-	return c.Query().
-		Where(usergroup.UserID(_m.UserID), usergroup.GroupID(_m.GroupID)).
-		QueryUser()
-}
-
-// QueryGroup queries the group edge of a UserGroup.
-func (c *UserGroupClient) QueryGroup(_m *UserGroup) *GroupQuery {
-	return c.Query().
-		Where(usergroup.UserID(_m.UserID), usergroup.GroupID(_m.GroupID)).
-		QueryGroup()
-}
-
-// Hooks returns the client hooks.
-func (c *UserGroupClient) Hooks() []Hook {
-	return c.hooks.UserGroup
-}
-
-// Interceptors returns the client interceptors.
-func (c *UserGroupClient) Interceptors() []Interceptor {
-	return c.inters.UserGroup
-}
-
-func (c *UserGroupClient) mutate(ctx context.Context, m *UserGroupMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&UserGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&UserGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&UserGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&UserGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown UserGroup mutation op: %q", m.Op())
-	}
-}
-
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, MaintenanceEntry, Notifier,
-		PasswordResetTokens, Tag, TemplateField, User, UserGroup []ent.Hook
+		EntityType, Export, Group, MaintenanceEntry, Notifier, PasswordResetTokens,
+		Role, RolePermission, Tag, TemplateField, User []ent.Hook
 	}
 	inters struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, MaintenanceEntry, Notifier,
-		PasswordResetTokens, Tag, TemplateField, User, UserGroup []ent.Interceptor
+		EntityType, Export, Group, MaintenanceEntry, Notifier, PasswordResetTokens,
+		Role, RolePermission, Tag, TemplateField, User []ent.Interceptor
 	}
 )

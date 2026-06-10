@@ -1,10 +1,10 @@
 import { BaseAPI, route } from "../base";
-import type { APIKeyCreate, APIKeyCreatedOut, APIKeyOut, ChangePassword, UserOut } from "../types/data-contracts";
+import type { APIKeyCreate, APIKeyCreatedOut, APIKeyOut, ChangePassword, UserSelfOut } from "../types/data-contracts";
 import type { Result } from "../types/non-generated";
 
 export class UserApi extends BaseAPI {
   public self() {
-    return this.http.get<Result<UserOut>>({ url: route("/users/self") });
+    return this.http.get<Result<UserSelfOut>>({ url: route("/users/self") });
   }
 
   public logout() {

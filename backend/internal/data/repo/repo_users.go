@@ -6,9 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/usergroup"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -18,18 +16,14 @@ type UserRepository struct {
 }
 
 type (
-	// UserCreate is the Data object contain the requirements of creating a user
-	// in the database. It should to create users from an API unless the user has
-	// rights to create SuperUsers. For regular user in data use the UserIn struct.
+	// UserCreate is the data object containing the requirements of creating a
+	// user in the database. Users hold no inherent access; permissions come
+	// entirely from assigned roles.
 	UserCreate struct {
 		Name           string    `json:"name"`
 		Email          string    `json:"email"`
 		Password       *string   `json:"password"`
-		IsSuperuser    bool      `json:"isSuperUser"`
 		DefaultGroupID uuid.UUID `json:"defaultGroupID"`
-		// IsOwner controls the role on the membership row created for
-		// (user, DefaultGroupID). It does not grant any cross-group privilege.
-		IsOwner bool `json:"isOwner"`
 	}
 
 	UserUpdate struct {
@@ -38,15 +32,13 @@ type (
 	}
 
 	UserOut struct {
-		ID             uuid.UUID   `json:"id"`
-		Name           string      `json:"name"`
-		Email          string      `json:"email"`
-		IsSuperuser    bool        `json:"isSuperuser"`
-		DefaultGroupID uuid.UUID   `json:"defaultGroupId"`
-		GroupIDs       []uuid.UUID `json:"groupIds"`
-		PasswordHash   string      `json:"-"`
-		OidcIssuer     *string     `json:"oidcIssuer"`
-		OidcSubject    *string     `json:"oidcSubject"`
+		ID             uuid.UUID `json:"id"`
+		Name           string    `json:"name"`
+		Email          string    `json:"email"`
+		DefaultGroupID uuid.UUID `json:"defaultGroupId"`
+		PasswordHash   string    `json:"-"`
+		OidcIssuer     *string   `json:"oidcIssuer"`
+		OidcSubject    *string   `json:"oidcSubject"`
 	}
 
 	UserSummary struct {
@@ -54,12 +46,16 @@ type (
 		Email string    `json:"email"`
 		ID    uuid.UUID `json:"id"`
 	}
+
+	// UserAdminOut is the admin-facing user shape including assigned roles.
+	UserAdminOut struct {
+		UserOut
+		Roles []RoleSummary `json:"roles"`
+	}
 )
 
 var (
-	mapUserOutErr      = mapTErrFunc(mapUserOut)
-	mapUsersOutErr     = mapTEachErrFunc(mapUserOut)
-	mapUsersSummaryErr = mapTEachErrFunc(mapUserSummary)
+	mapUserOutErr = mapTErrFunc(mapUserOut)
 )
 
 func mapUserOut(user *ent.User) UserOut {
@@ -67,22 +63,19 @@ func mapUserOut(user *ent.User) UserOut {
 		ID:             user.ID,
 		Name:           user.Name,
 		Email:          user.Email,
-		IsSuperuser:    user.IsSuperuser,
 		DefaultGroupID: lo.FromPtrOr(user.DefaultGroupID, uuid.Nil),
-		GroupIDs: lo.Map(user.Edges.Groups, func(g *ent.Group, _ int) uuid.UUID {
-			return g.ID
-		}),
-		PasswordHash: lo.FromPtrOr(user.Password, ""),
-		OidcIssuer:   user.OidcIssuer,
-		OidcSubject:  user.OidcSubject,
+		PasswordHash:   lo.FromPtrOr(user.Password, ""),
+		OidcIssuer:     user.OidcIssuer,
+		OidcSubject:    user.OidcSubject,
 	}
 }
 
-func mapUserSummary(user *ent.User) UserSummary {
-	return UserSummary{
-		Name:  user.Name,
-		Email: user.Email,
-		ID:    user.ID,
+func mapUserAdminOut(usr *ent.User) UserAdminOut {
+	return UserAdminOut{
+		UserOut: mapUserOut(usr),
+		Roles: lo.Map(usr.Edges.Roles, func(r *ent.Role, _ int) RoleSummary {
+			return mapRoleSummary(r)
+		}),
 	}
 }
 
@@ -90,8 +83,6 @@ func userSpanAttrs(out UserOut) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String("user.id", out.ID.String()),
 		attribute.String("user.default_group_id", out.DefaultGroupID.String()),
-		attribute.Int("user.groups.count", len(out.GroupIDs)),
-		attribute.Bool("user.is_superuser", out.IsSuperuser),
 		attribute.Bool("user.has_password_hash", out.PasswordHash != ""),
 		attribute.Bool("user.has_oidc", out.OidcIssuer != nil && out.OidcSubject != nil),
 	}
@@ -104,7 +95,6 @@ func (r *UserRepository) GetOneID(ctx context.Context, id uuid.UUID) (UserOut, e
 
 	out, err := mapUserOutErr(r.db.User.Query().
 		Where(user.ID(id)).
-		WithGroups().
 		Only(ctx))
 	if err != nil {
 		recordSpanError(span, err)
@@ -121,7 +111,6 @@ func (r *UserRepository) GetOneEmail(ctx context.Context, email string) (UserOut
 
 	out, err := mapUserOutErr(r.db.User.Query().
 		Where(user.EmailEqualFold(email)).
-		WithGroups().
 		Only(ctx),
 	)
 	if err != nil {
@@ -166,47 +155,55 @@ func (r *UserRepository) GetOneEmailNoEdges(ctx context.Context, email string) (
 	return out, nil
 }
 
-func (r *UserRepository) GetAll(ctx context.Context) ([]UserOut, error) {
+func (r *UserRepository) GetAll(ctx context.Context) ([]UserAdminOut, error) {
 	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.GetAll")
 	defer span.End()
 
-	out, err := mapUsersOutErr(r.db.User.Query().WithGroups().All(ctx))
+	users, err := r.db.User.Query().
+		WithRoles().
+		Order(ent.Asc(user.FieldName)).
+		All(ctx)
 	if err != nil {
 		recordSpanError(span, err)
-		return out, err
+		return nil, err
 	}
+	out := lo.Map(users, func(u *ent.User, _ int) UserAdminOut {
+		return mapUserAdminOut(u)
+	})
 	span.SetAttributes(attribute.Int("users.count", len(out)))
 	return out, nil
 }
 
-// membershipRole returns the per-membership role to assign for a UserCreate.
-func membershipRole(isOwner bool) usergroup.Role {
-	if isOwner {
-		return usergroup.RoleOwner
+// Count returns the total number of users. Zero means the instance is
+// awaiting first-time setup.
+func (r *UserRepository) Count(ctx context.Context) (int, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.Count")
+	defer span.End()
+
+	n, err := r.db.User.Query().Count(ctx)
+	if err != nil {
+		recordSpanError(span, err)
+		return 0, err
 	}
-	return usergroup.RoleUser
+	span.SetAttributes(attribute.Int("users.count", n))
+	return n, nil
 }
 
-// createUserWithMembership inserts the user row and the (user, default_group)
-// membership in a single transaction so the user always has exactly one
-// membership row when Create returns.
-func (r *UserRepository) createUserWithMembership(
+func (r *UserRepository) create(
 	ctx context.Context,
 	usr UserCreate,
 	configure func(*ent.UserCreate) *ent.UserCreate,
 ) (uuid.UUID, error) {
-	tx, err := r.db.Tx(ctx)
-	if err != nil {
-		return uuid.Nil, err
-	}
-
-	q := tx.User.
+	q := r.db.User.
 		Create().
 		SetName(usr.Name).
-		SetEmail(usr.Email).
-		SetIsSuperuser(usr.IsSuperuser).
-		SetDefaultGroupID(usr.DefaultGroupID)
+		SetEmail(usr.Email)
 
+	// Admin-created users have no default collection until they pick one;
+	// a zero UUID would violate the FK, so only set non-nil values.
+	if usr.DefaultGroupID != uuid.Nil {
+		q = q.SetDefaultGroupID(usr.DefaultGroupID)
+	}
 	if usr.Password != nil {
 		q = q.SetPassword(*usr.Password)
 	}
@@ -216,20 +213,6 @@ func (r *UserRepository) createUserWithMembership(
 
 	entUser, err := q.Save(ctx)
 	if err != nil {
-		_ = tx.Rollback()
-		return uuid.Nil, err
-	}
-
-	if _, err := tx.UserGroup.Create().
-		SetUserID(entUser.ID).
-		SetGroupID(usr.DefaultGroupID).
-		SetRole(membershipRole(usr.IsOwner)).
-		Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return uuid.Nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
 		return uuid.Nil, err
 	}
 	return entUser.ID, nil
@@ -239,13 +222,11 @@ func (r *UserRepository) Create(ctx context.Context, usr UserCreate) (UserOut, e
 	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.Create",
 		trace.WithAttributes(
 			attribute.String("user.default_group_id", usr.DefaultGroupID.String()),
-			attribute.Bool("user.is_superuser", usr.IsSuperuser),
-			attribute.Bool("user.is_owner", usr.IsOwner),
 			attribute.Bool("user.has_password", usr.Password != nil),
 		))
 	defer span.End()
 
-	id, err := r.createUserWithMembership(ctx, usr, nil)
+	id, err := r.create(ctx, usr, nil)
 	if err != nil {
 		recordSpanError(span, err)
 		return UserOut{}, err
@@ -263,15 +244,13 @@ func (r *UserRepository) CreateWithOIDC(ctx context.Context, usr UserCreate, iss
 	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.CreateWithOIDC",
 		trace.WithAttributes(
 			attribute.String("user.default_group_id", usr.DefaultGroupID.String()),
-			attribute.Bool("user.is_superuser", usr.IsSuperuser),
-			attribute.Bool("user.is_owner", usr.IsOwner),
 			attribute.Bool("user.has_password", usr.Password != nil),
 			attribute.String("oidc.issuer", issuer),
 			attribute.Int("oidc.subject.length", len(subject)),
 		))
 	defer span.End()
 
-	id, err := r.createUserWithMembership(ctx, usr, func(uc *ent.UserCreate) *ent.UserCreate {
+	id, err := r.create(ctx, usr, func(uc *ent.UserCreate) *ent.UserCreate {
 		return uc.SetOidcIssuer(issuer).SetOidcSubject(subject)
 	})
 	if err != nil {
@@ -332,19 +311,6 @@ func (r *UserRepository) DeleteAll(ctx context.Context) error {
 	_, err := r.db.User.Delete().Exec(ctx)
 	recordSpanError(span, err)
 	return err
-}
-
-func (r *UserRepository) GetSuperusers(ctx context.Context) ([]*ent.User, error) {
-	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.GetSuperusers")
-	defer span.End()
-
-	users, err := r.db.User.Query().Where(user.IsSuperuser(true)).All(ctx)
-	if err != nil {
-		recordSpanError(span, err)
-		return nil, err
-	}
-	span.SetAttributes(attribute.Int("users.count", len(users)))
-	return users, nil
 }
 
 func (r *UserRepository) ChangePassword(ctx context.Context, uid uuid.UUID, pw string) error {
@@ -411,7 +377,6 @@ func (r *UserRepository) GetOneOIDC(ctx context.Context, issuer, subject string)
 
 	out, err := mapUserOutErr(r.db.User.Query().
 		Where(user.OidcIssuerEQ(issuer), user.OidcSubjectEQ(subject)).
-		WithGroups().
 		Only(ctx))
 	if err != nil {
 		span.SetAttributes(
@@ -425,21 +390,5 @@ func (r *UserRepository) GetOneOIDC(ctx context.Context, issuer, subject string)
 	}
 	span.SetAttributes(attribute.Bool("user.found", true))
 	span.SetAttributes(userSpanAttrs(out)...)
-	return out, nil
-}
-
-func (r *UserRepository) GetUsersByGroupID(ctx context.Context, gid uuid.UUID) ([]UserSummary, error) {
-	ctx, span := entityTracer().Start(ctx, "repo.UserRepository.GetUsersByGroupID",
-		trace.WithAttributes(attribute.String("group.id", gid.String())))
-	defer span.End()
-
-	out, err := mapUsersSummaryErr(r.db.User.Query().
-		Where(user.HasGroupsWith(group.ID(gid))).
-		All(ctx))
-	if err != nil {
-		recordSpanError(span, err)
-		return out, err
-	}
-	span.SetAttributes(attribute.Int("users.count", len(out)))
 	return out, nil
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	v1 "github.com/sysadminsmedia/homebox/backend/app/api/handlers/v1"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
@@ -272,16 +273,26 @@ func (a *app) mwAuthToken(next errchain.Handler) errchain.Handler {
 			}
 		}
 
+		// Load the user's effective permission set once per request. API keys
+		// inherit the owning user's permissions because the set is derived
+		// from the user, not the credential.
+		perms, err := a.repos.Roles.GetUserPermissionSet(r.Context(), usr.ID)
+		if err != nil {
+			recordMwSpanError(span, err)
+			span.SetAttributes(attribute.String("auth.outcome", "permissions_load_error"))
+			return err
+		}
+
 		span.SetAttributes(
 			attribute.String("auth.outcome", "authenticated"),
 			attribute.String("auth.method", map[bool]string{true: "api_key", false: "session"}[isAPIKey]),
 			attribute.String("user.id", usr.ID.String()),
 			attribute.String("user.default_group_id", usr.DefaultGroupID.String()),
-			attribute.Int("user.groups.count", len(usr.GroupIDs)),
-			attribute.Bool("user.is_superuser", usr.IsSuperuser),
+			attribute.Bool("user.is_super_admin", perms.SuperAdmin),
 		)
 
 		ctxOut := services.SetUserCtx(r.Context(), &usr, requestToken)
+		ctxOut = services.SetPermissionsCtx(ctxOut, perms)
 		if isAPIKey {
 			ctxOut = services.SetAPIKeyAuth(ctxOut)
 		}
@@ -291,7 +302,11 @@ func (a *app) mwAuthToken(next errchain.Handler) errchain.Handler {
 }
 
 // mwTenant is a middleware that will parse the X-Tenant header and validate the user has access
-// to the requested tenant. If no header is provided, the user's default group is used.
+// to the requested tenant (collection) via their role permissions. If no header is provided,
+// the user's default collection is used when accessible, otherwise the first accessible one.
+//
+// Inaccessible tenants return 404, not 403: a collection the user cannot see
+// does not exist for them.
 //
 // WARNING: This middleware _MUST_ be called after mwAuthToken
 func (a *app) mwTenant(next errchain.Handler) errchain.Handler {
@@ -306,6 +321,8 @@ func (a *app) mwTenant(next errchain.Handler) errchain.Handler {
 			span.SetAttributes(attribute.String("tenant.outcome", "no_user_ctx"))
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
+
+		perms := services.UsePermissionsCtx(spanCtx)
 
 		tenantID := user.DefaultGroupID
 		tenantSource := "default"
@@ -334,31 +351,107 @@ func (a *app) mwTenant(next errchain.Handler) errchain.Handler {
 			tenantID = parsedTenantID
 		}
 
-		hasAccess := false
-		for _, gid := range user.GroupIDs {
-			if gid == tenantID {
-				hasAccess = true
-				break
+		// When falling back to the default collection, it may be unset (admin-
+		// created users) or no longer accessible (roles changed); pick the
+		// first accessible collection so the user still lands somewhere they
+		// can see.
+		if tenantSource == "default" && (tenantID == uuid.Nil || !perms.CanAccessCollection(tenantID)) {
+			all, ids := perms.AccessibleCollections()
+			switch {
+			case len(ids) > 0:
+				tenantID = ids[0]
+				tenantSource = "first_accessible"
+			case all:
+				if groups, gerr := a.repos.Groups.GetAllGroups(spanCtx); gerr == nil && len(groups) > 0 {
+					tenantID = groups[0].ID
+					tenantSource = "first_accessible"
+				}
 			}
 		}
+
+		hasAccess := tenantID != uuid.Nil && perms.CanAccessCollection(tenantID)
 
 		span.SetAttributes(
 			attribute.String("user.id", user.ID.String()),
 			attribute.String("tenant.id", tenantID.String()),
 			attribute.String("tenant.source", tenantSource),
-			attribute.Int("user.groups.count", len(user.GroupIDs)),
 			attribute.Bool("tenant.has_access", hasAccess),
 		)
 
 		if !hasAccess {
-			span.SetAttributes(attribute.String("tenant.outcome", "forbidden"))
-			return validate.NewRequestError(errors.New("user does not have access to the requested tenant"), http.StatusForbidden)
+			// 404, not 403 — the collection does not exist for this user.
+			span.SetAttributes(attribute.String("tenant.outcome", "not_found"))
+			return validate.NewRequestError(errors.New("not found"), http.StatusNotFound)
 		}
 
 		span.SetAttributes(attribute.String("tenant.outcome", "ok"))
 		r = r.WithContext(services.SetTenantCtx(spanCtx, tenantID))
 		return next.ServeHTTP(w, r)
 	})
+}
+
+// mwPermission requires the given action on the section. Collection-scoped
+// sections are checked against the request tenant; site-scoped sections are
+// checked at the site scope.
+//
+// Per the invisibility rule, missing View access yields 404 (the resource
+// does not exist for this user); missing write access on a visible section
+// yields 403.
+//
+// WARNING: This middleware _MUST_ be called after mwAuthToken (and mwTenant
+// for collection-scoped sections).
+func (a *app) mwPermission(section permissions.Section, action permissions.Action) errchain.Middleware {
+	return a.mwPermissionAny([]permissions.Section{section}, action)
+}
+
+// mwPermissionAny passes when the action is granted on ANY of the sections.
+// Used for routes shared between items and locations, where the precise
+// section is resolved per-entity in the handler.
+func (a *app) mwPermissionAny(sections []permissions.Section, action permissions.Action) errchain.Middleware {
+	return func(next errchain.Handler) errchain.Handler {
+		return errchain.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+			spanCtx, span := mwTracer().Start(r.Context(), "middleware.mwPermission")
+			defer span.End()
+
+			perms := services.UsePermissionsCtx(spanCtx)
+			tenantID := services.UseTenantCtx(spanCtx)
+
+			allowed := false
+			canViewAny := false
+			for _, section := range sections {
+				scope := uuid.Nil
+				if permissions.CollectionScoped(section) {
+					scope = tenantID
+				}
+				if perms.Can(section, action, scope) {
+					allowed = true
+					break
+				}
+				if perms.Can(section, permissions.ActionView, scope) {
+					canViewAny = true
+				}
+			}
+
+			span.SetAttributes(
+				attribute.String("permission.action", strconv.Itoa(int(action))),
+				attribute.Bool("permission.allowed", allowed),
+			)
+
+			if !allowed {
+				// Without View the section does not exist for this user (404);
+				// with View but without the write action it's a plain 403.
+				if action == permissions.ActionView || !canViewAny {
+					span.SetAttributes(attribute.String("permission.outcome", "not_found"))
+					return validate.NewRequestError(errors.New("not found"), http.StatusNotFound)
+				}
+				span.SetAttributes(attribute.String("permission.outcome", "forbidden"))
+				return validate.NewRequestError(errors.New("forbidden"), http.StatusForbidden)
+			}
+
+			span.SetAttributes(attribute.String("permission.outcome", "ok"))
+			return next.ServeHTTP(w, r.WithContext(spanCtx))
+		})
+	}
 }
 
 // authRateLimiter tracks authentication attempts per client and applies a backoff when limits are exceeded.

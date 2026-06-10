@@ -13,6 +13,7 @@ import (
 type AllServices struct {
 	User              *UserService
 	Group             *GroupService
+	Roles             *RoleService
 	Entities          *EntityService
 	BackgroundService *BackgroundService
 	Exports           *ExportService
@@ -105,9 +106,12 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 		opt(options)
 	}
 
+	userService := &UserService{repos: repos, mailer: options.mailer}
+
 	return &AllServices{
-		User:  &UserService{repos: repos, mailer: options.mailer},
-		Group: &GroupService{repos},
+		User:  userService,
+		Group: &GroupService{repos: repos, users: userService},
+		Roles: &RoleService{repos: repos},
 		Entities: &EntityService{
 			repo:                 repos,
 			autoIncrementAssetID: options.autoIncrementAssetID,

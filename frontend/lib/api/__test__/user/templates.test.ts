@@ -136,8 +136,7 @@ describe("templates lifecycle (create, update, delete)", () => {
         textValue: "Value 1",
         booleanValue: false,
         numberValue: 0,
-        timeValue: "",
-      },
+      } as unknown as (typeof templateData.fields)[number],
       {
         id: NIL_UUID,
         name: "Custom Field 2",
@@ -145,8 +144,7 @@ describe("templates lifecycle (create, update, delete)", () => {
         textValue: "Value 2",
         booleanValue: false,
         numberValue: 0,
-        timeValue: "",
-      },
+      } as unknown as (typeof templateData.fields)[number],
     ];
 
     const { response, data } = await api.templates.create(templateData);
@@ -177,8 +175,7 @@ describe("templates lifecycle (create, update, delete)", () => {
         textValue: "Original Value",
         booleanValue: false,
         numberValue: 0,
-        timeValue: "",
-      },
+      } as unknown as (typeof templateData.fields)[number],
     ];
 
     const { response: createResponse, data: createdTemplate } = await api.templates.create(templateData);
@@ -212,7 +209,6 @@ describe("templates lifecycle (create, update, delete)", () => {
           textValue: "Updated Value",
           booleanValue: false,
           numberValue: 0,
-          timeValue: "",
         },
         {
           id: NIL_UUID,
@@ -221,14 +217,13 @@ describe("templates lifecycle (create, update, delete)", () => {
           textValue: "New Value",
           booleanValue: false,
           numberValue: 0,
-          timeValue: "",
         },
       ],
     };
 
     const { response: updateResponse, data: updatedTemplate } = await api.templates.update(
       createdTemplate.id,
-      updateData
+      updateData as unknown as Parameters<typeof api.templates.update>[1]
     );
     expect(updateResponse.status).toBe(200);
     expect(updatedTemplate.fields).toHaveLength(2);

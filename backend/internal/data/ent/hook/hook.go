@@ -129,18 +129,6 @@ func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
 }
 
-// The GroupInvitationTokenFunc type is an adapter to allow the use of ordinary
-// function as GroupInvitationToken mutator.
-type GroupInvitationTokenFunc func(context.Context, *ent.GroupInvitationTokenMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f GroupInvitationTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.GroupInvitationTokenMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupInvitationTokenMutation", m)
-}
-
 // The MaintenanceEntryFunc type is an adapter to allow the use of ordinary
 // function as MaintenanceEntry mutator.
 type MaintenanceEntryFunc func(context.Context, *ent.MaintenanceEntryMutation) (ent.Value, error)
@@ -177,6 +165,30 @@ func (f PasswordResetTokensFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PasswordResetTokensMutation", m)
 }
 
+// The RoleFunc type is an adapter to allow the use of ordinary
+// function as Role mutator.
+type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
+}
+
+// The RolePermissionFunc type is an adapter to allow the use of ordinary
+// function as RolePermission mutator.
+type RolePermissionFunc func(context.Context, *ent.RolePermissionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RolePermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RolePermissionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RolePermissionMutation", m)
+}
+
 // The TagFunc type is an adapter to allow the use of ordinary
 // function as Tag mutator.
 type TagFunc func(context.Context, *ent.TagMutation) (ent.Value, error)
@@ -211,18 +223,6 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
-}
-
-// The UserGroupFunc type is an adapter to allow the use of ordinary
-// function as UserGroup mutator.
-type UserGroupFunc func(context.Context, *ent.UserGroupMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UserGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UserGroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserGroupMutation", m)
 }
 
 // Condition is a hook condition function.

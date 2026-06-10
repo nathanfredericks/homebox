@@ -24,6 +24,7 @@
 
   const api = useUserApi();
   const breakpoints = useBreakpoints();
+  const { can } = usePermissions();
 
   const locationStore = useLocationStore();
   const locations = computed(() => locationStore.parentLocations);
@@ -34,32 +35,41 @@
   const { table: itemTable, asyncData: itemsAsyncData } = itemsTable(api);
   const { cards: stats, asyncData: statsAsyncData } = statCardData(api);
 
-  // Await everything so the SSR payload (and Pinia state) ships populated
-  await Promise.all([
-    itemsAsyncData,
-    statsAsyncData,
-    useAsyncData("home-parent-locations", async () => {
-      await locationStore.ensureParentsFetched();
-      return true;
-    }),
-    useAsyncData("home-tags", async () => {
-      await tagsStore.ensureAllTagsFetched();
-      return true;
-    }),
-  ]);
+  // Await everything so the SSR payload (and Pinia state) ships populated.
+  // Sections the user cannot view are neither fetched nor rendered.
+  const pending: Promise<unknown>[] = [];
+  if (can("items", "view")) pending.push(itemsAsyncData);
+  if (can("statistics", "view")) pending.push(statsAsyncData);
+  if (can("locations", "view")) {
+    pending.push(
+      useAsyncData("home-parent-locations", async () => {
+        await locationStore.ensureParentsFetched();
+        return true;
+      })
+    );
+  }
+  if (can("tags", "view")) {
+    pending.push(
+      useAsyncData("home-tags", async () => {
+        await tagsStore.ensureAllTagsFetched();
+        return true;
+      })
+    );
+  }
+  await Promise.all(pending);
 </script>
 
 <template>
   <div>
     <BaseContainer class="flex flex-col gap-4">
-      <section>
+      <section v-if="can('statistics', 'view')">
         <Subtitle> {{ $t("home.quick_statistics") }} </Subtitle>
         <div class="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-6">
           <StatCard v-for="(stat, i) in stats" :key="i" :title="stat.label" :value="stat.value" :type="stat.type" />
         </div>
       </section>
 
-      <section>
+      <section v-if="can('items', 'view')">
         <Subtitle> {{ $t("home.recently_added") }} </Subtitle>
 
         <p v-if="itemTable.items.length === 0" class="ml-2 text-sm">{{ $t("items.no_results") }}</p>
@@ -71,7 +81,7 @@
         </div>
       </section>
 
-      <section>
+      <section v-if="can('locations', 'view')">
         <Subtitle> {{ $t("home.storage_locations") }} </Subtitle>
         <p v-if="locations.length === 0" class="ml-2 text-sm">{{ $t("locations.no_results") }}</p>
         <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -79,7 +89,7 @@
         </div>
       </section>
 
-      <section>
+      <section v-if="can('tags', 'view')">
         <Subtitle> {{ $t("home.tags") }} </Subtitle>
         <p v-if="tags.length === 0" class="ml-2 text-sm">{{ $t("tags.no_results") }}</p>
         <div v-else class="flex flex-wrap gap-4">

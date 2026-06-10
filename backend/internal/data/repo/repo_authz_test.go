@@ -24,7 +24,7 @@ func makeForeignGroup(t *testing.T) (gid uuid.UUID, foreignTagID uuid.UUID, fore
 	t.Helper()
 	ctx := context.Background()
 
-	other, err := tRepos.Groups.GroupCreate(ctx, "authz-foreign-"+uuid.NewString(), uuid.Nil)
+	other, err := tRepos.Groups.GroupCreate(ctx, "authz-foreign-"+uuid.NewString())
 	require.NoError(t, err)
 
 	otherType, err := tRepos.EntityTypes.GetDefault(ctx, other.ID, false)

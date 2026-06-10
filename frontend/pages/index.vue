@@ -5,10 +5,6 @@
   import MdiDiscord from "~icons/mdi/discord";
   import MdiFolder from "~icons/mdi/folder";
   import MdiAccount from "~icons/mdi/account";
-  import MdiAccountPlus from "~icons/mdi/account-plus";
-  import MdiLogin from "~icons/mdi/login";
-  import MdiArrowRight from "~icons/mdi/arrow-right";
-  import MdiLock from "~icons/mdi/lock";
   import MdiMastodon from "~icons/mdi/mastodon";
   import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
   import { Button } from "@/components/ui/button";
@@ -30,13 +26,9 @@
   definePageMeta({
     layout: "empty",
     middleware: [
-      to => {
+      () => {
         const ctx = useAuthContext();
         if (ctx.isAuthorized()) {
-          // Preserve invitation token when redirecting authenticated users
-          if (to.query.token) {
-            return `/home?token=${encodeURIComponent(to.query.token as string)}`;
-          }
           return "/home";
         } else {
           console.log("Logged out, clearing collectionId preference");
@@ -107,26 +99,10 @@
   const canRegister = ref(false);
   const remember = ref(false);
 
-  const groupToken = computed<string>({
-    get() {
-      const params = route.query.token;
+  // First-time setup: shown instead of the login form while no user exists.
+  const showSetup = computed(() => status.value?.setup === true);
 
-      if (typeof params === "string") {
-        return params;
-      }
-
-      return "";
-    },
-    set(v) {
-      router.push({
-        query: {
-          token: v,
-        },
-      });
-    },
-  });
-
-  async function registerUser() {
+  async function setupAdmin() {
     loading.value = true;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -141,7 +117,6 @@
       name: username.value,
       email: email.value,
       password: password.value,
-      token: groupToken.value,
     });
 
     if (error) {
@@ -150,20 +125,18 @@
           title: "login-error",
         },
       });
+      loading.value = false;
       return;
     }
 
-    toast.success(t("index.toast.user_registered"));
+    toast.success(t("setup.success"));
 
-    loading.value = false;
-    registerForm.value = false;
+    // Log the new administrator straight in.
+    loginPassword.value = password.value;
+    await login();
   }
 
   onMounted(() => {
-    if (groupToken.value !== "") {
-      registerForm.value = true;
-    }
-
     // Handle OIDC error notifications from URL parameters
     const oidcErrorParam = route.query.oidc_error;
     if (typeof oidcErrorParam === "string" && oidcErrorParam.startsWith("oidc_")) {
@@ -225,8 +198,6 @@
   function loginWithOIDC() {
     window.location.href = "/api/v1/users/login/oidc";
   }
-
-  const [registerForm, toggleLogin] = useToggle();
 </script>
 
 <template>
@@ -314,19 +285,20 @@
       <div class="grid min-h-[50vh] p-6 sm:place-items-center">
         <div>
           <Transition name="slide-fade">
-            <form v-if="registerForm" id="register-form" name="register" method="post" @submit.prevent="registerUser">
+            <form v-if="showSetup" id="setup-form" name="setup" method="post" @submit.prevent="setupAdmin">
               <Card class="md:w-[500px]">
                 <CardHeader>
                   <CardTitle class="flex items-center gap-2">
                     <MdiAccount class="mr-1 size-7" />
-                    {{ $t("index.register") }}
+                    {{ $t("setup.title") }}
                   </CardTitle>
+                  <p class="text-sm text-muted-foreground">{{ $t("setup.subtitle") }}</p>
                 </CardHeader>
                 <CardContent class="flex flex-col gap-2">
                   <FormTextField
                     id="register-email"
                     v-model="email"
-                    :label="$t('index.set_email')"
+                    :label="$t('setup.email')"
                     type="email"
                     name="email"
                     autocomplete="username"
@@ -336,22 +308,16 @@
                   <FormTextField
                     id="register-name"
                     v-model="username"
-                    :label="$t('index.set_name')"
+                    :label="$t('setup.name')"
                     name="name"
                     autocomplete="name"
                     :required="true"
                     data-testid="name-input"
                   />
-                  <div v-if="!(groupToken == '')" class="pb-1 pt-4 text-center">
-                    <p>{{ $t("index.joining_group") }}</p>
-                    <button type="button" class="text-xs underline" @click="groupToken = ''">
-                      {{ $t("index.dont_join_group") }}
-                    </button>
-                  </div>
                   <FormPassword
                     id="register-password"
                     v-model="password"
-                    :label="$t('index.set_password')"
+                    :label="$t('setup.password')"
                     name="new-password"
                     autocomplete="new-password"
                     :min-length="PASSWORD_MIN_LENGTH"
@@ -369,7 +335,7 @@
                     :class="loading ? 'loading' : ''"
                     :disabled="loading || !canRegister"
                   >
-                    {{ $t("index.register") }}
+                    {{ $t("setup.submit") }}
                   </Button>
                 </CardFooter>
               </Card>
@@ -452,30 +418,6 @@
               </Card>
             </form>
           </Transition>
-          <div class="mt-6 text-center">
-            <Button
-              v-if="status && status.allowRegistration && status?.oidc?.allowLocal !== false"
-              class="group"
-              variant="link"
-              data-testid="register-button"
-              @click="() => toggleLogin()"
-            >
-              <div class="relative mx-2">
-                <div
-                  class="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:rotate-[360deg]"
-                >
-                  <MdiAccountPlus v-if="!registerForm" class="size-5 group-hover:hidden" />
-                  <MdiLogin v-else class="size-5 group-hover:hidden" />
-                  <MdiArrowRight class="hidden size-5 group-hover:block" />
-                </div>
-              </div>
-              {{ registerForm ? $t("index.login") : $t("index.register") }}
-            </Button>
-            <p v-else class="inline-flex items-center gap-2 text-sm italic">
-              <MdiLock class="inline-block size-4" />
-              {{ $t("index.disabled_registration") }}
-            </p>
-          </div>
         </div>
       </div>
     </div>

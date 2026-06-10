@@ -490,6 +490,31 @@ func (r *EntityRepository) getOne(ctx context.Context, where ...predicate.Entity
 	return r.getOneTx(ctx, nil, where...)
 }
 
+// IsLocation reports whether the entity's type is a location type. Returns
+// ent.NotFoundError if the entity is not in the group.
+func (r *EntityRepository) IsLocation(ctx context.Context, gid, id uuid.UUID) (bool, error) {
+	et, err := r.db.Entity.Query().
+		Where(entity.ID(id), entity.HasGroupWith(group.ID(gid))).
+		QueryEntityType().
+		Only(ctx)
+	if err != nil {
+		return false, err
+	}
+	return et.IsLocation, nil
+}
+
+// TypeIsLocation reports whether the entity type is a location type. Returns
+// ent.NotFoundError if the type is not in the group.
+func (r *EntityRepository) TypeIsLocation(ctx context.Context, gid, typeID uuid.UUID) (bool, error) {
+	et, err := r.db.EntityType.Query().
+		Where(entitytype.ID(typeID), entitytype.HasGroupWith(group.ID(gid))).
+		Only(ctx)
+	if err != nil {
+		return false, err
+	}
+	return et.IsLocation, nil
+}
+
 // GetOne returns a single entity by ID. If the entity does not exist, an error is returned.
 func (r *EntityRepository) GetOne(ctx context.Context, id uuid.UUID) (EntityOut, error) {
 	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.GetOne",

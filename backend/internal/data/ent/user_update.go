@@ -14,10 +14,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/apikey"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -85,34 +85,6 @@ func (_u *UserUpdate) SetNillablePassword(v *string) *UserUpdate {
 // ClearPassword clears the value of the "password" field.
 func (_u *UserUpdate) ClearPassword() *UserUpdate {
 	_u.mutation.ClearPassword()
-	return _u
-}
-
-// SetIsSuperuser sets the "is_superuser" field.
-func (_u *UserUpdate) SetIsSuperuser(v bool) *UserUpdate {
-	_u.mutation.SetIsSuperuser(v)
-	return _u
-}
-
-// SetNillableIsSuperuser sets the "is_superuser" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableIsSuperuser(v *bool) *UserUpdate {
-	if v != nil {
-		_u.SetIsSuperuser(*v)
-	}
-	return _u
-}
-
-// SetSuperuser sets the "superuser" field.
-func (_u *UserUpdate) SetSuperuser(v bool) *UserUpdate {
-	_u.mutation.SetSuperuser(v)
-	return _u
-}
-
-// SetNillableSuperuser sets the "superuser" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableSuperuser(v *bool) *UserUpdate {
-	if v != nil {
-		_u.SetSuperuser(*v)
-	}
 	return _u
 }
 
@@ -208,19 +180,19 @@ func (_u *UserUpdate) ClearSettings() *UserUpdate {
 	return _u
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_u *UserUpdate) AddGroupIDs(ids ...uuid.UUID) *UserUpdate {
-	_u.mutation.AddGroupIDs(ids...)
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_u *UserUpdate) AddRoleIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddRoleIDs(ids...)
 	return _u
 }
 
-// AddGroups adds the "groups" edges to the Group entity.
-func (_u *UserUpdate) AddGroups(v ...*Group) *UserUpdate {
+// AddRoles adds the "roles" edges to the Role entity.
+func (_u *UserUpdate) AddRoles(v ...*Role) *UserUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddGroupIDs(ids...)
+	return _u.AddRoleIDs(ids...)
 }
 
 // AddAuthTokenIDs adds the "auth_tokens" edge to the AuthTokens entity by IDs.
@@ -288,25 +260,25 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (_u *UserUpdate) ClearGroups() *UserUpdate {
-	_u.mutation.ClearGroups()
+// ClearRoles clears all "roles" edges to the Role entity.
+func (_u *UserUpdate) ClearRoles() *UserUpdate {
+	_u.mutation.ClearRoles()
 	return _u
 }
 
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (_u *UserUpdate) RemoveGroupIDs(ids ...uuid.UUID) *UserUpdate {
-	_u.mutation.RemoveGroupIDs(ids...)
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (_u *UserUpdate) RemoveRoleIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveRoleIDs(ids...)
 	return _u
 }
 
-// RemoveGroups removes "groups" edges to Group entities.
-func (_u *UserUpdate) RemoveGroups(v ...*Group) *UserUpdate {
+// RemoveRoles removes "roles" edges to Role entities.
+func (_u *UserUpdate) RemoveRoles(v ...*Role) *UserUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveGroupIDs(ids...)
+	return _u.RemoveRoleIDs(ids...)
 }
 
 // ClearAuthTokens clears all "auth_tokens" edges to the AuthTokens entity.
@@ -476,12 +448,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
 	}
-	if value, ok := _u.mutation.IsSuperuser(); ok {
-		_spec.SetField(user.FieldIsSuperuser, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Superuser(); ok {
-		_spec.SetField(user.FieldSuperuser, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.ActivatedOn(); ok {
 		_spec.SetField(user.FieldActivatedOn, field.TypeTime, value)
 	}
@@ -512,61 +478,49 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.SettingsCleared() {
 		_spec.ClearField(user.FieldSettings, field.TypeJSON)
 	}
-	if _u.mutation.GroupsCleared() {
+	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.AuthTokensCleared() {
@@ -823,34 +777,6 @@ func (_u *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	return _u
 }
 
-// SetIsSuperuser sets the "is_superuser" field.
-func (_u *UserUpdateOne) SetIsSuperuser(v bool) *UserUpdateOne {
-	_u.mutation.SetIsSuperuser(v)
-	return _u
-}
-
-// SetNillableIsSuperuser sets the "is_superuser" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableIsSuperuser(v *bool) *UserUpdateOne {
-	if v != nil {
-		_u.SetIsSuperuser(*v)
-	}
-	return _u
-}
-
-// SetSuperuser sets the "superuser" field.
-func (_u *UserUpdateOne) SetSuperuser(v bool) *UserUpdateOne {
-	_u.mutation.SetSuperuser(v)
-	return _u
-}
-
-// SetNillableSuperuser sets the "superuser" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableSuperuser(v *bool) *UserUpdateOne {
-	if v != nil {
-		_u.SetSuperuser(*v)
-	}
-	return _u
-}
-
 // SetActivatedOn sets the "activated_on" field.
 func (_u *UserUpdateOne) SetActivatedOn(v time.Time) *UserUpdateOne {
 	_u.mutation.SetActivatedOn(v)
@@ -943,19 +869,19 @@ func (_u *UserUpdateOne) ClearSettings() *UserUpdateOne {
 	return _u
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (_u *UserUpdateOne) AddGroupIDs(ids ...uuid.UUID) *UserUpdateOne {
-	_u.mutation.AddGroupIDs(ids...)
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_u *UserUpdateOne) AddRoleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddRoleIDs(ids...)
 	return _u
 }
 
-// AddGroups adds the "groups" edges to the Group entity.
-func (_u *UserUpdateOne) AddGroups(v ...*Group) *UserUpdateOne {
+// AddRoles adds the "roles" edges to the Role entity.
+func (_u *UserUpdateOne) AddRoles(v ...*Role) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddGroupIDs(ids...)
+	return _u.AddRoleIDs(ids...)
 }
 
 // AddAuthTokenIDs adds the "auth_tokens" edge to the AuthTokens entity by IDs.
@@ -1023,25 +949,25 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (_u *UserUpdateOne) ClearGroups() *UserUpdateOne {
-	_u.mutation.ClearGroups()
+// ClearRoles clears all "roles" edges to the Role entity.
+func (_u *UserUpdateOne) ClearRoles() *UserUpdateOne {
+	_u.mutation.ClearRoles()
 	return _u
 }
 
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (_u *UserUpdateOne) RemoveGroupIDs(ids ...uuid.UUID) *UserUpdateOne {
-	_u.mutation.RemoveGroupIDs(ids...)
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (_u *UserUpdateOne) RemoveRoleIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveRoleIDs(ids...)
 	return _u
 }
 
-// RemoveGroups removes "groups" edges to Group entities.
-func (_u *UserUpdateOne) RemoveGroups(v ...*Group) *UserUpdateOne {
+// RemoveRoles removes "roles" edges to Role entities.
+func (_u *UserUpdateOne) RemoveRoles(v ...*Role) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveGroupIDs(ids...)
+	return _u.RemoveRoleIDs(ids...)
 }
 
 // ClearAuthTokens clears all "auth_tokens" edges to the AuthTokens entity.
@@ -1241,12 +1167,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if _u.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
 	}
-	if value, ok := _u.mutation.IsSuperuser(); ok {
-		_spec.SetField(user.FieldIsSuperuser, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Superuser(); ok {
-		_spec.SetField(user.FieldSuperuser, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.ActivatedOn(); ok {
 		_spec.SetField(user.FieldActivatedOn, field.TypeTime, value)
 	}
@@ -1277,61 +1197,49 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if _u.mutation.SettingsCleared() {
 		_spec.ClearField(user.FieldSettings, field.TypeJSON)
 	}
-	if _u.mutation.GroupsCleared() {
+	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		createE := &UserGroupCreate{config: _u.config, mutation: newUserGroupMutation(_u.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.AuthTokensCleared() {

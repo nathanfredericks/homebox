@@ -25,6 +25,7 @@
   const api = useUserApi();
   const confirm = useConfirm();
   const { openDialog, closeDialog } = useDialog();
+  const { can } = usePermissions();
 
   const { data: entityTypes, refresh } = await useAsyncData("entity-types", async () => {
     const { data, error } = await api.entityTypes.getAll();
@@ -182,7 +183,7 @@
     <!-- Page Content -->
     <div class="mb-4 flex items-center justify-between">
       <h3 class="text-lg font-medium">Entity Types</h3>
-      <Button size="sm" @click="openDialog(DialogID.CreateEntityType)">
+      <Button v-if="can('entity_types', 'create')" size="sm" @click="openDialog(DialogID.CreateEntityType)">
         <MdiPlus class="mr-1 size-4" />
         Create
       </Button>
@@ -234,7 +235,7 @@
 
     <div v-else class="flex flex-col items-center justify-center py-12 text-center">
       <p class="mb-4 text-muted-foreground">No entity types defined yet.</p>
-      <Button @click="openDialog(DialogID.CreateEntityType)">
+      <Button v-if="can('entity_types', 'create')" @click="openDialog(DialogID.CreateEntityType)">
         <MdiPlus class="mr-2" />
         Create Entity Type
       </Button>

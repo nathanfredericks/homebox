@@ -3,10 +3,10 @@ import { createContext } from "reka-ui";
 import { useMagicKeys, useActiveElement } from "@vueuse/core";
 import type {
   BarcodeProduct,
-  GroupInvitation,
   EntitySummary,
   MaintenanceEntry,
   MaintenanceEntryWithDetails,
+  UserAdminOut,
 } from "~~/lib/api/types/data-contracts";
 
 export enum DialogID {
@@ -18,8 +18,6 @@ export enum DialogID {
   CreateLocation = "create-location",
   CreateTag = "create-tag",
   CreateCollection = "create-collection",
-  CreateGroupInvite = "create-group-invite",
-  JoinCollection = "join-collection",
   CreateNotifier = "create-notifier",
   CreateTemplate = "create-template",
   DuplicateSettings = "duplicate-settings",
@@ -40,6 +38,9 @@ export enum DialogID {
   ItemChangeDetails = "item-table-updater",
   CreateEntityType = "create-entity-type",
   UpdateEntityType = "update-entity-type",
+  AdminUserCreate = "admin-user-create",
+  AdminUserEdit = "admin-user-edit",
+  AdminGroupCreate = "admin-group-create",
 }
 
 /**
@@ -80,7 +81,7 @@ export type DialogParamsMap = {
     items: EntitySummary[];
   };
   [DialogID.CreateCollection]?: { redirectTo?: string };
-  [DialogID.JoinCollection]?: { redirectTo?: string; inviteCode?: string };
+  [DialogID.AdminUserEdit]: { user: UserAdminOut };
 };
 
 /**
@@ -90,7 +91,9 @@ export type DialogResultMap = {
   [DialogID.ItemImage]?: { action: "delete"; id: string };
   [DialogID.EditMaintenance]?: boolean;
   [DialogID.ItemChangeDetails]?: boolean;
-  [DialogID.CreateGroupInvite]?: GroupInvitation;
+  [DialogID.AdminUserCreate]?: boolean;
+  [DialogID.AdminUserEdit]?: boolean;
+  [DialogID.AdminGroupCreate]?: string;
 };
 
 /** Helpers to split IDs by requirement */

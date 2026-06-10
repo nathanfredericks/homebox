@@ -37,10 +37,6 @@ func (User) Fields() []ent.Field {
 			Nillable().
 			Optional().
 			Sensitive(),
-		field.Bool("is_superuser").
-			Default(false),
-		field.Bool("superuser").
-			Default(false),
 		field.Time("activated_on").
 			Optional(),
 		// OIDC identity mapping fields (issuer + subject)
@@ -50,7 +46,8 @@ func (User) Fields() []ent.Field {
 		field.String("oidc_subject").
 			Optional().
 			Nillable(),
-		// default_group_id is the user's primary tenant/group
+		// default_group_id is the user's default collection; access to it is
+		// validated against the user's role permissions, not membership.
 		field.UUID("default_group_id", uuid.UUID{}).
 			Optional().
 			Nillable(),
@@ -68,8 +65,7 @@ func (User) Indexes() []ent.Index {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("groups", Group.Type).
-			Through("user_groups", UserGroup.Type),
+		edge.To("roles", Role.Type),
 		edge.To("auth_tokens", AuthTokens.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

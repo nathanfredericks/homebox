@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hay-kot/httpkit/errchain"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/validate"
@@ -79,6 +80,11 @@ func (ctrl *V1Controller) HandleGetItemLabel() errchain.HandlerFunc {
 		}
 
 		auth := services.NewContext(r.Context())
+		// Shared by /labelmaker/entity and /labelmaker/item: enforce the
+		// precise section for the entity's kind.
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionView); err != nil {
+			return err
+		}
 		item, err := ctrl.repo.Entities.GetOneByGroup(auth, auth.GID, ID)
 		if err != nil {
 			return err

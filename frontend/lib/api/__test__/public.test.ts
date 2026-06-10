@@ -10,25 +10,27 @@ describe("[GET] /api/v1/status", () => {
   });
 });
 
-describe("first time user workflow (register, login, join group)", () => {
-  const api = factories.client.public();
-  const userData = factories.user();
+describe("first-time setup semantics", () => {
+  test("registration is closed once setup has completed", async () => {
+    // Ensure the admin (and therefore at least one user) exists.
+    await factories.client.admin();
 
-  test("user should be able to register", async () => {
-    const { response } = await api.register(userData);
-    expect(response.status).toBe(204);
+    const api = factories.client.public();
+    const { response: statusResp, data: status } = await api.status();
+    expect(statusResp.status).toBe(200);
+    expect(status.setup).toBe(false);
+
+    // Self-registration must be rejected after setup.
+    const { response } = await api.register(factories.user());
+    expect(response.status).toBe(403);
   });
 
-  test("user should be able to login", async () => {
-    const { response, data } = await api.login(userData.email, userData.password);
-    expect(response.status).toBe(200);
-    expect(data.token).toBeTruthy();
+  test("admin-created users can log in", async () => {
+    const { client, user } = await factories.client.singleUse();
 
-    // Cleanup
-    const userApi = factories.client.user(data.token);
-    {
-      const { response } = await userApi.user.delete();
-      expect(response.status).toBe(204);
-    }
+    const { response, data } = await client.user.self();
+    expect(response.status).toBe(200);
+    expect(data.item.email.toLowerCase()).toBe(user.email.toLowerCase());
+    expect(data.item.permissions.length).toBeGreaterThan(0);
   });
 });

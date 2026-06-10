@@ -17,6 +17,7 @@ import (
 	"github.com/hay-kot/httpkit/server"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/validate"
@@ -131,6 +132,16 @@ func (ctrl *V1Controller) HandleEntitiesGetAll() errchain.HandlerFunc {
 		ctx := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
 
+		// Restrict results to the entity kinds (items/locations) the user can
+		// view; a kind they can't see simply yields no results.
+		clamped, visible := clampEntityKindFilter(ctx.Perms, ctx.GID, query.IsLocation)
+		if !visible {
+			return server.JSON(w, http.StatusOK, repo.EntityListResult{
+				PaginationResult: repo.PaginationResult[repo.EntitySummary]{Items: []repo.EntitySummary{}},
+			})
+		}
+		query.IsLocation = clamped
+
 		items, err := ctrl.repo.Entities.QueryByGroup(ctx, ctx.GID, query)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -188,6 +199,9 @@ func (ctrl *V1Controller) HandleEntityFullPath() errchain.HandlerFunc {
 
 		auth := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", auth.GID.String()))
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionView); err != nil {
+			return nil, err
+		}
 		out, err := ctrl.repo.Entities.PathForEntity(auth, auth.GID, ID)
 		if err != nil {
 			recordCtrlSpanError(span, err)
@@ -222,6 +236,10 @@ func (ctrl *V1Controller) HandleEntitiesCreate() errchain.HandlerFunc {
 
 		ctx := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
+		// The resulting kind (item vs location) is decided by the entity type.
+		if err := ctrl.checkEntityTypePermission(r, body.EntityTypeID, permissions.ActionCreate); err != nil {
+			return repo.EntityOut{}, err
+		}
 		out, err := ctrl.svc.Entities.Create(ctx, body)
 		if err != nil {
 			recordCtrlSpanError(span, err)
@@ -251,6 +269,9 @@ func (ctrl *V1Controller) HandleEntityGet() errchain.HandlerFunc {
 
 		auth := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", auth.GID.String()))
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionView); err != nil {
+			return repo.EntityOut{}, err
+		}
 		out, err := ctrl.repo.Entities.GetOneByGroup(auth, auth.GID, ID)
 		if err != nil {
 			recordCtrlSpanError(span, err)
@@ -278,6 +299,9 @@ func (ctrl *V1Controller) HandleEntityDelete() errchain.HandlerFunc {
 
 		auth := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", auth.GID.String()))
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionDelete); err != nil {
+			return nil, err
+		}
 		err := ctrl.repo.Entities.DeleteByGroup(auth, auth.GID, ID)
 		if err != nil {
 			recordCtrlSpanError(span, err)
@@ -315,6 +339,16 @@ func (ctrl *V1Controller) HandleEntityUpdate() errchain.HandlerFunc {
 		auth := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", auth.GID.String()))
 
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionEdit); err != nil {
+			return repo.EntityOut{}, err
+		}
+		if body.EntityTypeID != uuid.Nil {
+			// Type changes must also be allowed for the resulting kind.
+			if err := ctrl.checkEntityTypePermission(r, body.EntityTypeID, permissions.ActionEdit); err != nil {
+				return repo.EntityOut{}, err
+			}
+		}
+
 		body.ID = ID
 		out, err := ctrl.repo.Entities.UpdateByGroup(auth, auth.GID, body)
 		if err != nil {
@@ -350,6 +384,15 @@ func (ctrl *V1Controller) HandleEntityPatch() errchain.HandlerFunc {
 
 		auth := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", auth.GID.String()))
+
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionEdit); err != nil {
+			return repo.EntityOut{}, err
+		}
+		if body.EntityTypeID != uuid.Nil {
+			if err := ctrl.checkEntityTypePermission(r, body.EntityTypeID, permissions.ActionEdit); err != nil {
+				return repo.EntityOut{}, err
+			}
+		}
 
 		body.ID = ID
 		err := ctrl.repo.Entities.Patch(auth, auth.GID, ID, body)
@@ -390,6 +433,10 @@ func (ctrl *V1Controller) HandleEntityDuplicate() errchain.HandlerFunc {
 
 		ctx := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
+		// Duplicating requires Create on the source entity's kind.
+		if err := ctrl.checkEntityPermission(r, ID, permissions.ActionCreate); err != nil {
+			return repo.EntityOut{}, err
+		}
 		out, err := ctrl.svc.Entities.Duplicate(ctx, ctx.GID, ID, options)
 		if err != nil {
 			recordCtrlSpanError(span, err)

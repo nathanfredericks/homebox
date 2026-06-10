@@ -36,9 +36,6 @@ type Export func(*sql.Selector)
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
-// GroupInvitationToken is the predicate function for groupinvitationtoken builders.
-type GroupInvitationToken func(*sql.Selector)
-
 // MaintenanceEntry is the predicate function for maintenanceentry builders.
 type MaintenanceEntry func(*sql.Selector)
 
@@ -48,6 +45,12 @@ type Notifier func(*sql.Selector)
 // PasswordResetTokens is the predicate function for passwordresettokens builders.
 type PasswordResetTokens func(*sql.Selector)
 
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
+
+// RolePermission is the predicate function for rolepermission builders.
+type RolePermission func(*sql.Selector)
+
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
 
@@ -56,6 +59,3 @@ type TemplateField func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
-
-// UserGroup is the predicate function for usergroup builders.
-type UserGroup func(*sql.Selector)

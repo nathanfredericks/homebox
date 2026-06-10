@@ -11,6 +11,7 @@ import (
 	"github.com/hay-kot/httpkit/errchain"
 	"github.com/hay-kot/httpkit/server"
 	"github.com/rs/zerolog/log"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/permissions"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
@@ -128,6 +129,12 @@ func (ctrl *V1Controller) HandleEntityAttachmentCreate() errchain.HandlerFunc {
 		ctx := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
 
+		// Attachments are part of the parent entity: uploading one is editing it.
+		if err := ctrl.checkEntityPermission(r, id, permissions.ActionEdit); err != nil {
+			recordCtrlSpanError(span, err)
+			return err
+		}
+
 		item, err := ctrl.svc.Entities.AttachmentAdd(
 			ctx,
 			id,
@@ -211,6 +218,17 @@ func (ctrl *V1Controller) handleEntityAttachmentsHandler(w http.ResponseWriter, 
 
 	ctx := services.NewContext(spanCtx)
 	span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
+
+	// Attachments ride on the parent entity's section: GET requires View,
+	// PUT/DELETE require Edit.
+	requiredAction := permissions.ActionView
+	if r.Method != http.MethodGet {
+		requiredAction = permissions.ActionEdit
+	}
+	if err := ctrl.checkEntityPermission(r, ID, requiredAction); err != nil {
+		recordCtrlSpanError(span, err)
+		return err
+	}
 
 	switch r.Method {
 	case http.MethodGet:

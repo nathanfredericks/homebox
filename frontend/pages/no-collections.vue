@@ -10,6 +10,7 @@
   });
 
   const { openDialog } = useDialog();
+  const { can } = usePermissions();
 </script>
 
 <template>
@@ -27,7 +28,7 @@
             {{ $t("collection.no_collections.message") }}
           </p>
 
-          <div class="flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <div v-if="can('collections', 'create')" class="flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button
               class="w-full sm:w-auto"
               @click="
@@ -39,19 +40,6 @@
               "
             >
               {{ $t("collection.no_collections.create") }}
-            </Button>
-            <Button
-              class="w-full sm:w-auto"
-              variant="secondary"
-              @click="
-                openDialog(DialogID.JoinCollection, {
-                  params: {
-                    redirectTo: '/home',
-                  },
-                })
-              "
-            >
-              {{ $t("collection.no_collections.join") }}
             </Button>
           </div>
         </div>
