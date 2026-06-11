@@ -4,6 +4,7 @@ package services
 import (
 	"github.com/sysadminsmedia/homebox/backend/internal/core/currencies"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
@@ -32,6 +33,7 @@ type options struct {
 	pubSubConn           string
 	dialect              string
 	mailer               *mailer.Mailer
+	settings             *settings.Service
 }
 
 func WithAutoIncrementAssetID(v bool) func(*options) {
@@ -75,6 +77,16 @@ func WithMailer(m *mailer.Mailer) func(*options) {
 	}
 }
 
+// WithSettingsService makes services read runtime-changeable configuration
+// (asset ID auto-increment, notifier SSRF rules, SMTP) from the site settings
+// service on every use, so admin UI changes apply without a restart. It
+// supersedes WithAutoIncrementAssetID, WithNotifierConfig, and WithMailer.
+func WithSettingsService(s *settings.Service) func(*options) {
+	return func(o *options) {
+		o.settings = s
+	}
+}
+
 // defaultNotifierConf returns a NotifierConf with safe defaults matching the conf tags.
 // This ensures SSRF protections are enabled when WithNotifierConfig is not provided.
 func defaultNotifierConf() *config.NotifierConf {
@@ -106,7 +118,31 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 		opt(options)
 	}
 
-	userService := &UserService{repos: repos, mailer: options.mailer}
+	// Static-config getters; replaced below when a settings service is wired
+	// in, so runtime changes from the admin UI apply without a restart.
+	autoIncrementAssetID := func() bool { return options.autoIncrementAssetID }
+	notifierConfig := func() *config.NotifierConf { return options.notifierConfig }
+	getMailer := func() *mailer.Mailer { return options.mailer }
+	if options.settings != nil {
+		s := options.settings
+		autoIncrementAssetID = func() bool { return s.Get().Options.AutoIncrementAssetID }
+		notifierConfig = func() *config.NotifierConf {
+			conf := s.Get().Notifier
+			return &conf
+		}
+		getMailer = func() *mailer.Mailer {
+			conf := s.Get().Mailer
+			return &mailer.Mailer{
+				Host:     conf.Host,
+				Port:     conf.Port,
+				Username: conf.Username,
+				Password: conf.Password,
+				From:     conf.From,
+			}
+		}
+	}
+
+	userService := &UserService{repos: repos, mailer: getMailer}
 
 	return &AllServices{
 		User:  userService,
@@ -114,12 +150,12 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 		Roles: &RoleService{repos: repos},
 		Entities: &EntityService{
 			repo:                 repos,
-			autoIncrementAssetID: options.autoIncrementAssetID,
+			autoIncrementAssetID: autoIncrementAssetID,
 		},
 		BackgroundService: &BackgroundService{
 			repos:          repos,
 			latest:         Latest{},
-			notifierConfig: options.notifierConfig,
+			notifierConfig: notifierConfig,
 		},
 		Exports: &ExportService{
 			db:         options.db,

@@ -39,7 +39,9 @@ type EntityService struct {
 
 	filepath string
 
-	autoIncrementAssetID bool
+	// autoIncrementAssetID is a getter so admin settings changes apply to the
+	// next operation without a restart.
+	autoIncrementAssetID func() bool
 }
 
 func (svc *EntityService) Create(ctx Context, entity repo.EntityCreate) (repo.EntityOut, error) {
@@ -47,12 +49,12 @@ func (svc *EntityService) Create(ctx Context, entity repo.EntityCreate) (repo.En
 		trace.WithAttributes(
 			attribute.String("group.id", ctx.GID.String()),
 			attribute.String("entity.name", entity.Name),
-			attribute.Bool("svc.auto_increment_asset_id", svc.autoIncrementAssetID),
+			attribute.Bool("svc.auto_increment_asset_id", svc.autoIncrementAssetID()),
 		))
 	defer span.End()
 	ctx.Context = spanCtx
 
-	if svc.autoIncrementAssetID {
+	if svc.autoIncrementAssetID() {
 		highest, err := svc.repo.Entities.GetHighestAssetID(ctx, ctx.GID)
 		if err != nil {
 			recordServiceSpanError(span, err)
@@ -261,7 +263,7 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 
 	// Asset ID Pre-Check
 	highestAID := repo.AssetID(-1)
-	if svc.autoIncrementAssetID {
+	if svc.autoIncrementAssetID() {
 		highestAID, err = svc.repo.Entities.GetHighestAssetID(ctx, gid)
 		if err != nil {
 			recordServiceSpanError(span, err)
@@ -398,7 +400,7 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 		}
 
 		var effAID repo.AssetID
-		if svc.autoIncrementAssetID && row.AssetID.Nil() {
+		if svc.autoIncrementAssetID() && row.AssetID.Nil() {
 			effAID = highestAID + 1
 			highestAID++
 		} else {

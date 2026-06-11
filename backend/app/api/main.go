@@ -12,7 +12,9 @@ import (
 
 	"github.com/sysadminsmedia/homebox/backend/internal/core/currencies"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/algolia"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/analytics"
@@ -161,7 +163,18 @@ func run(cfg *config.Config) error {
 
 	app.bus = eventbus.New()
 	app.db = c
-	app.repos = repo.New(c, app.bus, cfg.Storage, cfg.Database.PubSubConnString, cfg.Thumbnail)
+
+	// Site settings resolve before the repos because attachment thumbnailing
+	// reads its config through the settings service at request time.
+	settingsSvc, err := settings.New(context.Background(), repo.NewSiteSettingsRepository(c), cfg, app.bus)
+	if err != nil {
+		return err
+	}
+	app.settings = settingsSvc
+
+	app.repos = repo.New(c, app.bus, cfg.Storage, cfg.Database.PubSubConnString, func() config.Thumbnail {
+		return settingsSvc.Get().Thumbnail
+	})
 
 	// Safety net alongside the migration seed: the Super Admin role must
 	// always exist.
@@ -181,12 +194,13 @@ func run(cfg *config.Config) error {
 
 	app.services = services.New(
 		app.repos,
-		services.WithAutoIncrementAssetID(cfg.Options.AutoIncrementAssetID),
 		services.WithCurrencies(currencyData),
-		services.WithNotifierConfig(&cfg.Notifier),
 		services.WithExportPlumbing(app.bus, app.db, cfg.Storage, cfg.Database.PubSubConnString, sqlDialect),
-		services.WithMailer(&app.mailer),
+		services.WithSettingsService(settingsSvc),
 	)
+
+	app.algolia = algolia.NewManager(settingsSvc, app.repos)
+	app.algolia.Subscribe(app.bus)
 
 	ensureAssetIDs(app)
 

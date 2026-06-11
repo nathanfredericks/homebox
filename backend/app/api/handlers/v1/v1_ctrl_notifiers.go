@@ -126,5 +126,6 @@ func (ctrl *V1Controller) HandlerNotifierTest() errchain.HandlerFunc {
 
 // validateNotifierURL validates a notifier URL against the configured block/allow lists
 func (ctrl *V1Controller) validateNotifierURL(url string) error {
-	return validate.ValidateNotifierURL(url, &ctrl.config.Notifier)
+	conf := ctrl.runtime().Notifier
+	return validate.ValidateNotifierURL(url, &conf)
 }

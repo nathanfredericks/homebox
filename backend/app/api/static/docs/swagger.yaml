@@ -30,6 +30,145 @@ definitions:
     - RoleAdmin
     - RoleUser
     - RoleAttachments
+  config.AlgoliaConf:
+    properties:
+      adminApiKey:
+        type: string
+      appId:
+        type: string
+      enabled:
+        type: boolean
+      fields:
+        description: |-
+          Fields is a comma-separated allowlist of record fields to push. Empty
+          means every field. objectID and groupId are always included.
+        type: string
+      indexName:
+        type: string
+      publicBaseUrl:
+        description: |-
+          PublicBaseURL is the externally reachable base URL used to build
+          thumbnail links. Falls back to options.hostname when empty.
+        type: string
+      publicImageUrls:
+        description: |-
+          PublicImageURLs includes an unauthenticated HMAC-signed thumbnail URL in
+          each record so external search UIs can render item images.
+        type: boolean
+      reindexInterval:
+        description: |-
+          ReindexInterval is a Go duration string ("24h"); kept as a string so it
+          round-trips through the settings API and UI without nanosecond math.
+        type: string
+    type: object
+  config.BarcodeAPIConf:
+    properties:
+      openFoodFactsContact:
+        type: string
+      tokenBarcodespider:
+        type: string
+    type: object
+  config.LabelMakerConf:
+    properties:
+      additionalInformation:
+        type: string
+      boldFontPath:
+        type: string
+      dynamicLength:
+        type: boolean
+      fontSize:
+        type: number
+      height:
+        type: integer
+      labelServiceTimeout:
+        $ref: '#/definitions/time.Duration'
+      labelServiceUrl:
+        type: string
+      margin:
+        type: integer
+      padding:
+        type: integer
+      printCommand:
+        type: string
+      regularFontPath:
+        type: string
+      width:
+        type: integer
+    type: object
+  config.MailerConf:
+    properties:
+      from:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      port:
+        type: integer
+      username:
+        type: string
+    type: object
+  config.NotifierConf:
+    properties:
+      allowNets:
+        description: |-
+          AllowNets will allow specific networks through for generic notifiers.
+          If this is filled, only these networks will be allowed through.
+        items:
+          type: string
+        type: array
+      blockBogonNets:
+        description: BlockBogonNets will prevent generic notifiers from sending to
+          bogon networks. (Reserved IPs)
+        type: boolean
+      blockCloudMetadata:
+        description: BlockCloudMetadata will prevent generic notifiers from sending
+          to known cloud metadata IPs.
+        type: boolean
+      blockLocalNets:
+        description: BlockLocalNets will prevent generic notifiers from sending to
+          local networks. (RFC1918)
+        type: boolean
+      blockLocalhost:
+        description: BlockLocalhost will prevent generic notifiers from sending to
+          localhost.
+        type: boolean
+      blockNets:
+        description: |-
+          BlockNets will block specific networks from generic notifiers.
+          If this is filled, these networks will be blocked from generic notifiers.
+        items:
+          type: string
+        type: array
+    type: object
+  config.Options:
+    properties:
+      allowAnalytics:
+        type: boolean
+      allowLocalLogin:
+        type: boolean
+      allowRegistration:
+        type: boolean
+      autoIncrementAssetId:
+        type: boolean
+      currencyConfig:
+        type: string
+      githubReleaseCheck:
+        type: boolean
+      hostname:
+        type: string
+      trustProxy:
+        type: boolean
+    type: object
+  config.Thumbnail:
+    properties:
+      enabled:
+        type: boolean
+      height:
+        type: integer
+      width:
+        type: integer
+    type: object
   currencies.Currency:
     properties:
       code:
@@ -2246,6 +2385,23 @@ definitions:
       password:
         type: string
     type: object
+  settings.Resolved:
+    properties:
+      algolia:
+        $ref: '#/definitions/config.AlgoliaConf'
+      barcode:
+        $ref: '#/definitions/config.BarcodeAPIConf'
+      labelmaker:
+        $ref: '#/definitions/config.LabelMakerConf'
+      mailer:
+        $ref: '#/definitions/config.MailerConf'
+      notifier:
+        $ref: '#/definitions/config.NotifierConf'
+      options:
+        $ref: '#/definitions/config.Options'
+      thumbnail:
+        $ref: '#/definitions/config.Thumbnail'
+    type: object
   templatefield.Type:
     enum:
     - text
@@ -2258,6 +2414,39 @@ definitions:
     - TypeNumber
     - TypeBoolean
     - TypeTime
+  time.Duration:
+    enum:
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    format: int64
+    type: integer
+    x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
   v1.APISummary:
     properties:
       allowRegistration:
@@ -2294,6 +2483,18 @@ definitions:
     properties:
       completed:
         type: integer
+    type: object
+  v1.AdminSettingsOut:
+    properties:
+      overridden:
+        additionalProperties:
+          type: boolean
+        description: |-
+          Overridden marks sections whose values come from the database rather
+          than environment variables / defaults.
+        type: object
+      settings:
+        $ref: '#/definitions/settings.Resolved'
     type: object
   v1.Build:
     properties:
@@ -2503,6 +2704,80 @@ paths:
       summary: Ensures Import Refs
       tags:
       - Actions
+  /v1/admin/settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminSettingsOut'
+      security:
+      - Bearer: []
+      summary: Get site settings
+      tags:
+      - Admin Settings
+  /v1/admin/settings/{section}:
+    delete:
+      parameters:
+      - description: Section name
+        in: path
+        name: section
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminSettingsOut'
+      security:
+      - Bearer: []
+      summary: Reset one site settings section to environment/default values
+      tags:
+      - Admin Settings
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Section name
+        in: path
+        name: section
+        required: true
+        type: string
+      - description: Sparse section override
+        in: body
+        name: payload
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminSettingsOut'
+      security:
+      - Bearer: []
+      summary: Update one site settings section
+      tags:
+      - Admin Settings
+  /v1/admin/settings/algolia/reindex:
+    post:
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+      security:
+      - Bearer: []
+      summary: Trigger a full Algolia reindex
+      tags:
+      - Admin Settings
   /v1/assets/{id}:
     get:
       parameters:
@@ -3628,6 +3903,32 @@ paths:
       summary: Search EAN from Barcode
       tags:
       - Items
+  /v1/public/attachments/{attachment_id}:
+    get:
+      description: Serves item thumbnails to unauthenticated consumers (e.g. external
+        search UIs) when public image URLs are enabled. The sig parameter is an HMAC
+        over the attachment ID.
+      parameters:
+      - description: Attachment ID
+        in: path
+        name: attachment_id
+        required: true
+        type: string
+      - description: URL signature
+        in: query
+        name: sig
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+      summary: Get a thumbnail via a signed public URL
+      tags:
+      - Entities Attachments
   /v1/qrcode:
     get:
       parameters:

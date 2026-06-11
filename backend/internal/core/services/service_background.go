@@ -21,9 +21,11 @@ type Latest struct {
 	Date    string `json:"date"`
 }
 type BackgroundService struct {
-	repos          *repo.AllRepos
-	latest         Latest
-	notifierConfig *config.NotifierConf
+	repos  *repo.AllRepos
+	latest Latest
+	// notifierConfig is a getter so admin settings changes apply to the next
+	// notification run without a restart.
+	notifierConfig func() *config.NotifierConf
 }
 
 func (svc *BackgroundService) SendNotifiersToday(ctx context.Context) error {
@@ -80,7 +82,7 @@ func (svc *BackgroundService) SendNotifiersToday(ctx context.Context) error {
 		var sendErrs []error
 		for i := range notifiers {
 			// Validate notifier URL before sending
-			if err := validate.ValidateNotifierURL(notifiers[i].URL, svc.notifierConfig); err != nil {
+			if err := validate.ValidateNotifierURL(notifiers[i].URL, svc.notifierConfig()); err != nil {
 				log.Error().
 					Err(err).
 					Str("notifier_id", notifiers[i].ID.String()).

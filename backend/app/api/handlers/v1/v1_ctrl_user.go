@@ -31,7 +31,7 @@ func (ctrl *V1Controller) HandleUserRegistration() errchain.HandlerFunc {
 		spanCtx, span := startEntityCtrlSpan(r.Context(), "controller.V1.HandleUserRegistration")
 		defer span.End()
 
-		if !ctrl.config.Options.AllowLocalLogin {
+		if !ctrl.runtime().Options.AllowLocalLogin {
 			span.SetAttributes(attribute.String("registration.outcome", "local_login_disabled"))
 			return validate.NewRequestError(fmt.Errorf("local login is not enabled"), http.StatusForbidden)
 		}

@@ -22,7 +22,11 @@ import (
 // when SMTP is missing, so the user sees something actionable instead of a
 // generic success message followed by no email arriving.
 func (svc *UserService) MailerReady() bool {
-	return svc.mailer != nil && svc.mailer.Ready()
+	if svc.mailer == nil {
+		return false
+	}
+	m := svc.mailer()
+	return m != nil && m.Ready()
 }
 
 // RequestPasswordReset issues a single-use reset token and emails the link.
@@ -240,14 +244,15 @@ func (svc *UserService) sendResetEmail(usr repo.UserOut, link string) error {
 	subject := "Reset your Homebox password"
 	body := buildResetEmailBody(usr.Name, link)
 
+	m := svc.mailer()
 	msg := mailer.NewMessageBuilder().
 		SetTo(usr.Name, usr.Email).
-		SetFrom("Homebox", svc.mailer.From).
+		SetFrom("Homebox", m.From).
 		SetSubject(subject).
 		SetBody(body).
 		Build()
 
-	return svc.mailer.Send(msg)
+	return m.Send(msg)
 }
 
 func buildResetLink(baseURL, rawToken string) string {

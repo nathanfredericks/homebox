@@ -21,6 +21,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/rolepermission"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/sitesetting"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
@@ -724,6 +725,29 @@ func init() {
 	rolepermissionDescID := rolepermissionMixinFields0[0].Descriptor()
 	// rolepermission.DefaultID holds the default value on creation for the id field.
 	rolepermission.DefaultID = rolepermissionDescID.Default.(func() uuid.UUID)
+	sitesettingMixin := schema.SiteSetting{}.Mixin()
+	sitesettingMixinFields0 := sitesettingMixin[0].Fields()
+	_ = sitesettingMixinFields0
+	sitesettingFields := schema.SiteSetting{}.Fields()
+	_ = sitesettingFields
+	// sitesettingDescCreatedAt is the schema descriptor for created_at field.
+	sitesettingDescCreatedAt := sitesettingMixinFields0[1].Descriptor()
+	// sitesetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sitesetting.DefaultCreatedAt = sitesettingDescCreatedAt.Default.(func() time.Time)
+	// sitesettingDescUpdatedAt is the schema descriptor for updated_at field.
+	sitesettingDescUpdatedAt := sitesettingMixinFields0[2].Descriptor()
+	// sitesetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sitesetting.DefaultUpdatedAt = sitesettingDescUpdatedAt.Default.(func() time.Time)
+	// sitesetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sitesetting.UpdateDefaultUpdatedAt = sitesettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sitesettingDescKey is the schema descriptor for key field.
+	sitesettingDescKey := sitesettingFields[0].Descriptor()
+	// sitesetting.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	sitesetting.KeyValidator = sitesettingDescKey.Validators[0].(func(string) error)
+	// sitesettingDescID is the schema descriptor for id field.
+	sitesettingDescID := sitesettingMixinFields0[0].Descriptor()
+	// sitesetting.DefaultID holds the default value on creation for the id field.
+	sitesetting.DefaultID = sitesettingDescID.Default.(func() uuid.UUID)
 	tagMixin := schema.Tag{}.Mixin()
 	tagMixinFields0 := tagMixin[0].Fields()
 	_ = tagMixinFields0

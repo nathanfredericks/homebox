@@ -42,6 +42,8 @@ type Tx struct {
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
 	RolePermission *RolePermissionClient
+	// SiteSetting is the client for interacting with the SiteSetting builders.
+	SiteSetting *SiteSettingClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
@@ -194,6 +196,7 @@ func (tx *Tx) init() {
 	tx.PasswordResetTokens = NewPasswordResetTokensClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
+	tx.SiteSetting = NewSiteSettingClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TemplateField = NewTemplateFieldClient(tx.config)
 	tx.User = NewUserClient(tx.config)

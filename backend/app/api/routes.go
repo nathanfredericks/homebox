@@ -58,6 +58,8 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		v1.WithRegistration(a.conf.Options.AllowRegistration),
 		v1.WithDemoStatus(a.conf.Demo), // Disable Password Change in Demo Mode
 		v1.WithURL(fmt.Sprintf("%s:%s", a.conf.Web.Host, a.conf.Web.Port)),
+		v1.WithSettings(a.settings),
+		v1.WithAlgoliaReindex(a.algolia.FullReindex),
 	)
 
 	r.Route(prefix+"/v1", func(r chi.Router) {
@@ -135,6 +137,12 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Get("/roles/{id}", chain.ToHandlerFunc(v1Ctrl.HandleRoleGet(), with(siteMW, a.mwPermission(permissions.SectionRoles, permissions.ActionView))...))
 		r.Put("/roles/{id}", chain.ToHandlerFunc(v1Ctrl.HandleRoleUpdate(), with(siteMW, a.mwPermission(permissions.SectionRoles, permissions.ActionEdit))...))
 		r.Delete("/roles/{id}", chain.ToHandlerFunc(v1Ctrl.HandleRoleDelete(), with(siteMW, a.mwPermission(permissions.SectionRoles, permissions.ActionDelete))...))
+
+		// Site settings administration (site-scoped)
+		r.Get("/admin/settings", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsGet(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionView))...))
+		r.Put("/admin/settings/{section}", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsUpdate(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionEdit))...))
+		r.Delete("/admin/settings/{section}", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsReset(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionEdit))...))
+		r.Post("/admin/settings/algolia/reindex", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsAlgoliaReindex(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionEdit))...))
 
 		// Collection endpoints
 		r.Get("/groups/all", chain.ToHandlerFunc(v1Ctrl.HandleGroupsGetAll(), userMW...))
@@ -232,7 +240,12 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 			a.mwRoles(RoleModeOr, authroles.RoleUser.String(), authroles.RoleAttachments.String()),
 		}
 
-		r.Get("/products/search-from-barcode", chain.ToHandlerFunc(v1Ctrl.HandleProductSearchFromBarcode(a.conf.Barcode), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionCreate))...))
+		r.Get("/products/search-from-barcode", chain.ToHandlerFunc(v1Ctrl.HandleProductSearchFromBarcode(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionCreate))...))
+
+		// Unauthenticated signed-URL thumbnails for external search consumers.
+		// The handler 404s unless public image URLs are enabled and the HMAC
+		// signature matches.
+		r.Get("/public/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandlePublicAttachmentGet()))
 
 		r.Get("/qrcode", chain.ToHandlerFunc(v1Ctrl.HandleGenerateQRCode(), with(assetMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
 		r.Get(

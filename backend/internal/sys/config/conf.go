@@ -62,23 +62,24 @@ type Config struct {
 	Otel       OTelConfig     `yaml:"otel"`
 	Auth       AuthConfig     `yaml:"auth"`
 	Notifier   NotifierConf   `yaml:"notifier"`
+	Algolia    AlgoliaConf    `yaml:"algolia"`
 }
 
 type Options struct {
-	AllowRegistration    bool   `yaml:"disable_registration"    conf:"default:true"`
-	AutoIncrementAssetID bool   `yaml:"auto_increment_asset_id" conf:"default:true"`
-	CurrencyConfig       string `yaml:"currencies"`
-	GithubReleaseCheck   bool   `yaml:"check_github_release"    conf:"default:true"`
-	AllowAnalytics       bool   `yaml:"allow_analytics"         conf:"default:false"`
-	AllowLocalLogin      bool   `yaml:"allow_local_login"       conf:"default:true"`
-	TrustProxy           bool   `yaml:"trust_proxy"             conf:"default:false"`
-	Hostname             string `yaml:"hostname"`
+	AllowRegistration    bool   `json:"allowRegistration"    yaml:"disable_registration"    conf:"default:true"`
+	AutoIncrementAssetID bool   `json:"autoIncrementAssetId" yaml:"auto_increment_asset_id" conf:"default:true"`
+	CurrencyConfig       string `json:"currencyConfig"       yaml:"currencies"`
+	GithubReleaseCheck   bool   `json:"githubReleaseCheck"   yaml:"check_github_release"    conf:"default:true"`
+	AllowAnalytics       bool   `json:"allowAnalytics"       yaml:"allow_analytics"         conf:"default:false"`
+	AllowLocalLogin      bool   `json:"allowLocalLogin"      yaml:"allow_local_login"       conf:"default:true"`
+	TrustProxy           bool   `json:"trustProxy"           yaml:"trust_proxy"             conf:"default:false"`
+	Hostname             string `json:"hostname"             yaml:"hostname"`
 }
 
 type Thumbnail struct {
-	Enabled bool `yaml:"enabled" conf:"default:true"`
-	Width   int  `yaml:"width"   conf:"default:500"`
-	Height  int  `yaml:"height"  conf:"default:500"`
+	Enabled bool `json:"enabled" yaml:"enabled" conf:"default:true"`
+	Width   int  `json:"width"   yaml:"width"   conf:"default:500"`
+	Height  int  `json:"height"  yaml:"height"  conf:"default:500"`
 }
 
 type DebugConf struct {
@@ -103,18 +104,18 @@ type WebConfig struct {
 }
 
 type LabelMakerConf struct {
-	Width                 int64          `yaml:"width"                 conf:"default:526"`
-	Height                int64          `yaml:"height"                conf:"default:200"`
-	Padding               int64          `yaml:"padding"               conf:"default:32"`
-	Margin                int64          `yaml:"margin"                conf:"default:32"`
-	FontSize              float64        `yaml:"font_size"             conf:"default:32.0"`
-	PrintCommand          *string        `yaml:"string"`
-	AdditionalInformation *string        `yaml:"string"`
-	DynamicLength         bool           `yaml:"bool"                  conf:"default:true"`
-	LabelServiceUrl       *string        `yaml:"label_service_url"`
-	LabelServiceTimeout   *time.Duration `yaml:"label_service_timeout"`
-	RegularFontPath       *string        `yaml:"regular_font_path"`
-	BoldFontPath          *string        `yaml:"bold_font_path"`
+	Width                 int64          `json:"width"                 yaml:"width"                 conf:"default:526"`
+	Height                int64          `json:"height"                yaml:"height"                conf:"default:200"`
+	Padding               int64          `json:"padding"               yaml:"padding"               conf:"default:32"`
+	Margin                int64          `json:"margin"                yaml:"margin"                conf:"default:32"`
+	FontSize              float64        `json:"fontSize"              yaml:"font_size"             conf:"default:32.0"`
+	PrintCommand          *string        `json:"printCommand"          yaml:"string"`
+	AdditionalInformation *string        `json:"additionalInformation" yaml:"string"`
+	DynamicLength         bool           `json:"dynamicLength"         yaml:"bool"                  conf:"default:true"`
+	LabelServiceUrl       *string        `json:"labelServiceUrl"       yaml:"label_service_url"`
+	LabelServiceTimeout   *time.Duration `json:"labelServiceTimeout"   yaml:"label_service_timeout"`
+	RegularFontPath       *string        `json:"regularFontPath"       yaml:"regular_font_path"`
+	BoldFontPath          *string        `json:"boldFontPath"          yaml:"bold_font_path"`
 }
 
 type OIDCConf struct {
@@ -145,8 +146,8 @@ func (c OIDCConf) MarshalJSON() ([]byte, error) {
 }
 
 type BarcodeAPIConf struct {
-	TokenBarcodespider   string `yaml:"token_barcodespider"`
-	OpenFoodFactsContact string `yaml:"openfoodfacts_contact"`
+	TokenBarcodespider   string `json:"tokenBarcodespider"   yaml:"token_barcodespider"`
+	OpenFoodFactsContact string `json:"openFoodFactsContact" yaml:"openfoodfacts_contact"`
 }
 
 func (c BarcodeAPIConf) MarshalJSON() ([]byte, error) {
@@ -154,6 +155,37 @@ func (c BarcodeAPIConf) MarshalJSON() ([]byte, error) {
 	a := alias(c)
 	if a.TokenBarcodespider != "" {
 		a.TokenBarcodespider = redactedValue
+	}
+	return json.Marshal(a)
+}
+
+// AlgoliaConf configures pushing item records to an Algolia search index.
+// Every field can be overridden at runtime through the site settings UI; the
+// values here only provide the environment/default layer.
+type AlgoliaConf struct {
+	Enabled     bool   `json:"enabled"     yaml:"enabled"       conf:"default:false"`
+	AppID       string `json:"appId"       yaml:"app_id"`
+	AdminAPIKey string `json:"adminApiKey" yaml:"admin_api_key" conf:"mask"`
+	IndexName   string `json:"indexName"   yaml:"index_name"    conf:"default:homebox-items"`
+	// Fields is a comma-separated allowlist of record fields to push. Empty
+	// means every field. objectID and groupId are always included.
+	Fields string `json:"fields" yaml:"fields"`
+	// PublicImageURLs includes an unauthenticated HMAC-signed thumbnail URL in
+	// each record so external search UIs can render item images.
+	PublicImageURLs bool `json:"publicImageUrls" yaml:"public_image_urls" conf:"default:false"`
+	// PublicBaseURL is the externally reachable base URL used to build
+	// thumbnail links. Falls back to options.hostname when empty.
+	PublicBaseURL string `json:"publicBaseUrl" yaml:"public_base_url"`
+	// ReindexInterval is a Go duration string ("24h"); kept as a string so it
+	// round-trips through the settings API and UI without nanosecond math.
+	ReindexInterval string `json:"reindexInterval" yaml:"reindex_interval" conf:"default:24h"`
+}
+
+func (c AlgoliaConf) MarshalJSON() ([]byte, error) {
+	type alias AlgoliaConf
+	a := alias(c)
+	if a.AdminAPIKey != "" {
+		a.AdminAPIKey = redactedValue
 	}
 	return json.Marshal(a)
 }

@@ -3,11 +3,11 @@ package config
 import "encoding/json"
 
 type MailerConf struct {
-	Host     string `conf:""`
-	Port     int    `conf:""`
-	Username string `conf:""`
-	Password string `conf:""`
-	From     string `conf:""`
+	Host     string `json:"host"     conf:""`
+	Port     int    `json:"port"     conf:""`
+	Username string `json:"username" conf:""`
+	Password string `json:"password" conf:""`
+	From     string `json:"from"     conf:""`
 }
 
 func (m MailerConf) MarshalJSON() ([]byte, error) {

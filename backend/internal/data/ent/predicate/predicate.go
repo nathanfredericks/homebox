@@ -51,6 +51,9 @@ type Role func(*sql.Selector)
 // RolePermission is the predicate function for rolepermission builders.
 type RolePermission func(*sql.Selector)
 
+// SiteSetting is the predicate function for sitesetting builders.
+type SiteSetting func(*sql.Selector)
+
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
 

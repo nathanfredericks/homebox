@@ -545,6 +545,20 @@ var (
 			},
 		},
 	}
+	// SiteSettingsColumns holds the columns for the "site_settings" table.
+	SiteSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeJSON},
+	}
+	// SiteSettingsTable holds the schema information for the "site_settings" table.
+	SiteSettingsTable = &schema.Table{
+		Name:       "site_settings",
+		Columns:    SiteSettingsColumns,
+		PrimaryKey: []*schema.Column{SiteSettingsColumns[0]},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -699,6 +713,7 @@ var (
 		PasswordResetTokensTable,
 		RolesTable,
 		RolePermissionsTable,
+		SiteSettingsTable,
 		TagsTable,
 		TemplateFieldsTable,
 		UsersTable,

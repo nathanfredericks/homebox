@@ -55,7 +55,9 @@ type AttachmentRepo struct {
 	db         *ent.Client
 	storage    config.Storage
 	pubSubConn string
-	thumbnail  config.Thumbnail
+	// thumbnail is a getter so admin settings changes (enabled, dimensions)
+	// apply to the next attachment without a restart.
+	thumbnail func() config.Thumbnail
 }
 
 type (
@@ -398,7 +400,7 @@ func (r *AttachmentRepo) Create(ctx context.Context, itemID uuid.UUID, doc ItemC
 		return nil, err
 	}
 
-	if r.thumbnail.Enabled {
+	if r.thumbnail().Enabled {
 		pubsubString, err := utils.GenerateSubPubConn(r.pubSubConn, "thumbnails")
 		if err != nil {
 			log.Err(err).Msg("failed to generate pubsub connection string")
@@ -1043,7 +1045,8 @@ func (r *AttachmentRepo) processThumbnailFromImage(ctx context.Context, groupId 
 	exifSpan.End()
 
 	_, resizeSpan := otel.Tracer("data").Start(ctx, "repo.AttachmentRepo.processThumbnailFromImage.resize")
-	newWidth, newHeight := calculateThumbnailDimensions(bounds.Dx(), bounds.Dy(), r.thumbnail.Width, r.thumbnail.Height)
+	thumb := r.thumbnail()
+	newWidth, newHeight := calculateThumbnailDimensions(bounds.Dx(), bounds.Dy(), thumb.Width, thumb.Height)
 	dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
 	draw.CatmullRom.Scale(dst, dst.Rect, img, img.Bounds(), draw.Over, nil)
 	resizeSpan.End()
@@ -1074,4 +1077,16 @@ func (r *AttachmentRepo) processThumbnailFromImage(ctx context.Context, groupId 
 	}
 
 	return uploadResult, nil
+}
+
+// GetPublicThumbnail looks up an attachment for unauthenticated signed-URL
+// access. Restricted to generated thumbnails so a leaked signing key class
+// can never expose originals, manuals, or receipts.
+func (r *AttachmentRepo) GetPublicThumbnail(ctx context.Context, id uuid.UUID) (*ent.Attachment, error) {
+	return r.db.Attachment.Query().
+		Where(
+			attachment.ID(id),
+			attachment.TypeEQ(attachment.TypeThumbnail),
+		).
+		Only(ctx)
 }

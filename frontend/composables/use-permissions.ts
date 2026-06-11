@@ -15,11 +15,12 @@ export type PermSection =
   | "tools"
   | "users"
   | "roles"
-  | "collections";
+  | "collections"
+  | "site_settings";
 
 export type PermAction = "view" | "create" | "edit" | "delete";
 
-const SITE_SECTIONS: PermSection[] = ["users", "roles", "collections"];
+const SITE_SECTIONS: PermSection[] = ["users", "roles", "collections", "site_settings"];
 
 /**
  * Permission gating for the UI. Anything the user cannot do simply does not
@@ -70,7 +71,12 @@ export function usePermissions() {
 
   /** True when any administration surface is visible to the user. */
   const canAdminArea = computed(
-    () => isSuperAdmin.value || can("users", "view") || can("roles", "view") || can("collections", "create")
+    () =>
+      isSuperAdmin.value ||
+      can("users", "view") ||
+      can("roles", "view") ||
+      can("collections", "create") ||
+      can("site_settings", "view")
   );
 
   return { can, canAny, isSuperAdmin, canAdminArea };

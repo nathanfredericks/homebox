@@ -97,78 +97,100 @@ func registerRecurringTasks(app *app, cfg *config.Config, runner *graceful.Runne
 		})
 	})
 
-	if cfg.Thumbnail.Enabled {
-		runner.AddFunc("create-thumbnails-subscription", func(ctx context.Context) error {
-			pubsubString, err := utils.GenerateSubPubConn(cfg.Database.PubSubConnString, "thumbnails")
+	// Always subscribed: the enabled flag is checked per message so toggling
+	// thumbnails in the admin settings applies without a restart. Messages
+	// arriving while disabled are acked and dropped to avoid queue buildup.
+	runner.AddFunc("create-thumbnails-subscription", func(ctx context.Context) error {
+		pubsubString, err := utils.GenerateSubPubConn(cfg.Database.PubSubConnString, "thumbnails")
+		if err != nil {
+			log.Error().Err(err).Msg("failed to generate pubsub connection string")
+			return err
+		}
+		topic, err := pubsub.OpenTopic(ctx, pubsubString)
+		if err != nil {
+			return err
+		}
+		defer func(topic *pubsub.Topic, ctx context.Context) {
+			err := topic.Shutdown(ctx)
 			if err != nil {
-				log.Error().Err(err).Msg("failed to generate pubsub connection string")
-				return err
+				log.Err(err).Msg("fail to shutdown pubsub topic")
 			}
-			topic, err := pubsub.OpenTopic(ctx, pubsubString)
-			if err != nil {
-				return err
-			}
-			defer func(topic *pubsub.Topic, ctx context.Context) {
-				err := topic.Shutdown(ctx)
-				if err != nil {
-					log.Err(err).Msg("fail to shutdown pubsub topic")
-				}
-			}(topic, ctx)
+		}(topic, ctx)
 
-			subscription, err := pubsub.OpenSubscription(ctx, pubsubString)
+		subscription, err := pubsub.OpenSubscription(ctx, pubsubString)
+		if err != nil {
+			log.Err(err).Msg("failed to open pubsub topic")
+			return err
+		}
+		defer func(topic *pubsub.Subscription, ctx context.Context) {
+			err := topic.Shutdown(ctx)
 			if err != nil {
-				log.Err(err).Msg("failed to open pubsub topic")
-				return err
+				log.Err(err).Msg("fail to shutdown pubsub topic")
 			}
-			defer func(topic *pubsub.Subscription, ctx context.Context) {
-				err := topic.Shutdown(ctx)
-				if err != nil {
-					log.Err(err).Msg("fail to shutdown pubsub topic")
-				}
-			}(subscription, ctx)
+		}(subscription, ctx)
 
-			for {
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				default:
-					msg, err := subscription.Receive(ctx)
-					log.Debug().Msg("received thumbnail generation request from pubsub topic")
-					if err != nil {
-						log.Err(err).Msg("failed to receive message from pubsub topic")
-						continue
-					}
-					if msg == nil {
-						log.Warn().Msg("received nil message from pubsub topic")
-						continue
-					}
-					groupId, err := uuid.Parse(msg.Metadata["group_id"])
-					if err != nil {
-						log.Error().Err(err).Str("group_id", msg.Metadata["group_id"]).Msg("failed to parse group ID from message metadata")
-					}
-					attachmentId, err := uuid.Parse(msg.Metadata["attachment_id"])
-					if err != nil {
-						log.Error().Err(err).Str("attachment_id", msg.Metadata["attachment_id"]).Msg("failed to parse attachment ID from message metadata")
-					}
-					err = app.repos.Attachments.CreateThumbnail(ctx, groupId, attachmentId, msg.Metadata["title"], msg.Metadata["path"])
-					if err != nil {
-						log.Err(err).Msg("failed to create thumbnail")
-					}
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				msg, err := subscription.Receive(ctx)
+				log.Debug().Msg("received thumbnail generation request from pubsub topic")
+				if err != nil {
+					log.Err(err).Msg("failed to receive message from pubsub topic")
+					continue
+				}
+				if msg == nil {
+					log.Warn().Msg("received nil message from pubsub topic")
+					continue
+				}
+				if !app.settings.Get().Thumbnail.Enabled {
 					msg.Ack()
+					continue
 				}
+				groupId, err := uuid.Parse(msg.Metadata["group_id"])
+				if err != nil {
+					log.Error().Err(err).Str("group_id", msg.Metadata["group_id"]).Msg("failed to parse group ID from message metadata")
+				}
+				attachmentId, err := uuid.Parse(msg.Metadata["attachment_id"])
+				if err != nil {
+					log.Error().Err(err).Str("attachment_id", msg.Metadata["attachment_id"]).Msg("failed to parse attachment ID from message metadata")
+				}
+				err = app.repos.Attachments.CreateThumbnail(ctx, groupId, attachmentId, msg.Metadata["title"], msg.Metadata["path"])
+				if err != nil {
+					log.Err(err).Msg("failed to create thumbnail")
+				}
+				msg.Ack()
 			}
-		})
-	}
+		}
+	})
 
-	if cfg.Options.GithubReleaseCheck {
-		runner.AddPlugin(NewTask("get-latest-github-release", time.Hour, func(ctx context.Context) {
-			log.Debug().Msg("running get latest github release")
-			err := app.services.BackgroundService.GetLatestGithubRelease(context.Background())
-			if err != nil {
-				log.Error().Err(err).Msg("failed to get latest github release")
-			}
-		}))
-	}
+	// Algolia search index: one full reindex shortly after startup, then an
+	// hourly check against the configured reindex interval. Both consult the
+	// settings toggle per run so enabling/disabling needs no restart.
+	runner.AddFunc("algolia-startup-reindex", func(ctx context.Context) error {
+		if app.algolia.Enabled() {
+			app.algolia.FullReindex()
+		}
+		return nil
+	})
+	runner.AddPlugin(NewTask("algolia-full-reindex", time.Hour, func(ctx context.Context) {
+		if app.algolia.Enabled() && time.Since(app.algolia.LastFullReindex()) >= app.algolia.ReindexInterval() {
+			app.algolia.FullReindex()
+		}
+	}))
+
+	// Checked per tick so the admin settings toggle applies without a restart.
+	runner.AddPlugin(NewTask("get-latest-github-release", time.Hour, func(ctx context.Context) {
+		if !app.settings.Get().Options.GithubReleaseCheck {
+			return
+		}
+		log.Debug().Msg("running get latest github release")
+		err := app.services.BackgroundService.GetLatestGithubRelease(context.Background())
+		if err != nil {
+			log.Error().Err(err).Msg("failed to get latest github release")
+		}
+	}))
 
 	if cfg.Debug.Enabled {
 		runner.AddFunc("debug", func(ctx context.Context) error {

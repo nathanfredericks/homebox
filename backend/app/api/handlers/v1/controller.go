@@ -14,6 +14,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/app/api/providers"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
 
@@ -72,6 +73,24 @@ func WithURL(url string) func(*V1Controller) {
 	}
 }
 
+// WithSettings wires the site settings service so handlers read
+// runtime-changeable configuration per request instead of freezing the
+// startup config.
+func WithSettings(s *settings.Service) func(*V1Controller) {
+	return func(ctrl *V1Controller) {
+		ctrl.settings = s
+	}
+}
+
+// WithAlgoliaReindex registers the callback behind POST
+// /admin/settings/algolia/reindex. A nil callback keeps the endpoint
+// returning 404.
+func WithAlgoliaReindex(fn func()) func(*V1Controller) {
+	return func(ctrl *V1Controller) {
+		ctrl.algoliaReindex = fn
+	}
+}
+
 type V1Controller struct {
 	cookieSecure      bool
 	repo              *repo.AllRepos
@@ -84,7 +103,39 @@ type V1Controller struct {
 	bus               *eventbus.EventBus
 	url               string
 	config            *config.Config
+	settings          *settings.Service
+	algoliaReindex    func()
 	oidcProvider      *providers.OIDCProvider
+}
+
+// hbURL resolves the instance base URL for a request from runtime options.
+func (ctrl *V1Controller) hbURL(r *http.Request) string {
+	opts := ctrl.runtime().Options
+	return GetHBURL(r, &opts, ctrl.url)
+}
+
+// secureBaseURL is hbURL without the Referer fallback, for URLs embedded in
+// emails where a forged header must not be able to poison the link.
+func (ctrl *V1Controller) secureBaseURL(r *http.Request) string {
+	opts := ctrl.runtime().Options
+	return SecureBaseURL(r, &opts)
+}
+
+// runtime returns the effective runtime-changeable configuration: the site
+// settings snapshot when the service is wired, otherwise the startup config.
+func (ctrl *V1Controller) runtime() settings.Resolved {
+	if ctrl.settings != nil {
+		return ctrl.settings.Get()
+	}
+	return settings.Resolved{
+		Options:    ctrl.config.Options,
+		Thumbnail:  ctrl.config.Thumbnail,
+		Barcode:    ctrl.config.Barcode,
+		Mailer:     ctrl.config.Mailer,
+		LabelMaker: ctrl.config.LabelMaker,
+		Notifier:   ctrl.config.Notifier,
+		Algolia:    ctrl.config.Algolia,
+	}
 }
 
 type (
@@ -178,6 +229,7 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			}
 		}
 
+		rt := ctrl.runtime()
 		return server.JSON(w, http.StatusOK, APISummary{
 			Healthy:           ready(),
 			Title:             "Homebox",
@@ -187,12 +239,12 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			Demo:              ctrl.isDemo,
 			AllowRegistration: false,
 			Setup:             setup,
-			LabelPrinting:     ctrl.config.LabelMaker.PrintCommand != nil,
+			LabelPrinting:     rt.LabelMaker.PrintCommand != nil,
 			OIDC: OIDCStatus{
 				Enabled:      ctrl.config.OIDC.Enabled,
 				ButtonText:   ctrl.config.OIDC.ButtonText,
 				AutoRedirect: ctrl.config.OIDC.AutoRedirect,
-				AllowLocal:   ctrl.config.Options.AllowLocalLogin,
+				AllowLocal:   rt.Options.AllowLocalLogin,
 			},
 			Telemetry: TelemetryStatus{
 				Enabled: ctrl.config.Otel.Enabled,

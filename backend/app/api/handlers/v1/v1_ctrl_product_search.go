@@ -16,7 +16,6 @@ import (
 	"github.com/hay-kot/httpkit/server"
 	"github.com/rs/zerolog/log"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
-	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
 	"github.com/sysadminsmedia/homebox/backend/internal/web/adapters"
 )
 
@@ -462,13 +461,15 @@ func fetchImageBase64(imageURL string) (string, error) {
 //	@Success	200		{object}	[]repo.BarcodeProduct
 //	@Router		/v1/products/search-from-barcode [GET]
 //	@Security	Bearer
-func (ctrl *V1Controller) HandleProductSearchFromBarcode(conf config.BarcodeAPIConf) errchain.HandlerFunc {
+func (ctrl *V1Controller) HandleProductSearchFromBarcode() errchain.HandlerFunc {
 	type query struct {
 		// 80 characters is the longest non-2D barcode length (GS1-128)
 		EAN string `schema:"productEAN" validate:"required,max=80"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		conf := ctrl.runtime().Barcode
+
 		q, err := adapters.DecodeQuery[query](r)
 		if err != nil {
 			return err

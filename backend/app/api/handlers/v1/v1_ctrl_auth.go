@@ -111,7 +111,7 @@ func (ctrl *V1Controller) HandleAuthLogin(ps ...AuthProvider) errchain.HandlerFu
 		}
 		span.SetAttributes(attribute.String("auth.provider", provider))
 
-		if provider == "local" && !ctrl.config.Options.AllowLocalLogin {
+		if provider == "local" && !ctrl.runtime().Options.AllowLocalLogin {
 			span.SetAttributes(attribute.String("auth.outcome", "local_disabled"))
 			return validate.NewRequestError(fmt.Errorf("local login is not enabled"), http.StatusForbidden)
 		}
@@ -191,7 +191,7 @@ func (ctrl *V1Controller) HandleForgotPassword() errchain.HandlerFunc {
 			return validate.NewRequestError(nil, http.StatusForbidden)
 		}
 
-		if !ctrl.config.Options.AllowLocalLogin {
+		if !ctrl.runtime().Options.AllowLocalLogin {
 			span.SetAttributes(attribute.String("forgot.outcome", "local_login_disabled"))
 			return validate.NewRequestError(errors.New("local login is not enabled"), http.StatusForbidden)
 		}
@@ -224,7 +224,7 @@ func (ctrl *V1Controller) HandleForgotPassword() errchain.HandlerFunc {
 
 		// SecureBaseURL refuses Referer-based fallback so an attacker can't
 		// poison the link in the victim's email by sending a forged Referer.
-		baseURL := SecureBaseURL(r, &ctrl.config.Options)
+		baseURL := ctrl.secureBaseURL(r)
 		if baseURL == "" {
 			span.SetAttributes(attribute.String("forgot.outcome", "no_safe_base_url"))
 			log.Warn().Msg("forgot-password requested but no safe base URL is available; set HBOX_OPTIONS_HOSTNAME to enable")
@@ -269,7 +269,7 @@ func (ctrl *V1Controller) HandleResetPassword() errchain.HandlerFunc {
 			return validate.NewRequestError(nil, http.StatusForbidden)
 		}
 
-		if !ctrl.config.Options.AllowLocalLogin {
+		if !ctrl.runtime().Options.AllowLocalLogin {
 			span.SetAttributes(attribute.String("reset.outcome", "local_login_disabled"))
 			return validate.NewRequestError(errors.New("local login is not enabled"), http.StatusForbidden)
 		}

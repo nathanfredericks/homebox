@@ -11,6 +11,24 @@
  * ---------------------------------------------------------------
  */
 
+/** @format int64 */
+export enum TimeDuration {
+  MinDuration = -9223372036854776000,
+  MaxDuration = 9223372036854776000,
+  Nanosecond = 1,
+  Microsecond = 1000,
+  Millisecond = 1000000,
+  Second = 1000000000,
+  Minute = 60000000000,
+  Hour = 3600000000000,
+  Nanosecond1 = 1,
+  Microsecond2 = 1000,
+  Millisecond3 = 1000000,
+  Second4 = 1000000000,
+  Minute5 = 60000000000,
+  Hour6 = 3600000000000,
+}
+
 export enum TemplatefieldType {
   TypeText = "text",
   TypeNumber = "number",
@@ -65,6 +83,99 @@ export enum AttachmentType {
   TypeAttachment = "attachment",
   TypeReceipt = "receipt",
   TypeThumbnail = "thumbnail",
+}
+
+export interface ConfigAlgoliaConf {
+  adminApiKey: string;
+  appId: string;
+  enabled: boolean;
+  /**
+   * Fields is a comma-separated allowlist of record fields to push. Empty
+   * means every field. objectID and groupId are always included.
+   */
+  fields: string;
+  indexName: string;
+  /**
+   * PublicBaseURL is the externally reachable base URL used to build
+   * thumbnail links. Falls back to options.hostname when empty.
+   */
+  publicBaseUrl: string;
+  /**
+   * PublicImageURLs includes an unauthenticated HMAC-signed thumbnail URL in
+   * each record so external search UIs can render item images.
+   */
+  publicImageUrls: boolean;
+  /**
+   * ReindexInterval is a Go duration string ("24h"); kept as a string so it
+   * round-trips through the settings API and UI without nanosecond math.
+   */
+  reindexInterval: string;
+}
+
+export interface ConfigBarcodeAPIConf {
+  openFoodFactsContact: string;
+  tokenBarcodespider: string;
+}
+
+export interface ConfigLabelMakerConf {
+  additionalInformation: string;
+  boldFontPath: string;
+  dynamicLength: boolean;
+  fontSize: number;
+  height: number;
+  labelServiceTimeout: TimeDuration;
+  labelServiceUrl: string;
+  margin: number;
+  padding: number;
+  printCommand: string;
+  regularFontPath: string;
+  width: number;
+}
+
+export interface ConfigMailerConf {
+  from: string;
+  host: string;
+  password: string;
+  port: number;
+  username: string;
+}
+
+export interface ConfigNotifierConf {
+  /**
+   * AllowNets will allow specific networks through for generic notifiers.
+   * If this is filled, only these networks will be allowed through.
+   */
+  allowNets: string[];
+  /** BlockBogonNets will prevent generic notifiers from sending to bogon networks. (Reserved IPs) */
+  blockBogonNets: boolean;
+  /** BlockCloudMetadata will prevent generic notifiers from sending to known cloud metadata IPs. */
+  blockCloudMetadata: boolean;
+  /** BlockLocalNets will prevent generic notifiers from sending to local networks. (RFC1918) */
+  blockLocalNets: boolean;
+  /** BlockLocalhost will prevent generic notifiers from sending to localhost. */
+  blockLocalhost: boolean;
+  /**
+   * BlockNets will block specific networks from generic notifiers.
+   * If this is filled, these networks will be blocked from generic notifiers.
+   */
+  blockNets: string[];
+}
+
+export interface ConfigOptions {
+  allowAnalytics: boolean;
+  allowLocalLogin: boolean;
+  allowRegistration: boolean;
+  autoIncrementAssetId: boolean;
+  currencyConfig: string;
+  githubReleaseCheck: boolean;
+  hostname: string;
+  trustProxy: boolean;
+}
+
+export interface ConfigThumbnail {
+  enabled: boolean;
+  height: number;
+  width: number;
 }
 
 export interface CurrenciesCurrency {
@@ -1380,6 +1491,16 @@ export interface UserRegistration {
   password: string;
 }
 
+export interface SettingsResolved {
+  algolia: ConfigAlgoliaConf;
+  barcode: ConfigBarcodeAPIConf;
+  labelmaker: ConfigLabelMakerConf;
+  mailer: ConfigMailerConf;
+  notifier: ConfigNotifierConf;
+  options: ConfigOptions;
+  thumbnail: ConfigThumbnail;
+}
+
 export interface APISummary {
   allowRegistration: boolean;
   build: Build;
@@ -1401,6 +1522,15 @@ export interface APISummary {
 
 export interface ActionAmountResult {
   completed: number;
+}
+
+export interface AdminSettingsOut {
+  /**
+   * Overridden marks sections whose values come from the database rather
+   * than environment variables / defaults.
+   */
+  overridden: Record<string, boolean>;
+  settings: SettingsResolved;
 }
 
 export interface Build {

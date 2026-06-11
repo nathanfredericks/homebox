@@ -27,6 +27,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/role"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/rolepermission"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/sitesetting"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
@@ -105,6 +106,7 @@ func checkColumn(t, c string) error {
 			passwordresettokens.Table: passwordresettokens.ValidColumn,
 			role.Table:                role.ValidColumn,
 			rolepermission.Table:      rolepermission.ValidColumn,
+			sitesetting.Table:         sitesetting.ValidColumn,
 			tag.Table:                 tag.ValidColumn,
 			templatefield.Table:       templatefield.ValidColumn,
 			user.Table:                user.ValidColumn,

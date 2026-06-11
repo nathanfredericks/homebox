@@ -72,11 +72,11 @@ func TestEntityService_AddAttachment_InvalidStorage(t *testing.T) {
 	invalidRepos := repo.New(tClient, tbus, config.Storage{
 		PrefixPath: "/",
 		ConnString: "file:///nonexistent/directory/that/does/not/exist",
-	}, "mem://{{ .Topic }}", config.Thumbnail{
+	}, "mem://{{ .Topic }}", repo.StaticThumbnail(config.Thumbnail{
 		Enabled: false,
 		Width:   0,
 		Height:  0,
-	})
+	}))
 
 	svc.repo = invalidRepos
 

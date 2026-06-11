@@ -65,6 +65,128 @@
                 }
             }
         },
+        "/v1/admin/settings": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Get site settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminSettingsOut"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/settings/algolia/reindex": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Trigger a full Algolia reindex",
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    }
+                }
+            }
+        },
+        "/v1/admin/settings/{section}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Update one site settings section",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Section name",
+                        "name": "section",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sparse section override",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminSettingsOut"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Reset one site settings section to environment/default values",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Section name",
+                        "name": "section",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminSettingsOut"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/assets/{id}": {
             "get": {
                 "security": [
@@ -1891,6 +2013,42 @@
                 }
             }
         },
+        "/v1/public/attachments/{attachment_id}": {
+            "get": {
+                "description": "Serves item thumbnails to unauthenticated consumers (e.g. external search UIs) when public image URLs are enabled. The sig parameter is an HMAC over the attachment ID.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Entities Attachments"
+                ],
+                "summary": "Get a thumbnail via a signed public URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Attachment ID",
+                        "name": "attachment_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL signature",
+                        "name": "sig",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/v1/qrcode": {
             "get": {
                 "security": [
@@ -3211,6 +3369,189 @@
                 "RoleUser",
                 "RoleAttachments"
             ]
+        },
+        "config.AlgoliaConf": {
+            "type": "object",
+            "properties": {
+                "adminApiKey": {
+                    "type": "string"
+                },
+                "appId": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fields": {
+                    "description": "Fields is a comma-separated allowlist of record fields to push. Empty\nmeans every field. objectID and groupId are always included.",
+                    "type": "string"
+                },
+                "indexName": {
+                    "type": "string"
+                },
+                "publicBaseUrl": {
+                    "description": "PublicBaseURL is the externally reachable base URL used to build\nthumbnail links. Falls back to options.hostname when empty.",
+                    "type": "string"
+                },
+                "publicImageUrls": {
+                    "description": "PublicImageURLs includes an unauthenticated HMAC-signed thumbnail URL in\neach record so external search UIs can render item images.",
+                    "type": "boolean"
+                },
+                "reindexInterval": {
+                    "description": "ReindexInterval is a Go duration string (\"24h\"); kept as a string so it\nround-trips through the settings API and UI without nanosecond math.",
+                    "type": "string"
+                }
+            }
+        },
+        "config.BarcodeAPIConf": {
+            "type": "object",
+            "properties": {
+                "openFoodFactsContact": {
+                    "type": "string"
+                },
+                "tokenBarcodespider": {
+                    "type": "string"
+                }
+            }
+        },
+        "config.LabelMakerConf": {
+            "type": "object",
+            "properties": {
+                "additionalInformation": {
+                    "type": "string"
+                },
+                "boldFontPath": {
+                    "type": "string"
+                },
+                "dynamicLength": {
+                    "type": "boolean"
+                },
+                "fontSize": {
+                    "type": "number"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "labelServiceTimeout": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "labelServiceUrl": {
+                    "type": "string"
+                },
+                "margin": {
+                    "type": "integer"
+                },
+                "padding": {
+                    "type": "integer"
+                },
+                "printCommand": {
+                    "type": "string"
+                },
+                "regularFontPath": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.MailerConf": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "config.NotifierConf": {
+            "type": "object",
+            "properties": {
+                "allowNets": {
+                    "description": "AllowNets will allow specific networks through for generic notifiers.\nIf this is filled, only these networks will be allowed through.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "blockBogonNets": {
+                    "description": "BlockBogonNets will prevent generic notifiers from sending to bogon networks. (Reserved IPs)",
+                    "type": "boolean"
+                },
+                "blockCloudMetadata": {
+                    "description": "BlockCloudMetadata will prevent generic notifiers from sending to known cloud metadata IPs.",
+                    "type": "boolean"
+                },
+                "blockLocalNets": {
+                    "description": "BlockLocalNets will prevent generic notifiers from sending to local networks. (RFC1918)",
+                    "type": "boolean"
+                },
+                "blockLocalhost": {
+                    "description": "BlockLocalhost will prevent generic notifiers from sending to localhost.",
+                    "type": "boolean"
+                },
+                "blockNets": {
+                    "description": "BlockNets will block specific networks from generic notifiers.\nIf this is filled, these networks will be blocked from generic notifiers.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "config.Options": {
+            "type": "object",
+            "properties": {
+                "allowAnalytics": {
+                    "type": "boolean"
+                },
+                "allowLocalLogin": {
+                    "type": "boolean"
+                },
+                "allowRegistration": {
+                    "type": "boolean"
+                },
+                "autoIncrementAssetId": {
+                    "type": "boolean"
+                },
+                "currencyConfig": {
+                    "type": "string"
+                },
+                "githubReleaseCheck": {
+                    "type": "boolean"
+                },
+                "hostname": {
+                    "type": "string"
+                },
+                "trustProxy": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "config.Thumbnail": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
         },
         "currencies.Currency": {
             "type": "object",
@@ -6441,6 +6782,32 @@
                 }
             }
         },
+        "settings.Resolved": {
+            "type": "object",
+            "properties": {
+                "algolia": {
+                    "$ref": "#/definitions/config.AlgoliaConf"
+                },
+                "barcode": {
+                    "$ref": "#/definitions/config.BarcodeAPIConf"
+                },
+                "labelmaker": {
+                    "$ref": "#/definitions/config.LabelMakerConf"
+                },
+                "mailer": {
+                    "$ref": "#/definitions/config.MailerConf"
+                },
+                "notifier": {
+                    "$ref": "#/definitions/config.NotifierConf"
+                },
+                "options": {
+                    "$ref": "#/definitions/config.Options"
+                },
+                "thumbnail": {
+                    "$ref": "#/definitions/config.Thumbnail"
+                }
+            }
+        },
         "templatefield.Type": {
             "type": "string",
             "enum": [
@@ -6454,6 +6821,42 @@
                 "TypeNumber",
                 "TypeBoolean",
                 "TypeTime"
+            ]
+        },
+        "time.Duration": {
+            "type": "integer",
+            "format": "int64",
+            "enum": [
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000
+            ],
+            "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour"
             ]
         },
         "v1.APISummary": {
@@ -6506,6 +6909,21 @@
             "properties": {
                 "completed": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.AdminSettingsOut": {
+            "type": "object",
+            "properties": {
+                "overridden": {
+                    "description": "Overridden marks sections whose values come from the database rather\nthan environment variables / defaults.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "settings": {
+                    "$ref": "#/definitions/settings.Resolved"
                 }
             }
         },

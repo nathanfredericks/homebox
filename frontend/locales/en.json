@@ -12,8 +12,102 @@
             "super_admin": "Super Admin",
             "updated": "Group updated"
         },
+        "settings": {
+            "algolia": {
+                "admin_api_key": "Admin API key",
+                "admin_api_key_help": "Needs write access to the index and its temporary copies (used by atomic reindexing).",
+                "app_id": "Application ID",
+                "description": "Push item records to an Algolia index for external search.",
+                "enabled": "Enable Algolia sync",
+                "fields": "Fields sent to Algolia",
+                "fields_help": "Records always include objectID and groupId. Warning: with public thumbnail URLs enabled, anyone with the link can fetch item thumbnails without logging in.",
+                "index_name": "Index name",
+                "public_base_url": "Public base URL",
+                "public_base_url_help": "Base URL used to build thumbnail links in records. Falls back to the public hostname.",
+                "public_image_urls": "Publicly accessible thumbnail URLs",
+                "reindex_failed": "Failed to start reindex",
+                "reindex_interval": "Reindex interval",
+                "reindex_interval_help": "Go duration, e.g. 24h or 90m.",
+                "reindex_now": "Reindex now",
+                "reindex_started": "Full reindex started",
+                "title": "Algolia search"
+            },
+            "barcode": {
+                "description": "Product lookups when scanning barcodes.",
+                "openfoodfacts_contact": "OpenFoodFacts contact email",
+                "openfoodfacts_contact_help": "Sent as the contact header on OpenFoodFacts API requests.",
+                "title": "Barcode lookup",
+                "token_barcodespider": "Barcodespider API token"
+            },
+            "env_only": {
+                "description": "These settings are read at startup or are security-sensitive; change them via environment variables and restart.",
+                "title": "Environment-only configuration"
+            },
+            "labelmaker": {
+                "additional_information": "Additional information",
+                "bold_font_path": "Bold font path",
+                "description": "Dimensions and rendering for printed labels.",
+                "dynamic_length": "Dynamic label length",
+                "font_size": "Font size",
+                "height": "Height",
+                "label_service_timeout": "Label service timeout (seconds)",
+                "label_service_url": "Label service URL",
+                "margin": "Margin",
+                "padding": "Padding",
+                "print_command": "Print command",
+                "regular_font_path": "Regular font path",
+                "title": "Label maker",
+                "width": "Width"
+            },
+            "load_failed": "Failed to load site settings.",
+            "mailer": {
+                "description": "Outgoing mail for password resets.",
+                "from": "From address",
+                "host": "Host",
+                "password": "Password",
+                "port": "Port",
+                "title": "Email (SMTP)",
+                "username": "Username"
+            },
+            "notifier": {
+                "allow_nets": "Allowed networks",
+                "block_bogon_nets": "Block bogon networks",
+                "block_cloud_metadata": "Block cloud metadata IPs",
+                "block_local_nets": "Block local networks (RFC1918)",
+                "block_localhost": "Block localhost",
+                "block_nets": "Blocked networks",
+                "description": "Network restrictions for outgoing notification webhooks.",
+                "nets_help": "One CIDR per line.",
+                "title": "Notifiers"
+            },
+            "options": {
+                "allow_local_login": "Allow email/password login",
+                "allow_registration": "Allow user registration",
+                "auto_increment_asset_id": "Auto-increment asset IDs",
+                "description": "Registration, login, and instance behavior.",
+                "github_release_check": "Check GitHub for new releases",
+                "hostname": "Public hostname",
+                "hostname_help": "Externally reachable base URL of this instance, used in emails and generated links.",
+                "title": "General"
+            },
+            "reset_confirm": "Reset this section to its environment/default values? All overrides saved here will be removed.",
+            "reset_done": "Section reset to environment values",
+            "reset_to_environment": "Reset to environment",
+            "save_failed": "Failed to save settings.",
+            "saved": "Settings saved",
+            "source_database": "Database override",
+            "source_environment": "From environment",
+            "thumbnail": {
+                "description": "Generated preview images for item photos.",
+                "enabled": "Generate thumbnails",
+                "height": "Height (px)",
+                "title": "Thumbnails",
+                "width": "Width (px)"
+            }
+        },
         "tabs": {
             "groups": "Groups",
+            "settings": "Settings",
             "users": "Users"
         },
         "title": "Administration",
@@ -35,6 +129,13 @@
         }
     },
     "collection": {
+        "access": {
+            "all_sections": "Full access",
+            "description": "Groups below grant access to this collection. Manage them in Administration.",
+            "empty": "No groups currently grant access to this collection.",
+            "group": "Group",
+            "sections": "Access"
+        },
         "collection_settings": "Settings",
         "copy_invite": "Copy Invite Link",
         "create_invite": "Create Invite",
@@ -70,23 +171,16 @@
         "no_invites": "No invites",
         "remaining_uses": "Remaining uses",
         "tabs": {
+            "access": "Access",
             "entity_types": "Entity Types",
             "general": "General",
             "invites": "Invites",
             "labels": "Labels",
             "members": "Members",
             "notifiers": "Notifiers",
-            "tools": "Tools",
-            "access": "Access"
+            "tools": "Tools"
         },
-        "uses": "Uses",
-        "access": {
-            "all_sections": "Full access",
-            "description": "Groups below grant access to this collection. Manage them in Administration.",
-            "empty": "No groups currently grant access to this collection.",
-            "group": "Group",
-            "sections": "Access"
-        }
+        "uses": "Uses"
     },
     "components": {
         "app": {
@@ -488,6 +582,7 @@
         "preview": "Preview",
         "quantity": "Quantity",
         "read_docs": "Read the Docs",
+        "remove": "Remove",
         "return_home": "Return Home",
         "save": "Save",
         "search": "Search",
@@ -504,8 +599,7 @@
         "value": "Value",
         "version": "Version: { version }",
         "welcome": "Welcome, { username }",
-        "yes": "Yes",
-        "remove": "Remove"
+        "yes": "Yes"
     },
     "home": {
         "quick_statistics": "Quick Statistics",
@@ -822,6 +916,7 @@
             "maintenance": "Maintenance",
             "notifiers": "Notifiers",
             "roles": "Groups",
+            "site_settings": "Site Settings",
             "statistics": "Statistics",
             "tags": "Tags",
             "templates": "Templates",

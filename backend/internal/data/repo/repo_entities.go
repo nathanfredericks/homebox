@@ -2690,3 +2690,90 @@ func ConvertEntitiesToTree(items []FlatTreeItem) []TreeItem {
 		return *itemMap[id]
 	})
 }
+
+// GetAllForIndex returns every item (non-location entity) of the group,
+// including archived ones, with the edges a search index record needs: tags,
+// parent, entity type, and the primary photo's thumbnail.
+func (r *EntityRepository) GetAllForIndex(ctx context.Context, gid uuid.UUID) ([]EntityOut, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.GetAllForIndex",
+		trace.WithAttributes(attribute.String("group.id", gid.String())))
+	defer span.End()
+
+	out, err := mapEntitiesOutErr(r.db.Entity.Query().
+		Where(
+			entity.HasGroupWith(group.ID(gid)),
+			entity.Or(
+				entity.Not(entity.HasEntityType()),
+				entity.HasEntityTypeWith(entitytype.IsLocation(false)),
+			),
+		).
+		WithTag().
+		WithParent().
+		WithEntityType().
+		WithAttachments(func(aq *ent.AttachmentQuery) {
+			aq.Where(attachment.Primary(true))
+			aq.WithThumbnail()
+		}).
+		All(ctx),
+	)
+	if err != nil {
+		recordSpanError(span, err)
+		return nil, err
+	}
+	span.SetAttributes(attribute.Int("entities.count", len(out)))
+	return out, nil
+}
+
+// EntityPaths returns the full ancestor path ("Garage > Shelf > Toolbox") for
+// every entity in the group, keyed by entity ID. Search index records use the
+// parent's path as the item's flattened location.
+func (r *EntityRepository) EntityPaths(ctx context.Context, gid uuid.UUID) (map[uuid.UUID]string, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.EntityPaths",
+		trace.WithAttributes(attribute.String("group.id", gid.String())))
+	defer span.End()
+
+	rows, err := r.db.Entity.Query().
+		Where(entity.HasGroupWith(group.ID(gid))).
+		WithParent().
+		All(ctx)
+	if err != nil {
+		recordSpanError(span, err)
+		return nil, err
+	}
+
+	type node struct {
+		name   string
+		parent uuid.UUID
+	}
+	nodes := make(map[uuid.UUID]node, len(rows))
+	for _, row := range rows {
+		n := node{name: row.Name}
+		if row.Edges.Parent != nil {
+			n.parent = row.Edges.Parent.ID
+		}
+		nodes[row.ID] = n
+	}
+
+	paths := make(map[uuid.UUID]string, len(nodes))
+	var resolve func(id uuid.UUID, depth int) string
+	resolve = func(id uuid.UUID, depth int) string {
+		if p, ok := paths[id]; ok {
+			return p
+		}
+		n := nodes[id]
+		// Depth cap guards against parent cycles in corrupted data.
+		if n.parent == uuid.Nil || depth > 64 {
+			paths[id] = n.name
+			return n.name
+		}
+		p := resolve(n.parent, depth+1) + " > " + n.name
+		paths[id] = p
+		return p
+	}
+	for entityID := range nodes {
+		resolve(entityID, 0)
+	}
+
+	span.SetAttributes(attribute.Int("paths.count", len(paths)))
+	return paths, nil
+}

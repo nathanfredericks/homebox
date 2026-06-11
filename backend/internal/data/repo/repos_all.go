@@ -23,9 +23,16 @@ type AllRepos struct {
 	MaintEntry          *MaintenanceEntryRepository
 	Notifiers           *NotifierRepository
 	Exports             *ExportRepository
+	SiteSettings        *SiteSettingsRepository
 }
 
-func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubConn string, thumbnail config.Thumbnail) *AllRepos {
+// StaticThumbnail adapts a fixed thumbnail config to the getter New expects,
+// for callers without a settings service (tests, CLI subcommands).
+func StaticThumbnail(t config.Thumbnail) func() config.Thumbnail {
+	return func() config.Thumbnail { return t }
+}
+
+func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubConn string, thumbnail func() config.Thumbnail) *AllRepos {
 	attachments := &AttachmentRepo{db, storage, pubSubConn, thumbnail}
 	return &AllRepos{
 		Users:               &UserRepository{db},
@@ -42,5 +49,6 @@ func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubC
 		MaintEntry:          &MaintenanceEntryRepository{db},
 		Notifiers:           NewNotifierRepository(db),
 		Exports:             &ExportRepository{db},
+		SiteSettings:        NewSiteSettingsRepository(db),
 	}
 }

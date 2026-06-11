@@ -30,9 +30,10 @@ const (
 	SectionTools              Section = "tools"
 
 	// Administration surfaces (site-scoped).
-	SectionUsers       Section = "users"
-	SectionRoles       Section = "roles"
-	SectionCollections Section = "collections"
+	SectionUsers        Section = "users"
+	SectionRoles        Section = "roles"
+	SectionCollections  Section = "collections"
+	SectionSiteSettings Section = "site_settings"
 )
 
 // AllSections lists every valid section, in UI display order.
@@ -50,12 +51,14 @@ var AllSections = []Section{
 	SectionUsers,
 	SectionRoles,
 	SectionCollections,
+	SectionSiteSettings,
 }
 
 var siteSections = map[Section]bool{
-	SectionUsers:       true,
-	SectionRoles:       true,
-	SectionCollections: true,
+	SectionUsers:        true,
+	SectionRoles:        true,
+	SectionCollections:  true,
+	SectionSiteSettings: true,
 }
 
 // IsValid reports whether s is a known section.

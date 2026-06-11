@@ -64,6 +64,10 @@ func (_m *RolePermission) GetID() uuid.UUID {
 	return _m.ID
 }
 
+func (_m *SiteSetting) GetID() uuid.UUID {
+	return _m.ID
+}
+
 func (_m *Tag) GetID() uuid.UUID {
 	return _m.ID
 }

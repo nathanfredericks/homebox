@@ -37,8 +37,10 @@ var (
 const PasswordMinLength = 6
 
 type UserService struct {
-	repos  *repo.AllRepos
-	mailer *mailer.Mailer
+	repos *repo.AllRepos
+	// mailer is a getter so SMTP settings edited in the admin UI apply to the
+	// next send without a restart. May return nil when SMTP is unconfigured.
+	mailer func() *mailer.Mailer
 }
 
 type (

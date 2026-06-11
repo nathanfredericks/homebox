@@ -605,7 +605,7 @@ func (ctrl *V1Controller) HandleEntitiesExport() errchain.HandlerFunc {
 		ctx := services.NewContext(spanCtx)
 		span.SetAttributes(attribute.String("group.id", ctx.GID.String()))
 
-		csvData, err := ctrl.svc.Entities.ExportCSV(spanCtx, ctx.GID, GetHBURL(r, &ctrl.config.Options, ctrl.url))
+		csvData, err := ctrl.svc.Entities.ExportCSV(spanCtx, ctx.GID, ctrl.hbURL(r))
 		if err != nil {
 			recordCtrlSpanError(span, err)
 			log.Err(err).Msg("failed to export entities")
