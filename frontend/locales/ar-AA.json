@@ -14,7 +14,6 @@
         "leave_collection": "مغادرة المجموعة",
         "leave_confirm": "هل أنت متأكد من رغبتك في مغادرة هذه المجموعة؟",
         "left_collection": "لقد غادرت المجموعة.",
-        "manage_collection": "إدارة المجموعة",
         "members": {
             "cannot_remove_last": "لا يمكنك إزالة آخر عضو.",
             "email": "البريد الإلكتروني",
@@ -39,7 +38,6 @@
             "invites": "Invites",
             "members": "الأعضاء",
             "notifiers": "وسائل الإشعار",
-            "settings": "الإعدادات",
             "tools": "الأدوات"
         },
         "uses": "الاستخدامات"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "خيارات المجموعة",
                 "create_collection": "إنشاء مجموعة جديدة",
                 "join_collection": "الانضمام إلى مجموعة موجودة",
                 "no_collection_found": "لم يتم العثور على مجموعة",
@@ -719,7 +716,6 @@
         "total_entries": "إجمالي الإدخالات"
     },
     "menu": {
-        "collection": "المجموعة",
         "create_item": "عنصر / أصل",
         "create_location": "موقع",
         "create_tag": "وسم",
@@ -805,7 +801,6 @@
             "notifier_test_success": "نجح اختبار وسيلة الإشعار.",
             "password_changed": "تم تغيير كلمة المرور بنجاح."
         },
-        "update_group": "تحديث المجموعة",
         "update_language": "تحديث اللغة",
         "url": "الرابط",
         "user_profile": "الملف الشخصي للمستخدم",

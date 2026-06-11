@@ -14,7 +14,6 @@
         "leave_collection": "离开集合",
         "leave_confirm": "确定要离开该集合吗？",
         "left_collection": "您已离开集合。",
-        "manage_collection": "管理集合",
         "members": {
             "cannot_remove_last": "您不能删除最后一个成员。",
             "email": "邮箱",
@@ -39,7 +38,6 @@
             "invites": "邀请",
             "members": "成员",
             "notifiers": "通知器",
-            "settings": "设置",
             "tools": "工具"
         },
         "uses": "可用次数"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "集合选项",
                 "create_collection": "创建新集合",
                 "join_collection": "加入现有集合",
                 "no_collection_found": "没有找到集合",
@@ -719,7 +716,6 @@
         "total_entries": "项目总数"
     },
     "menu": {
-        "collection": "集合",
         "create_item": "物品/资产",
         "create_location": "位置",
         "create_tag": "标签",
@@ -805,7 +801,6 @@
             "notifier_test_success": "通知器测试成功。",
             "password_changed": "已成功修改密码。"
         },
-        "update_group": "更新组",
         "update_language": "更新语言",
         "url": "网址",
         "user_profile": "用户资料",

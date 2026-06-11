@@ -14,7 +14,6 @@
         "leave_collection": "Gyűjtemény elhagyása",
         "leave_confirm": "Biztosan ki akar lépni a gyűjteményből?",
         "left_collection": "Elhagyta a gyűjteményt.",
-        "manage_collection": "Gyűjtemények kezelése",
         "members": {
             "cannot_remove_last": "Nem törölheti az utolsó tagot.",
             "email": "Email",
@@ -37,7 +36,6 @@
             "invites": "Meghívások",
             "members": "Tagok",
             "notifiers": "Értesítők",
-            "settings": "Beállítások",
             "tools": "Eszközök"
         }
     },
@@ -643,7 +641,6 @@
             "notifier_test_success": "Az értesítő tesztje sikeres volt.",
             "password_changed": "A jelszóváltoztatás sikeres volt."
         },
-        "update_group": "Csoport módosítása",
         "update_language": "Nyelv átállítása",
         "url": "URL",
         "user_profile": "Felhasználói profil",

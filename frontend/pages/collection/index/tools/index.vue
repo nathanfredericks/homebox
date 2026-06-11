@@ -5,30 +5,6 @@
       <BaseCard>
         <template #title>
           <BaseSectionHeader>
-            <MdiFileChart class="mr-2" />
-            <span> {{ $t("tools.reports") }} </span>
-            <template #description> {{ $t("tools.reports_sub") }} </template>
-          </BaseSectionHeader>
-        </template>
-        <div class="divide-y border-t p-4">
-          <DetailAction to="/collection/tools/label-generator">
-            <template #title>{{ $t("tools.reports_set.asset_labels") }}</template>
-            {{ $t("tools.reports_set.asset_labels_sub") }}
-            <template #button>
-              {{ $t("tools.reports_set.asset_labels_button") }}
-              <MdiArrowRight class="ml-2" />
-            </template>
-          </DetailAction>
-          <DetailAction @action="getBillOfMaterials()">
-            <template #title>{{ $t("tools.reports_set.bill_of_materials") }}</template>
-            {{ $t("tools.reports_set.bill_of_materials_sub") }}
-            <template #button> {{ $t("tools.reports_set.bill_of_materials_button") }} </template>
-          </DetailAction>
-        </div>
-      </BaseCard>
-      <BaseCard>
-        <template #title>
-          <BaseSectionHeader>
             <MdiDatabase class="mr-2" />
             <span> {{ $t("tools.import_export") }} </span>
             <template #description>
@@ -47,6 +23,11 @@
             <template #title>{{ $t("tools.import_export_set.export") }}</template>
             {{ $t("tools.import_export_set.export_sub") }}
             <template #button> {{ $t("tools.import_export_set.export_button") }} </template>
+          </DetailAction>
+          <DetailAction @action="getBillOfMaterials()">
+            <template #title>{{ $t("tools.reports_set.bill_of_materials") }}</template>
+            {{ $t("tools.reports_set.bill_of_materials_sub") }}
+            <template #button> {{ $t("tools.reports_set.bill_of_materials_button") }} </template>
           </DetailAction>
         </div>
       </BaseCard>
@@ -154,8 +135,6 @@
   import DOMPurify from "isomorphic-dompurify";
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
-  import MdiFileChart from "~icons/mdi/file-chart";
-  import MdiArrowRight from "~icons/mdi/arrow-right";
   import MdiDatabase from "~icons/mdi/database";
   import MdiAlert from "~icons/mdi/alert";
   import MdiPackageVariant from "~icons/mdi/package-variant";

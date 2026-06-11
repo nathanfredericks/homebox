@@ -14,7 +14,6 @@
         "leave_collection": "Lämna samling",
         "leave_confirm": "Är du säker på att du vill lämna den här samlingen?",
         "left_collection": "Du har lämnat samlingen.",
-        "manage_collection": "Hantera samling",
         "members": {
             "cannot_remove_last": "Du kan inte ta bort den sista medlemmen.",
             "email": "Epost",
@@ -39,7 +38,6 @@
             "invites": "Inbjudningar",
             "members": "Medlemmar",
             "notifiers": "Notishanterare",
-            "settings": "Inställningar",
             "tools": "Verktyg"
         },
         "uses": "Användningar"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Samlingsinställningar",
                 "create_collection": "Skapa en ny samling",
                 "join_collection": "Anslut till existerande samling",
                 "no_collection_found": "Ingen samling hittades",
@@ -719,7 +716,6 @@
         "total_entries": "Totalt antal inlämningar"
     },
     "menu": {
-        "collection": "Samling",
         "create_item": "Artikel / Tillgång",
         "create_location": "Plats",
         "create_tag": "Tagg",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Aviseringstestet lyckades.",
             "password_changed": "Lösenordsbytet genomfört."
         },
-        "update_group": "Uppdatera grupp",
         "update_language": "Uppdatera språk",
         "url": "URL",
         "user_profile": "Användarprofil",

@@ -24,6 +24,7 @@ const ROUTE_SECTIONS: [prefix: string, section: PermSection][] = [
   ["/collection/notifiers", "notifiers"],
   ["/collection/settings", "collection_settings"],
   ["/collection/entity-types", "entity_types"],
+  ["/collection/labels", "tools"],
   ["/collection/tools", "tools"],
 ];
 

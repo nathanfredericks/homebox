@@ -14,7 +14,6 @@
         "leave_collection": "Abandonar Colección",
         "leave_confirm": "¿Seguro que quieres salir de esta colección?",
         "left_collection": "Has abandonado la colección.",
-        "manage_collection": "Gestionar Colección",
         "members": {
             "cannot_remove_last": "No se puede eliminar al último miembro.",
             "email": "Email",
@@ -39,7 +38,6 @@
             "invites": "Invitaciones",
             "members": "Miembros",
             "notifiers": "Notificadores",
-            "settings": "Ajustes",
             "tools": "Herramientas"
         },
         "uses": "Usos"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Opciones de Colecciones",
                 "create_collection": "Crear Nueva Colección",
                 "join_collection": "Unirse a Colección Existente",
                 "no_collection_found": "No se ha encontrado ninguna colección",
@@ -719,7 +716,6 @@
         "total_entries": "Total de Entradas"
     },
     "menu": {
-        "collection": "Colección",
         "create_item": "Artículo / Activo",
         "create_location": "Ubicación",
         "create_tag": "Etiqueta",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Prueba del notificador correcta.",
             "password_changed": "Contraseña cambiada correctamente."
         },
-        "update_group": "Actualizar Grupo",
         "update_language": "Cambiar Idioma",
         "url": "URL",
         "user_profile": "Perfil de Usuario",

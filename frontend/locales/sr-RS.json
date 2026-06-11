@@ -14,7 +14,6 @@
         "leave_collection": "ostavi kolekciju",
         "leave_confirm": "Da li ste sigurni da želite da napustite ovu kolekciju?",
         "left_collection": "Napustili ste kolekciju.",
-        "manage_collection": "Upravljanje kolekcijom",
         "members": {
             "cannot_remove_last": "Ne možete izbrisati poslednji član.",
             "empty": "Još uvek nema članova u ovoj kolekciji.",
@@ -24,7 +23,6 @@
             "remove_confirm": "Da li ste sigurni da želite da izbrišete ovog člana?"
         },
         "tabs": {
-            "settings": "Podešavanja",
             "tools": "Alati"
         }
     },

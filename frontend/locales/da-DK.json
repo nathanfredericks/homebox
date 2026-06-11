@@ -14,7 +14,6 @@
         "leave_collection": "Forlad samling",
         "leave_confirm": "Er du sikker på at du vil forlade denne samling?",
         "left_collection": "Du har forladt samlingen.",
-        "manage_collection": "Vedligehold samling",
         "members": {
             "cannot_remove_last": "Du kan ikke slette det sidste medlem.",
             "email": "E-mail",
@@ -39,7 +38,6 @@
             "invites": "Invitationer",
             "members": "Medlemmer",
             "notifiers": "Notifikationer",
-            "settings": "Indstillinger",
             "tools": "Funktioner"
         },
         "uses": "Anvendelser"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Samlingsmuligheder",
                 "create_collection": "Opret ny samling",
                 "join_collection": "Tilføj til eksisterende samling",
                 "no_collection_found": "Ingen samling fundet",
@@ -704,7 +701,6 @@
         "total_entries": "Total antal poster"
     },
     "menu": {
-        "collection": "Samling",
         "create_item": "Genstand / aktiv",
         "create_location": "Lokalitet",
         "create_tag": "Tag",
@@ -768,7 +764,6 @@
             "notifier_test_success": "Underretter-testen er gennemført.",
             "password_changed": "Adgangskoden er ændret."
         },
-        "update_group": "Opdatér gruppe",
         "update_language": "Opdater sprogfil",
         "url": "URL",
         "user_profile": "Brugerprofil",

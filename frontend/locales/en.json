@@ -35,6 +35,7 @@
         }
     },
     "collection": {
+        "collection_settings": "Settings",
         "copy_invite": "Copy Invite Link",
         "create_invite": "Create Invite",
         "delete_collection": "Delete Collection",
@@ -49,7 +50,6 @@
         "leave_collection": "Leave Collection",
         "leave_confirm": "Are you sure you want to leave this collection?",
         "left_collection": "You have left the collection.",
-        "manage_collection": "Manage Collection",
         "members": {
             "cannot_remove_last": "You cannot remove the last member.",
             "email": "Email",
@@ -71,10 +71,11 @@
         "remaining_uses": "Remaining uses",
         "tabs": {
             "entity_types": "Entity Types",
+            "general": "General",
             "invites": "Invites",
+            "labels": "Labels",
             "members": "Members",
             "notifiers": "Notifiers",
-            "settings": "Settings",
             "tools": "Tools",
             "access": "Access"
         },
@@ -144,7 +145,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Collection Options",
                 "create_collection": "Create New Collection",
                 "join_collection": "Join Existing Collection",
                 "no_collection_found": "No collection found",
@@ -779,7 +779,6 @@
         "total_entries": "Total Entries"
     },
     "menu": {
-        "collection": "Collection",
         "create_item": "Item / Asset",
         "create_location": "Location",
         "create_tag": "Tag",
@@ -891,7 +890,6 @@
             "notifier_test_success": "Notifier test successful.",
             "password_changed": "Password changed successfully."
         },
-        "update_group": "Update Group",
         "update_language": "Update Language",
         "url": "URL",
         "user_profile": "User Profile",

@@ -14,7 +14,6 @@
         "leave_collection": "Ji komê derkeve",
         "leave_confirm": "Tu piştrastî dixwazî ji vê komê derkevî?",
         "left_collection": "Tu ji komê derketî.",
-        "manage_collection": "Komê bi rê ve bibe",
         "members": {
             "cannot_remove_last": "Tu nikarî endamê dawî rake.",
             "email": "E-name",
@@ -39,7 +38,6 @@
             "invites": "Vexwendin",
             "members": "Endam",
             "notifiers": "Agahker",
-            "settings": "Mîheng",
             "tools": "Amûr"
         },
         "uses": "Bikaranîn"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Vebijêrkên komê",
                 "create_collection": "Komeke nû çêbike",
                 "join_collection": "Tevlî komeke heyî bibe",
                 "no_collection_found": "Tu kom nehat dîtin",
@@ -719,7 +716,6 @@
         "total_entries": "Hemû tomar"
     },
     "menu": {
-        "collection": "Kom",
         "create_item": "Tişt / Sermaye",
         "create_location": "Cih",
         "create_tag": "Etîket",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Ceribandina agahkerê serketî bû.",
             "password_changed": "Şîfre bi serkeftî hate guhertin."
         },
-        "update_group": "Komê nû bike",
         "update_language": "Zimanê nû bike",
         "url": "URL",
         "user_profile": "Profîla bikarhêner",

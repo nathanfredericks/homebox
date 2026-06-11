@@ -2,14 +2,10 @@
   import { useI18n } from "vue-i18n";
   import BaseContainer from "@/components/Base/Container.vue";
   import { Card } from "@/components/ui/card";
-  import { Button, ButtonGroup } from "@/components/ui/button";
+  import { Button } from "@/components/ui/button";
   import { toast } from "@/components/ui/sonner";
 
-  import MdiShieldAccount from "~icons/mdi/shield-account";
-  import MdiBell from "~icons/mdi/bell";
-  import MdiCog from "~icons/mdi/cog";
-  import MdiShape from "~icons/mdi/shape";
-  import MdiWrench from "~icons/mdi/wrench";
+  import MdiHomeGroup from "~icons/mdi/home-group";
   import MdiDelete from "~icons/mdi/delete";
 
   definePageMeta({
@@ -18,61 +14,35 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("menu.collection")}` });
+  useHead({ title: `HomeBox | ${t("collection.collection_settings")}` });
 
-  const route = useRoute();
   const api = useUserApi();
   const confirm = useConfirm();
   const { can } = usePermissions();
 
-  const currentPath = computed(() => route.path);
+  const route = useRoute();
+  const { sections } = useCollectionSections();
 
-  // Tabs the user cannot view do not exist for them.
-  const tabs = computed(() =>
-    [
-      {
-        id: "access",
-        label: "collection.tabs.access",
-        to: "/collection/access",
-        icon: MdiShieldAccount,
-        visible: can("roles", "view"),
-      },
-      {
-        id: "notifiers",
-        label: "collection.tabs.notifiers",
-        to: "/collection/notifiers",
-        icon: MdiBell,
-        visible: can("notifiers", "view"),
-      },
-      {
-        id: "settings",
-        label: "collection.tabs.settings",
-        to: "/collection/settings",
-        icon: MdiCog,
-        visible: can("collection_settings", "view"),
-      },
-      {
-        id: "entity-types",
-        label: "collection.tabs.entity_types",
-        to: "/collection/entity-types",
-        icon: MdiShape,
-        visible: can("entity_types", "view"),
-      },
-      {
-        id: "tools",
-        label: "collection.tabs.tools",
-        to: "/collection/tools",
-        icon: MdiWrench,
-        visible: can("tools", "view"),
-      },
-    ].filter(tab => tab.visible)
+  // The section the current route lives in; its name is the page title.
+  const currentSection = computed(() =>
+    sections.value.find(section => route.path === section.to || route.path.startsWith(`${section.to}/`))
+  );
+
+  const heading = computed(() =>
+    currentSection.value ? t(currentSection.value.labelKey) : t("collection.collection_settings")
   );
 
   const { selectedCollection, load: reloadCollections } = useCollections();
 
+  const subtitle = computed(
+    () => `${selectedCollection.value?.name ?? t("global.loading")} · ${t("collection.collection_settings")}`
+  );
+
   const actionLoading = ref(false);
 
-  const canDelete = computed(() => can("collection_settings", "delete"));
+  // Deleting the collection lives with its general settings; a destructive
+  // button under e.g. a "Notifiers" heading reads as deleting that instead.
+  const canDelete = computed(() => currentSection.value?.id === "settings" && can("collection_settings", "delete"));
 
   const handleDeleteCollection = async () => {
     if (!selectedCollection.value) return;
@@ -105,58 +75,40 @@
 
 <template>
   <BaseContainer class="print:my-0 print:max-w-none print:px-0">
-    <Title>{{ t("menu.collection_options") }}</Title>
-
     <section class="print:hidden">
       <Card class="p-3">
         <header>
-          <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-end gap-2">
+            <div
+              class="mb-auto flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground"
+            >
+              <component :is="currentSection?.icon ?? MdiHomeGroup" class="size-7" />
+            </div>
             <div>
-              <h1 class="text-2xl">
-                {{
-                  selectedCollection?.name
-                    ? t("collection.manage_collection") + " - " + selectedCollection.name
-                    : t("global.loading")
-                }}
+              <h1 class="text-wrap pb-1 text-2xl">
+                {{ heading }}
               </h1>
+              <div class="text-xs text-muted-foreground">
+                {{ subtitle }}
+              </div>
+            </div>
+            <div class="ml-auto mt-2 flex flex-wrap items-center justify-between gap-3">
+              <Button
+                v-if="canDelete"
+                variant="destructive"
+                :disabled="!selectedCollection || actionLoading"
+                @click="handleDeleteCollection"
+              >
+                <MdiDelete />
+                {{ $t("global.delete") }}
+              </Button>
             </div>
           </div>
         </header>
       </Card>
-
-      <div class="my-3 flex flex-wrap items-center justify-between gap-2">
-        <ButtonGroup>
-          <Button
-            v-for="tab in tabs"
-            :key="tab.id"
-            as-child
-            :variant="currentPath.startsWith(tab.to) ? 'default' : 'outline'"
-            size="sm"
-          >
-            <NuxtLink :to="tab.to" class="flex items-center gap-2">
-              <component :is="tab.icon" v-if="tab.icon" class="size-4" />
-              <span class="hidden sm:block">{{ t(tab.label) }}</span>
-            </NuxtLink>
-          </Button>
-        </ButtonGroup>
-
-        <div id="collection-header-actions" class="ml-auto flex items-center gap-1">
-          <Button
-            v-if="canDelete"
-            variant="outline"
-            size="icon"
-            class="size-8"
-            :aria-label="$t('collection.delete_collection')"
-            :disabled="!selectedCollection || actionLoading"
-            @click="handleDeleteCollection"
-          >
-            <MdiDelete class="size-4" />
-          </Button>
-        </div>
-      </div>
     </section>
 
-    <section>
+    <section class="mt-3">
       <div class="space-y-6">
         <NuxtPage />
       </div>

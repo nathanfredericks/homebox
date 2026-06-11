@@ -14,7 +14,6 @@
         "leave_collection": "Abandonar la Col·lecció",
         "leave_confirm": "N'estàs segur que vols abandonar aquesta col·lecció?",
         "left_collection": "Has abandonat la col·lecció.",
-        "manage_collection": "Gestiona la col·lecció",
         "members": {
             "cannot_remove_last": "No pots eliminar l'últim membre.",
             "email": "Correu electrònic",
@@ -38,7 +37,6 @@
             "invites": "Invitacions",
             "members": "Membres",
             "notifiers": "Notificadors",
-            "settings": "Configuració",
             "tools": "Eines"
         },
         "uses": "Usos"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Opcions de la col·lecció",
                 "create_collection": "Crea una nova col·lecció",
                 "join_collection": "Uneix-te a la col·lecció existent",
                 "no_collection_found": "No s'ha trobat cap col·lecció",
@@ -482,7 +479,6 @@
         "test": "Prova",
         "theme_settings": "Configuracions del tema",
         "theme_settings_sub": "La configuració del tema s'emmagatzema a l'emmagatzematge local del navegador. Podeu canviar el tema en qualsevol moment. \nSi teniu problemes per definir el tema, proveu d'actualitzar el navegador.",
-        "update_group": "Actualitza el grup",
         "update_language": "Actualitza l'idioma",
         "url": "URL",
         "user_profile": "Perfil d'usuari",

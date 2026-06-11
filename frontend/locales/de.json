@@ -14,7 +14,6 @@
         "leave_collection": "Sammlung verlassen",
         "leave_confirm": "Wollen Sie diese Sammlung wirklich verlassen?",
         "left_collection": "Sie haben die Sammlung verlassen.",
-        "manage_collection": "Sammlung verwalten",
         "members": {
             "cannot_remove_last": "Sie können das letzte Mitglied nicht entfernen.",
             "email": "E-Mail",
@@ -38,7 +37,6 @@
             "invites": "Einladungen",
             "members": "Mitglieder",
             "notifiers": "Benachrichtigungen",
-            "settings": "Einstellungen",
             "tools": "Werkzeuge"
         },
         "uses": "Nutzungen"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Sammlungsoptionen",
                 "create_collection": "Neue Sammlung erstellen",
                 "join_collection": "Bestehender Sammlung beitreten",
                 "no_collection_found": "Keine Sammlung gefunden",
@@ -708,7 +705,6 @@
         "total_entries": "Gesamteinträge"
     },
     "menu": {
-        "collection": "Sammlung",
         "create_item": "Artikel / Asset",
         "create_location": "Lagerort",
         "create_tag": "Tag",
@@ -780,7 +776,6 @@
             "notifier_test_success": "Notifier-Test erfolgreich.",
             "password_changed": "Passwort erfolgreich geändert."
         },
-        "update_group": "Gruppe aktualisieren",
         "update_language": "Sprache aktualisieren",
         "url": "URL",
         "user_profile": "Benutzerprofil",

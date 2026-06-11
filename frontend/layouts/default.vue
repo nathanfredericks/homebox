@@ -397,61 +397,23 @@
     }[];
   };
 
-  const nav = computed<NavItem[]>(() => {
-    const collectionTabs = [
-      {
-        id: 61,
-        active: computed(() => route.path === "/collection/access"),
-        name: computed(() => t("collection.tabs.access")),
-        to: "/collection/access",
-        visible: can("roles", "view"),
-      },
-      {
-        id: 63,
-        active: computed(() => route.path === "/collection/notifiers"),
-        name: computed(() => t("collection.tabs.notifiers")),
-        to: "/collection/notifiers",
-        visible: can("notifiers", "view"),
-      },
-      {
-        id: 64,
-        active: computed(() => route.path === "/collection/settings"),
-        name: computed(() => t("collection.tabs.settings")),
-        to: "/collection/settings",
-        visible: can("collection_settings", "view"),
-      },
-      {
-        id: 65,
-        active: computed(() => route.path === "/collection/entity-types"),
-        name: computed(() => t("collection.tabs.entity_types")),
-        to: "/collection/entity-types",
-        visible: can("entity_types", "view"),
-      },
-      {
-        id: 66,
-        active: computed(() => route.path.startsWith("/collection/tools")),
-        name: computed(() => t("collection.tabs.tools")),
-        to: "/collection/tools",
-        visible: can("tools", "view"),
-      },
-    ].filter(tab => tab.visible);
+  const { sections: collectionSections } = useCollectionSections();
+  const { sections: adminSections } = useAdminSections();
 
-    const adminTabs = [
-      {
-        id: 81,
-        active: computed(() => route.path === "/admin/users"),
-        name: computed(() => t("admin.tabs.users")),
-        to: "/admin/users",
-        visible: can("users", "view"),
-      },
-      {
-        id: 82,
-        active: computed(() => route.path.startsWith("/admin/groups")),
-        name: computed(() => t("admin.tabs.groups")),
-        to: "/admin/groups",
-        visible: can("roles", "view"),
-      },
-    ].filter(tab => tab.visible);
+  const nav = computed<NavItem[]>(() => {
+    const collectionTabs = collectionSections.value.map((section, idx) => ({
+      id: 61 + idx,
+      active: computed(() => route.path === section.to || route.path.startsWith(`${section.to}/`)),
+      name: computed(() => t(section.labelKey)),
+      to: section.to,
+    }));
+
+    const adminTabs = adminSections.value.map((section, idx) => ({
+      id: 81 + idx,
+      active: computed(() => route.path === section.to || route.path.startsWith(`${section.to}/`)),
+      name: computed(() => t(section.labelKey)),
+      to: section.to,
+    }));
 
     const items: (NavItem & { visible: boolean })[] = [
       {
@@ -514,7 +476,7 @@
         icon: MdiCog,
         active: computed(() => route.path.includes("/collection")),
         id: 7,
-        name: computed(() => t("menu.collection")),
+        name: computed(() => t("collection.collection_settings")),
         to: collectionTabs[0]?.to ?? "/collection",
         collapsible: collectionTabs,
         visible: collectionTabs.length > 0,

@@ -59,7 +59,7 @@
                 </TableCell>
               </TableRow>
 
-              <TableRow :key="`${section.id}-add`" class="hover:bg-transparent">
+              <TableRow class="hover:bg-transparent">
                 <TableCell v-if="rowsFor(section.id).length === 0">
                   {{ t(`permissions.sections.${section.id}`) }}
                 </TableCell>

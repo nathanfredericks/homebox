@@ -14,7 +14,6 @@
         "leave_collection": "Sair da coleção",
         "leave_confirm": "Tem a certeza que quer sair desta coleção?",
         "left_collection": "Você saiu da coleção.",
-        "manage_collection": "Gerir Coleção",
         "members": {
             "cannot_remove_last": "Não pode remover o último membro.",
             "email": "Email",
@@ -37,8 +36,7 @@
         "tabs": {
             "invites": "Convites",
             "members": "Membros",
-            "notifiers": "Notificadores",
-            "settings": "Definições"
+            "notifiers": "Notificadores"
         }
     },
     "components": {
@@ -590,7 +588,6 @@
             "notifier_test_success": "Teste do notificador bem-sucedido.",
             "password_changed": "Palavra-passe alterada com sucesso."
         },
-        "update_group": "Atualizar Grupo",
         "update_language": "Atualizar Idioma",
         "url": "URL",
         "user_profile": "Perfil de Utilizador",

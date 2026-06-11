@@ -542,7 +542,6 @@
             "failed_change_password": "Şifre değiştirilemedi.",
             "password_changed": "Şifre başarıyla değiştirildi."
         },
-        "update_group": "Grubu Güncelle",
         "update_language": "Dili Güncelle",
         "url": "URL",
         "user_profile": "Kullanıcı Profili",

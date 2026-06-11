@@ -2,7 +2,6 @@
     "collection": {
         "delete_collection": "Obriši zbirku",
         "deleted_collection": "Zbirka obrisana.",
-        "manage_collection": "Upravljaj Zbirkom",
         "members": {
             "email": "Email",
             "name": "Ime",
@@ -13,7 +12,6 @@
             "title": "Zbirka nije pronađena"
         },
         "tabs": {
-            "settings": "Postavke",
             "tools": "Alati"
         },
         "uses": "Korisnici"

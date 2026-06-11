@@ -14,7 +14,6 @@
         "leave_collection": "プロファイルとの紐付けを解除",
         "leave_confirm": "このプロファイルのメンバーから離脱してもよろしいですか？",
         "left_collection": "プロファイルの登録を解除しました",
-        "manage_collection": "プロファイルの管理",
         "members": {
             "cannot_remove_last": "最後のメンバーのため、登録解除ができません。",
             "email": "メール",
@@ -35,7 +34,6 @@
             "invites": "招待",
             "members": "メンバー",
             "notifiers": "通知機能",
-            "settings": "設定",
             "tools": "ツール"
         },
         "uses": "使用可能回数"
@@ -94,7 +92,6 @@
                 }
             },
             "selector": {
-                "collection_options": "プロファイル設定",
                 "create_collection": "プロファイルの新規作成",
                 "join_collection": "プロファイルに参加",
                 "no_collection_found": "プロファイルが見つかりません",
@@ -538,7 +535,6 @@
         "total_entries": "合計項目数"
     },
     "menu": {
-        "collection": "プロファイル",
         "create_item": "アイテム",
         "create_location": "場所",
         "home": "ホーム",
@@ -598,7 +594,6 @@
             "notifier_test_success": "通知の送信テストに成功しました",
             "password_changed": "パスワードを変更しました"
         },
-        "update_group": "グループ設定を更新",
         "update_language": "言語更新",
         "url": "URL",
         "user_profile": "ユーザー情報",

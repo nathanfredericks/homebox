@@ -14,7 +14,6 @@
         "leave_collection": "Collectie verlaten",
         "leave_confirm": "Weet u zeker dat u deze collectie wilt verlaten?",
         "left_collection": "U heeft de collectie verlaten.",
-        "manage_collection": "Collectie beheren",
         "members": {
             "cannot_remove_last": "U kunt het laatste lid niet verwijderen.",
             "email": "E-mail",
@@ -39,7 +38,6 @@
             "invites": "Uitnodigingen",
             "members": "Leden",
             "notifiers": "Notificaties",
-            "settings": "Instellingen",
             "tools": "Hulpmiddelen"
         },
         "uses": "Toepassingen"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Collectie Opties",
                 "create_collection": "Nieuwe collectie maken",
                 "join_collection": "Deelnemen aan bestaande collectie",
                 "no_collection_found": "Geen collectie gevonden",
@@ -719,7 +716,6 @@
         "total_entries": "Totaal aantal invoeren"
     },
     "menu": {
-        "collection": "Collectie",
         "create_item": "Artikel / Object",
         "create_location": "Locatie",
         "create_tag": "Tag",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Notificatie test geslaagd.",
             "password_changed": "Wachtwoord wijzigen gelukt."
         },
-        "update_group": "Groep bijwerken",
         "update_language": "Taal bijwerken",
         "url": "URL",
         "user_profile": "Gebruikersprofiel",

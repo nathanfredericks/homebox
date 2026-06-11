@@ -14,7 +14,6 @@
         "leave_collection": "Walk away from the Hoard",
         "leave_confirm": "Are ye truly fixin' to walk away from this here hoard, ye scallywag?",
         "left_collection": "Ye be partin' ways with the hoard.",
-        "manage_collection": "Captain the Hoard",
         "members": {
             "cannot_remove_last": "Ye can't maroon the final swabbie.",
             "email": "Ghostly dispatch",
@@ -37,8 +36,7 @@
         "tabs": {
             "invites": "Summons",
             "members": "Mateys",
-            "notifiers": "Signal Flags",
-            "settings": "Riggin'"
+            "notifiers": "Signal Flags"
         }
     },
     "languages": {

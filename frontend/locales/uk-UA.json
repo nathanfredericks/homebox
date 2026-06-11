@@ -14,7 +14,6 @@
         "leave_collection": "Покинути Колекцію",
         "leave_confirm": "Ви певні що хочете покинути цю колекцію?",
         "left_collection": "Ви покинули колекцію.",
-        "manage_collection": "Керувати Колекціями",
         "members": {
             "cannot_remove_last": "Ви не можете видалити останній елемент.",
             "email": "Електронна пошта",
@@ -39,7 +38,6 @@
             "invites": "Запрошення",
             "members": "Учасники",
             "notifiers": "Сповіщувачі",
-            "settings": "Налаштування",
             "tools": "Інструменти"
         },
         "uses": "Використання"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Опції Колекції",
                 "create_collection": "Створити нову Колекцію",
                 "join_collection": "Доєднатись до існуючої Колекції",
                 "no_collection_found": "Жодної колекції не знайдено",
@@ -719,7 +716,6 @@
         "total_entries": "Всього записів"
     },
     "menu": {
-        "collection": "Колекція",
         "create_item": "Елемент / Актив",
         "create_location": "Місце",
         "create_tag": "Тег",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Перевірка сповіщувача успішна.",
             "password_changed": "Пароль успішно змінено."
         },
-        "update_group": "Оновити групу",
         "update_language": "Оновлення мови",
         "url": "URL-адреса",
         "user_profile": "Профіль користувача",

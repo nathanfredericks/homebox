@@ -252,7 +252,7 @@
           </Label>
         </div>
         <NuxtLink
-          to="/collection/tools/label-generator"
+          to="/collection/labels"
           class="text-sm text-primary underline-offset-4 hover:underline"
           @click="closeDialog(DialogID.PrintLabel)"
         >

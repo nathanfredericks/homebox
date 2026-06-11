@@ -14,7 +14,6 @@
         "leave_collection": "Покинуть коллекцию",
         "leave_confirm": "Вы уверены что хотите покинут коллекцию?",
         "left_collection": "Вы покинули коллекцию.",
-        "manage_collection": "Управление коллекцией",
         "members": {
             "cannot_remove_last": "Вы не можете удалить последнего участника.",
             "email": "Электронная почта",
@@ -38,7 +37,6 @@
             "invites": "Приглашения",
             "members": "Участники",
             "notifiers": "Уведомления",
-            "settings": "Настройки",
             "tools": "Инструменты"
         },
         "uses": "Использован"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Настройки коллекции",
                 "create_collection": "Создать коллекцию",
                 "join_collection": "Включить в существующую коллекцию",
                 "no_collection_found": "Коллекция не найдена",
@@ -697,7 +694,6 @@
         "total_entries": "Всего записей"
     },
     "menu": {
-        "collection": "Коллекция",
         "create_item": "Элемент",
         "create_location": "Местоположение",
         "create_tag": "Метка",
@@ -762,7 +758,6 @@
             "notifier_test_success": "Тест уведомителя выполнен успешно.",
             "password_changed": "Пароль успешно изменён."
         },
-        "update_group": "Обновить группу",
         "update_language": "Обновить язык",
         "url": "URL",
         "user_profile": "Профиль пользователя",

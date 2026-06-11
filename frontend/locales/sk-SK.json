@@ -14,7 +14,6 @@
         "leave_collection": "Opustiť zbierku",
         "leave_confirm": "Naozaj chcete túto zbierku opustiť?",
         "left_collection": "Opustili ste zbierku.",
-        "manage_collection": "Spravovať zbierku",
         "members": {
             "cannot_remove_last": "Nemôžete odstrániť posledného člena.",
             "email": "E-mail",
@@ -39,7 +38,6 @@
             "invites": "Pozvánky",
             "members": "Členovia",
             "notifiers": "Oznamovače",
-            "settings": "Nastavenia",
             "tools": "Nástroje"
         },
         "uses": "Použitia"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Možnosti zbierky",
                 "create_collection": "Vytvoriť novú zbierku",
                 "join_collection": "Pridajte sa k existujúcej zbierke",
                 "no_collection_found": "Nenašla sa žiadna zbierka",
@@ -719,7 +716,6 @@
         "total_entries": "Počet položiek"
     },
     "menu": {
-        "collection": "Zbierka",
         "create_item": "Položka / Aktívum",
         "create_location": "Miesto",
         "create_tag": "Štítok",
@@ -805,7 +801,6 @@
             "notifier_test_success": "Test oznamovača bol úspešný.",
             "password_changed": "Heslo bolo úspešne zmenené."
         },
-        "update_group": "aktualizačná skupina",
         "update_language": "Aktualizovať súbor jazyka",
         "url": "URL",
         "user_profile": "Profil používateľa",

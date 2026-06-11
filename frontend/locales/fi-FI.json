@@ -14,7 +14,6 @@
         "leave_collection": "Poistu kokoelmasta",
         "leave_confirm": "Haluatko varmasti poistua tästä kokoelmasta?",
         "left_collection": "Olet poistunut kokoelmasta.",
-        "manage_collection": "Ylläpidä kokoelmaa",
         "members": {
             "cannot_remove_last": "Et voi poistaa viimeistä käyttäjää.",
             "email": "Sähköposti",
@@ -38,7 +37,6 @@
             "invites": "Kutsut",
             "members": "Käyttäjät",
             "notifiers": "Ilmoitustyökalut",
-            "settings": "Asetukset",
             "tools": "Työkalut"
         },
         "uses": "Käyttökerrat"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Kokoelman asetukset",
                 "create_collection": "Luo uusi kokoelma",
                 "join_collection": "Liity olemassa olevaan kokoelmaan",
                 "no_collection_found": "Kokoelmaa ei löytynyt",
@@ -695,7 +692,6 @@
         "total_entries": "Merkintöjä yhteensä"
     },
     "menu": {
-        "collection": "Kokoelma",
         "create_item": "Esine / Resurssi",
         "create_location": "Paikka",
         "create_tag": "Tunniste",
@@ -760,7 +756,6 @@
             "notifier_test_success": "Ilmoitustyökalun testaus onnistui.",
             "password_changed": "Salasana vaihdettu onnistuneesti."
         },
-        "update_group": "Päivitä",
         "update_language": "Päivitä kieli",
         "url": "Verkko-osoite",
         "user_profile": "Profiili",

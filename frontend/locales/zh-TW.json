@@ -14,7 +14,6 @@
         "leave_collection": "離開收藏",
         "leave_confirm": "是否確認離開收藏？",
         "left_collection": "你已離開該收藏。",
-        "manage_collection": "管理收藏",
         "members": {
             "cannot_remove_last": "無法將最後一位成員移除。",
             "email": "電子郵件",
@@ -38,7 +37,6 @@
             "invites": "邀請",
             "members": "成員",
             "notifiers": "通知",
-            "settings": "設定",
             "tools": "工具"
         },
         "uses": "使用"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "收藏選項",
                 "create_collection": "建立新收藏",
                 "join_collection": "加入存在收藏",
                 "no_collection_found": "無收藏結果",
@@ -699,7 +696,6 @@
         "total_entries": "紀錄數"
     },
     "menu": {
-        "collection": "收藏",
         "create_item": "物品/資產",
         "create_location": "位置",
         "create_tag": "標籤",
@@ -764,7 +760,6 @@
             "notifier_test_success": "推播通知已成功測試。",
             "password_changed": "密碼修改成功。"
         },
-        "update_group": "更新群組",
         "update_language": "更新語言",
         "url": "網址",
         "user_profile": "使用者資料",

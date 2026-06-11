@@ -15,7 +15,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("collection.tabs.settings")}` });
+  useHead({ title: `HomeBox | ${t("collection.tabs.general")}` });
 
   const api = useUserApi();
   const { selectedCollection, selectedId, load: reloadCollections } = useCollections();
@@ -157,7 +157,7 @@
         <div class="mt-4">
           <Button variant="secondary" size="sm" :disabled="saving" @click="save">
             <MdiLoading v-if="saving" class="mr-2 inline-block animate-spin" />
-            <span>{{ $t("profile.update_group") }}</span>
+            <span>{{ $t("global.save") }}</span>
           </Button>
         </div>
       </div>

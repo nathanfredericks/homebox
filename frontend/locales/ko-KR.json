@@ -14,7 +14,6 @@
         "leave_collection": "컬렉션 나가기",
         "leave_confirm": "이 컬렉션에서 나가시겠습니까?",
         "left_collection": "컬렉션에서 나갔습니다.",
-        "manage_collection": "컬렉션 관리",
         "members": {
             "cannot_remove_last": "마지막 구성원은 제거할 수 없습니다.",
             "email": "이메일",
@@ -39,7 +38,6 @@
             "invites": "초대",
             "members": "구성원",
             "notifiers": "알림",
-            "settings": "설정",
             "tools": "도구"
         },
         "uses": "사용 횟수"
@@ -101,7 +99,6 @@
                 }
             },
             "selector": {
-                "collection_options": "컬렉션 설정",
                 "create_collection": "새 컬렉션 생성",
                 "join_collection": "기존 컬렉션 참여",
                 "no_collection_found": "검색된 컬렉션이 없습니다",
@@ -707,7 +704,6 @@
         "total_entries": "총 항목 수"
     },
     "menu": {
-        "collection": "컬렉션",
         "create_item": "항목 / 자산",
         "create_location": "위치",
         "create_tag": "태그",
@@ -793,7 +789,6 @@
             "notifier_test_success": "알림 테스트에 성공했습니다.",
             "password_changed": "비밀번호가 성공적으로 변경되었습니다."
         },
-        "update_group": "그룹 업데이트",
         "update_language": "언어 업데이트",
         "url": "URL",
         "user_profile": "사용자 프로필",

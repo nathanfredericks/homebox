@@ -14,7 +14,6 @@
         "leave_collection": "Quitter cette collection",
         "leave_confirm": "Êtes-vous certain de vouloir quitter cette collection ?",
         "left_collection": "Vous avez quitter cette collection.",
-        "manage_collection": "Gérer la collection",
         "members": {
             "cannot_remove_last": "Vous ne pouvez supprimer le dernier membre.",
             "email": "Courriel",
@@ -38,7 +37,6 @@
             "invites": "Invitations",
             "members": "Membres",
             "notifiers": "Notifiants",
-            "settings": "Paramètres",
             "tools": "Outils"
         },
         "uses": "Utilisés"
@@ -100,7 +98,6 @@
                 }
             },
             "selector": {
-                "collection_options": "Options de la collection",
                 "create_collection": "Créer une nouvelle collection",
                 "join_collection": "Rejoindre une collection existante",
                 "no_collection_found": "Aucune collection trouvée",
@@ -699,7 +696,6 @@
         "total_entries": "Nombre d'entrées"
     },
     "menu": {
-        "collection": "Collection",
         "create_item": "Article / Ressource",
         "create_location": "Emplacement",
         "create_tag": "Étiquette",
@@ -764,7 +760,6 @@
             "notifier_test_success": "Test du notificateur réussi.",
             "password_changed": "Mot de passe changé avec succès."
         },
-        "update_group": "Mettre à jour le groupe",
         "update_language": "Mettre à jour la langue",
         "url": "URL",
         "user_profile": "Profil utilisateur",
