@@ -17,6 +17,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const defaultAppName = "Homebox"
+
 // MailerReady reports whether the SMTP mailer is configured and usable. The
 // HTTP forgot-password handler uses this to short-circuit with a clear error
 // when SMTP is missing, so the user sees something actionable instead of a
@@ -84,14 +86,23 @@ func (svc *UserService) processResetRequest(email, baseURL string) {
 	}
 	span.SetAttributes(attribute.String("user.id", usr.ID.String()))
 
+	appName := svc.getAppName(ctx)
 	link := buildResetLink(baseURL, rawToken)
-	if err := svc.sendResetEmail(usr, link); err != nil {
+	if err := svc.sendResetEmail(usr, link, appName); err != nil {
 		recordServiceSpanError(span, err)
 		span.SetAttributes(attribute.String("reset.outcome", "email_send_failed"))
 		log.Err(err).Str("user.id", usr.ID.String()).Msg("failed to send password reset email")
 		return
 	}
 	span.SetAttributes(attribute.String("reset.outcome", "sent"))
+}
+
+func (svc *UserService) getAppName(ctx context.Context) string {
+	_, theme, err := svc.repos.Themes.GetActiveTheme(ctx)
+	if err != nil || theme == nil || theme.Branding.AppName == "" {
+		return defaultAppName
+	}
+	return theme.Branding.AppName
 }
 
 // GenerateResetLink mints a token and returns the reset URL without sending
@@ -240,14 +251,14 @@ func (svc *UserService) createResetToken(ctx context.Context, email string) (str
 	return tok.Raw, usr, nil
 }
 
-func (svc *UserService) sendResetEmail(usr repo.UserOut, link string) error {
-	subject := "Reset your Homebox password"
-	body := buildResetEmailBody(usr.Name, link)
+func (svc *UserService) sendResetEmail(usr repo.UserOut, link, appName string) error {
+	subject := fmt.Sprintf("Reset your %s password", appName)
+	body := buildResetEmailBody(usr.Name, link, appName)
 
 	m := svc.mailer()
 	msg := mailer.NewMessageBuilder().
 		SetTo(usr.Name, usr.Email).
-		SetFrom("Homebox", m.From).
+		SetFrom(appName, m.From).
 		SetSubject(subject).
 		SetBody(body).
 		Build()
@@ -260,7 +271,7 @@ func buildResetLink(baseURL, rawToken string) string {
 	return fmt.Sprintf("%s/reset-password?token=%s", base, url.QueryEscape(rawToken))
 }
 
-func buildResetEmailBody(name, link string) string {
+func buildResetEmailBody(name, link, appName string) string {
 	if name == "" {
 		name = "there"
 	}
@@ -269,13 +280,13 @@ func buildResetEmailBody(name, link string) string {
 	return fmt.Sprintf(`<!doctype html>
 <html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; color: #1f2937;">
 <p>Hi %s,</p>
-<p>Someone (hopefully you) requested a password reset for your Homebox account. Click the link below to choose a new password. The link will expire in one hour and can only be used once.</p>
+<p>Someone (hopefully you) requested a password reset for your %s account. Click the link below to choose a new password. The link will expire in one hour and can only be used once.</p>
 <p><a href="%s" style="display: inline-block; padding: 10px 18px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 6px;">Reset password</a></p>
 <p>If the button doesn't work, paste this URL into your browser:</p>
 <p style="word-break: break-all;"><code>%s</code></p>
 <p>If you didn't request this, you can ignore this email — your password won't change.</p>
-<p>— Homebox</p>
-</body></html>`, htmlEscape(name), htmlEscape(link), htmlEscape(link))
+<p>— %s</p>
+</body></html>`, htmlEscape(name), htmlEscape(appName), htmlEscape(link), htmlEscape(link), htmlEscape(appName))
 }
 
 // htmlEscape is a minimal escaper for the few values we interpolate into the
