@@ -1,0 +1,20 @@
+{
+	# Railway terminates TLS at its edge; Caddy serves plain HTTP.
+	auto_https off
+	admin off
+}
+
+:{$PORT} {
+	# API and swagger go to the Go backend (incl. the /api/v1/ws/events
+	# websocket upgrade); everything else is server-side rendered by the
+	# frontend. Mirrors the Caddyfile in docker-compose.yml.
+	handle /api/* {
+		reverse_proxy {$BACKEND_HOST}
+	}
+	handle /swagger/* {
+		reverse_proxy {$BACKEND_HOST}
+	}
+	handle {
+		reverse_proxy {$FRONTEND_HOST}
+	}
+}
