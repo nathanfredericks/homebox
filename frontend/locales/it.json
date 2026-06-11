@@ -821,7 +821,6 @@
             "input_placeholder": "Scrivi qui",
             "instruction_1": "Il Generatore di Etichette di HomeBox è uno strumento che ti aiuta a stampare le etichette per il tuo inventario HomeBox.\nSono pensate come etichette da stampare in anticipo, così potrai stamparne molte e averle pronte da applicare",
             "instruction_2": "Queste etichette funzionano stampando un codice QR con un URL e le informazioni dell’AssetID sull’etichetta. Se hai disabilitato\n gli AssetID nelle impostazioni di HomeBox, puoi comunque usare questo strumento, ma gli AssetID non faranno riferimento a nessun elemento",
-            "instruction_3": "Questa funzione è nelle fasi iniziali di sviluppo e potrebbe cambiare nelle versioni future. Se hai suggerimenti,\n ti invitiamo a condividerli nella '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">Discussione GitHub</a>'",
             "label_height": "Altezza dell'etichetta",
             "label_width": "Larghezza dell'etichetta",
             "measure_type": "Tipo di misurazione",

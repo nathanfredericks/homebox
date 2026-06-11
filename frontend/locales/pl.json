@@ -810,7 +810,6 @@
             "input_placeholder": "Wpisz",
             "instruction_1": "Generator etykiet HomeBox to narzędzie, które pomoże Ci drukować etykiety do twojej kolekcji. Są to etykiety do\n druku z wyprzedzeniem, dzięki czemu możesz wydrukować wiele etykiet i mieć je gotowe do użycia",
             "instruction_2": "W związku z tym etykiety te działają poprzez drukowanie kodu QR URL i informacji o AssetID na etykiecie. \nJeśli wyłączyłeś/aś AssetID w ustawieniach HomeBox, nadal możesz korzystać z tego narzędzia, ale AssetID nie będzie odnosić się do żadnego elementu",
-            "instruction_3": "Ta funkcja jest na wczesnym etapie rozwoju i może ulec zmianie w przyszłych wersjach. Jeśli masz jakieś uwagi, prześlij je\nw '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'dyskusji na GitHubie'</a>'",
             "label_height": "Wysokość etykiety",
             "label_width": "Szerokość etykiety",
             "measure_type": "Typ miary",

@@ -501,7 +501,6 @@
             "input_placeholder": "Skriv her",
             "instruction_1": "Homebox Label Generator er et verktøy som hjelper deg med å skrive ut etiketter for Homebox-oversikten din. Disse er ment\n som forhåndsutskrevne etiketter, slik at du kan skrive ut mange etiketter og ha dem klare til bruk",
             "instruction_2": "Etikettene fungerer ved å skrive ut en QR-kode med URL og AssetID-informasjon på etiketten. Hvis du har deaktivert\n AssetID-er i Homebox-innstillingene dine, kan du fortsatt bruke dette verktøyet, men AssetID-ene vil da ikke vise til noen gjenstand",
-            "instruction_3": "Denne funksjonen er i en tidlig utviklingsfase og kan endres i fremtidige versjoner. Hvis du har tilbakemeldinger,\n vennligst legg dem inn i '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub-diskusjonen'</a>'",
             "label_height": "Etiketthøyde",
             "label_width": "Etikettbredde",
             "measure_type": "Måltype",

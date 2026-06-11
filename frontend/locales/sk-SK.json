@@ -821,7 +821,6 @@
             "input_placeholder": "Píšte sem",
             "instruction_1": "Generátor štítkov HomeBox je nástroj, ktorý vám pomôže vytlačiť štítky pre váš inventár HomeBoxu. Tieto štítky sú určené na\npredbežnú tlač, takže ich môžete vytlačiť viacero vopred a mať ich pripravené na neskoršie použitie.",
             "instruction_2": "Tieto štítky fungujú tak, že sa na štítok vytlačí QR kód URL adresy a informácia AssetID. Ak ste v nastaveniach HomeBoxu\n AssetID zakázali, môžete tento nástroj i naďalej používať, ale AssetIT nebude odkazovať na žiadnu položku",
-            "instruction_3": "Táto funkcia je v ranej fáze vývoja a v budúcich verziách sa môže zmeniť, ak máte spätnú väzbu, podeľte sa s ňou, prosím,\n v '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'Diskusii na GitHube'</a>'",
             "label_height": "Výška štítka",
             "label_width": "Šírka štítku",
             "measure_type": "Typ merania",

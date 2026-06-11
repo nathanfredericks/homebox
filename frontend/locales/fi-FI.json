@@ -776,7 +776,6 @@
             "input_placeholder": "Kirjoita tähän",
             "instruction_1": "HomeBox Label Generator on työkalu, joka auttaa tulostamaan tarroja HomeBox-varastollesi.\n Tarrat on tarkoitettu etukäteen tulostettaviksi, jotta voit tulostaa monta tarraa ja pitää ne valmiina liitettäväksi kohteisiin",
             "instruction_2": "Näin ollen nämä tarrat toimivat siten, että niihin tulostetaan URL-osoitteen QR-koodi ja resurssitunnus-tiedot.\nJos olet poistanut resurssitunnukset käytöstä HomeBox-asetuksissasi, voit silti käyttää tätä työkalua, mutta resurssitunnukset eivät viittaa mihinkään kohteeseen.",
-            "instruction_3": "Tämä ominaisuus on kehityksen alkuvaiheessa, ja se saattaa muuttua tulevissa julkaisuissa. Jos sinulla on palautetta,\nlähetä se '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">GitHub Discussion</a>' -keskusteluun",
             "label_height": "Tarran korkeus",
             "label_width": "Tarran leveys",
             "measure_type": "Mittayksikkö",

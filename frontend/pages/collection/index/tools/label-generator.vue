@@ -12,19 +12,22 @@
     getQRCodeUrl,
   } from "~~/lib/labels";
   import AssetLabel from "@/components/Label/AssetLabel.vue";
-  import { Toaster, toast } from "@/components/ui/sonner";
+  import { toast } from "@/components/ui/sonner";
   import { Separator } from "@/components/ui/separator";
   import { Button } from "@/components/ui/button";
   import { Label } from "@/components/ui/label";
   import { Input } from "@/components/ui/input";
   import { Checkbox } from "@/components/ui/checkbox";
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+  import BaseContainer from "@/components/Base/Container.vue";
+  import BaseCard from "@/components/Base/Card.vue";
+  import BaseSectionHeader from "@/components/Base/SectionHeader.vue";
+  import MdiPrinter from "~icons/mdi/printer";
 
   const { t } = useI18n();
 
   definePageMeta({
     middleware: ["auth"],
-    layout: false,
   });
   useHead({
     title: "HomeBox | " + t("reports.label_generator.title"),
@@ -227,120 +230,121 @@
 </script>
 
 <template>
-  <div class="print:hidden">
-    <Toaster />
-    <div class="container prose mx-auto max-w-4xl p-4 pt-6">
-      <h1>HomeBox {{ $t("reports.label_generator.title") }}</h1>
-      <p>
-        {{ $t("reports.label_generator.instruction_1") }}
-      </p>
-      <p>
-        {{ $t("reports.label_generator.instruction_2") }}
-      </p>
-      <p v-html="DOMPurify.sanitize($t('reports.label_generator.instruction_3'))" />
-      <h2>{{ $t("reports.label_generator.tips") }}</h2>
-      <ul>
-        <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_1'))" />
-        <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_2'))" />
-        <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_3'))" />
-      </ul>
-      <div class="flex flex-wrap gap-2">
-        <NuxtLink href="/collection/tools">{{ $t("collection.tabs.tools") }}</NuxtLink>
-        <NuxtLink href="/home">{{ $t("menu.home") }}</NuxtLink>
-      </div>
-    </div>
-    <Separator class="mx-auto max-w-4xl" />
-    <div class="container mx-auto max-w-4xl p-4">
-      <div class="mx-auto grid grid-cols-2 gap-3">
-        <div v-for="(prop, i) in propertyInputs" :key="i" class="flex w-full max-w-xs flex-col">
-          <Label :for="`input-${prop.ref}`">
-            {{ prop.label }}
-          </Label>
-          <Input
-            :id="`input-${prop.ref}`"
-            v-model="settings[prop.ref]"
-            :type="prop.type ? prop.type : 'number'"
-            :min="prop.min"
-            :max="prop.ref === 'skipLabels' ? Math.max(0, out.rows * out.cols - 1) : undefined"
-            :step="prop.type === 'text' ? undefined : (prop.step ?? 0.01)"
-            :placeholder="$t('reports.label_generator.input_placeholder')"
-            class="w-full max-w-xs"
-          />
+  <BaseContainer class="m-0 flex flex-col gap-4 px-0 print:hidden">
+    <BaseCard>
+      <template #title>
+        <BaseSectionHeader>
+          <MdiPrinter class="mr-2" />
+          <span> {{ $t("reports.label_generator.title") }} </span>
+          <template #description> {{ $t("reports.label_generator.instruction_1") }} </template>
+        </BaseSectionHeader>
+      </template>
+      <div class="border-t p-4 sm:px-6">
+        <div class="prose max-w-none">
+          <p>
+            {{ $t("reports.label_generator.instruction_2") }}
+          </p>
+          <h4>{{ $t("reports.label_generator.tips") }}</h4>
+          <ul>
+            <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_1'))" />
+            <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_2'))" />
+            <li v-html="DOMPurify.sanitize($t('reports.label_generator.tip_3'))" />
+          </ul>
         </div>
-        <div class="flex w-full max-w-xs flex-col">
-          <Label for="input-baseURL">
-            {{ $t("reports.label_generator.base_url") }}
-          </Label>
-          <Input
-            id="input-baseURL"
-            v-model="baseURLModel"
-            type="text"
-            :placeholder="$t('reports.label_generator.input_placeholder')"
-            class="w-full max-w-xs"
-          />
+        <Separator class="my-4" />
+        <div class="grid grid-cols-2 gap-3">
+          <div v-for="(prop, i) in propertyInputs" :key="i" class="flex w-full max-w-xs flex-col">
+            <Label :for="`input-${prop.ref}`">
+              {{ prop.label }}
+            </Label>
+            <Input
+              :id="`input-${prop.ref}`"
+              v-model="settings[prop.ref]"
+              :type="prop.type ? prop.type : 'number'"
+              :min="prop.min"
+              :max="prop.ref === 'skipLabels' ? Math.max(0, out.rows * out.cols - 1) : undefined"
+              :step="prop.type === 'text' ? undefined : (prop.step ?? 0.01)"
+              :placeholder="$t('reports.label_generator.input_placeholder')"
+              class="w-full max-w-xs"
+            />
+          </div>
+          <div class="flex w-full max-w-xs flex-col">
+            <Label for="input-baseURL">
+              {{ $t("reports.label_generator.base_url") }}
+            </Label>
+            <Input
+              id="input-baseURL"
+              v-model="baseURLModel"
+              type="text"
+              :placeholder="$t('reports.label_generator.input_placeholder')"
+              class="w-full max-w-xs"
+            />
+          </div>
+          <div class="flex w-full max-w-xs flex-col">
+            <Label for="select-sansFont">
+              {{ $t("reports.label_generator.sans_serif_font") }}
+            </Label>
+            <Select id="select-sansFont" v-model="settings.sansFont" class="w-full max-w-xs">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">
+                  {{ $t("reports.label_generator.font_default") }}
+                </SelectItem>
+                <SelectItem value="open-sans"> Open Sans </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="flex w-full max-w-xs flex-col">
+            <Label for="select-monoFont">
+              {{ $t("reports.label_generator.monospace_font") }}
+            </Label>
+            <Select id="select-monoFont" v-model="settings.monoFont" class="w-full max-w-xs">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">
+                  {{ $t("reports.label_generator.font_default") }}
+                </SelectItem>
+                <SelectItem value="geist-mono"> Geist Mono </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div class="flex w-full max-w-xs flex-col">
-          <Label for="select-sansFont">
-            {{ $t("reports.label_generator.sans_serif_font") }}
-          </Label>
-          <Select id="select-sansFont" v-model="settings.sansFont" class="w-full max-w-xs">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">
-                {{ $t("reports.label_generator.font_default") }}
-              </SelectItem>
-              <SelectItem value="open-sans"> Open Sans </SelectItem>
-            </SelectContent>
-          </Select>
+        <div class="max-w-xs">
+          <div class="flex items-center gap-2 py-4">
+            <Checkbox id="borderedLabels" v-model="settings.bordered" />
+            <Label class="cursor-pointer" for="borderedLabels">
+              {{ $t("reports.label_generator.bordered_labels") }}
+            </Label>
+          </div>
+          <div class="flex items-center gap-2 py-4">
+            <Checkbox id="printLocationRow" v-model="settings.printLocationRow" />
+            <Label class="cursor-pointer" for="printLocationRow">
+              {{ $t("reports.label_generator.print_location_row") }}
+            </Label>
+          </div>
+          <div class="flex items-center gap-2 py-4">
+            <Checkbox id="labelPerQuantity" v-model="settings.labelPerQuantity" />
+            <Label class="cursor-pointer" for="labelPerQuantity">
+              {{ $t("reports.label_generator.label_per_quantity") }}
+            </Label>
+          </div>
         </div>
-        <div class="flex w-full max-w-xs flex-col">
-          <Label for="select-monoFont">
-            {{ $t("reports.label_generator.monospace_font") }}
-          </Label>
-          <Select id="select-monoFont" v-model="settings.monoFont" class="w-full max-w-xs">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">
-                {{ $t("reports.label_generator.font_default") }}
-              </SelectItem>
-              <SelectItem value="geist-mono"> Geist Mono </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div class="max-w-xs">
-        <div class="flex items-center gap-2 py-4">
-          <Checkbox id="borderedLabels" v-model="settings.bordered" />
-          <Label class="cursor-pointer" for="borderedLabels">
-            {{ $t("reports.label_generator.bordered_labels") }}
-          </Label>
-        </div>
-        <div class="flex items-center gap-2 py-4">
-          <Checkbox id="printLocationRow" v-model="settings.printLocationRow" />
-          <Label class="cursor-pointer" for="printLocationRow">
-            {{ $t("reports.label_generator.print_location_row") }}
-          </Label>
-        </div>
-        <div class="flex items-center gap-2 py-4">
-          <Checkbox id="labelPerQuantity" v-model="settings.labelPerQuantity" />
-          <Label class="cursor-pointer" for="labelPerQuantity">
-            {{ $t("reports.label_generator.label_per_quantity") }}
-          </Label>
-        </div>
-      </div>
 
-      <div>
-        <p>{{ $t("reports.label_generator.qr_code_example") }} {{ resolvedBaseURL }}/a/{asset_id}</p>
-        <Button size="lg" class="my-4 w-full" @click="calcPages">
-          {{ $t("reports.label_generator.generate_page") }}
-        </Button>
+        <div>
+          <p class="text-sm text-muted-foreground">
+            {{ $t("reports.label_generator.qr_code_example") }} {{ resolvedBaseURL }}/a/{asset_id}
+          </p>
+          <Button size="lg" class="mt-4 w-full" @click="calcPages">
+            {{ $t("reports.label_generator.generate_page") }}
+          </Button>
+        </div>
       </div>
-    </div>
-  </div>
+    </BaseCard>
+  </BaseContainer>
   <div class="flex flex-col items-center">
     <section
       v-for="(page, pi) in pages"

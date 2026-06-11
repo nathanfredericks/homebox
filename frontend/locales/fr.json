@@ -780,7 +780,6 @@
             "input_placeholder": "Tapez ici",
             "instruction_1": "Le générateur d'étiquettes de HomeBox est un outil pour vous aider à imprimer des étiquettes pour votre inventaire. Ces étiquette générés d'avance\nvous permettre d'en imprimer plusieurs afin qu'elles soit prêtes à être utilisées pour identifier vos items",
             "instruction_2": "Servent à imprimer un code QR contenant le lien URL et les identifiants des ressources sur une étiquette. Si vous avez désactivé\n les ID de ressource dans vos paramètres HomeBox, vous pouvez quand même utiliser cet outil, mais les ID de Ressource ne référenceront aucun article",
-            "instruction_3": "Cette fonctionnalité en est aux premiers stades de développement et peut changer dans les versions futures, si vous avez du feedback, veuillez\n le fournir dans la '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\"> 'Discussion GitHub'</a>'",
             "label_height": "Hauteur de l'étiquette",
             "label_width": "Largeur de l’étiquette",
             "measure_type": "Type de mesure",

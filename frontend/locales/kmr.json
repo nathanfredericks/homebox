@@ -821,7 +821,6 @@
             "input_placeholder": "Li vir binivîse",
             "instruction_1": "Çêkerê etîketên HomeBox amûrek e ku alîkariya te dike etîketên envantera HomeBox çap bikî. Ev ji bo etîketên pêşçapkirî ne, da ku tu gelek etîketan çap bikî û amade bikî ku li envantera xwe bisepînî",
             "instruction_2": "Ji ber vê yekê, ev etîket bi çapkirina Koda QR ya URL û agahiyên AssetID li ser etîketê dixebitin. Heke te AssetID di mîhengên HomeBox de neçalak kiribe, tu hîn jî dikarî vê amûrê bikar bînî, lê AssetID dê tu tiştê nîşan nedin",
-            "instruction_3": "Ev taybetmendî hîn di qonaxên destpêkê yên pêşdebirinê de ye û dibe ku di weşanên bê de biguhere. Heke te bersiv/feedback hebe, ji kerema xwe wê di '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'Gotûbêja GitHub'</a>' de parve bike",
             "label_height": "Bilindiya etîketê",
             "label_width": "Firehiya etîketê",
             "measure_type": "Cureya pîvanê",

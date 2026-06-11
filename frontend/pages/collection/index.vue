@@ -104,10 +104,10 @@
 </script>
 
 <template>
-  <BaseContainer>
+  <BaseContainer class="print:my-0 print:max-w-none print:px-0">
     <Title>{{ t("menu.collection_options") }}</Title>
 
-    <section>
+    <section class="print:hidden">
       <Card class="p-3">
         <header>
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -130,7 +130,7 @@
             v-for="tab in tabs"
             :key="tab.id"
             as-child
-            :variant="tab.to === currentPath ? 'default' : 'outline'"
+            :variant="currentPath.startsWith(tab.to) ? 'default' : 'outline'"
             size="sm"
           >
             <NuxtLink :to="tab.to" class="flex items-center gap-2">

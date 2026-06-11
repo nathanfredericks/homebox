@@ -796,7 +796,6 @@
             "input_placeholder": "Hier tippen",
             "instruction_1": "Der Homebox-Etikettengenerator ist ein Tool, mit dem Sie Etiketten für Ihr Homebox-Inventar drucken können. Er dient dazu,\nEtiketten im Voraus zu drucken, sodass Sie viele Etiketten drucken und zum Anbringen bereithalten können",
             "instruction_2": "Diese Etiketten funktionieren, indem Sie einen URL-QR-Code und Asset-ID-Informationen auf ein Etikett drucken. Falls Sie Asset-IDs\nin Ihren HomeBox-Einstellungen deaktiviert haben, können Sie dieses Tool weiterhin verwenden, aber die Asset-IDs verweisen nicht auf Artikel",
-            "instruction_3": "Diese Funktion ist in einer frühen Entwicklungsphase und kann sich in zukünftigen Versionen ändern. Wenn Sie Feedback geben möchten, können Sie das hier tun:\n '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub Discussion'</a>'",
             "label_height": "Etikettenhöhe",
             "label_width": "Etikettenbreite",
             "measure_type": "Art der Messung",

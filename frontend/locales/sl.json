@@ -501,7 +501,6 @@
             "input_placeholder": "Vnesite tukaj",
             "instruction_1": "Homebox Generator Nalepk je orodje za pomoč pri tiskanju nalepk za vaš Homebox inventar. Te so namenjene za\n tisk vnaprej, da imate več nalepk pripravljenih za uporabo",
             "instruction_2": "Te nalepke delujejo z uporabo URL naslovne QR kode in ID sredstva na nalepki. Če ste onemogočili\nIDje sredstev v vaših Homebox nastavitvah lahko to orodje še vedno uporabljate, vendar se IDji sredstev ne bodo nanašali na noben predmet",
-            "instruction_3": "Ta funkcija je v zgodnjih stopnjah razvoja in se lahko spremeni v prihodnjih verzijah. Če želite podati mnenje \nga prosimo podajte v '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub razpravah'</a>'",
             "label_height": "Višina nalepke",
             "label_width": "Širina nalepke",
             "measure_type": "Merska enota",

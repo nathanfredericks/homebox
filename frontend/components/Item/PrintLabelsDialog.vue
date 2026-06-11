@@ -215,7 +215,10 @@
             })
           }}
         </p>
-        <NuxtLink to="/reports/label-generator" class="text-sm text-primary underline-offset-4 hover:underline">
+        <NuxtLink
+          to="/collection/tools/label-generator"
+          class="text-sm text-primary underline-offset-4 hover:underline"
+        >
           {{ $t("components.global.label_maker.configure_settings") }}
         </NuxtLink>
       </div>

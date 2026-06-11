@@ -159,15 +159,15 @@
 
         <SidebarRail />
       </Sidebar>
-      <SidebarInset class="min-h-dvh max-w-full overflow-hidden bg-background-accent">
+      <SidebarInset class="min-h-dvh max-w-full overflow-hidden bg-background-accent print:overflow-visible">
         <div class="relative flex h-full flex-col justify-center">
-          <div v-if="preferences.displayLegacyHeader">
+          <div v-if="preferences.displayLegacyHeader" class="print:hidden">
             <AppHeaderDecor class="-mt-10 hidden lg:block" />
             <SidebarTrigger class="absolute left-2 top-2 hidden lg:flex" variant="default" />
           </div>
           <!-- IMPORTANT: if you change the height of this div, alter the top value in the item edit page-->
           <div
-            class="sticky top-0 z-20 flex h-[var(--header-height-mobile)] translate-y-[-0.5px] flex-col bg-secondary p-2 shadow-md sm:h-[var(--header-height)] sm:flex-row"
+            class="sticky top-0 z-20 flex h-[var(--header-height-mobile)] translate-y-[-0.5px] flex-col bg-secondary p-2 shadow-md sm:h-[var(--header-height)] sm:flex-row print:hidden"
             :class="{
               'lg:hidden': preferences.displayLegacyHeader,
             }"
@@ -203,7 +203,7 @@
           <slot />
           <div class="grow" />
 
-          <footer v-if="status" class="bottom-0 w-full pb-4 text-center">
+          <footer v-if="status" class="bottom-0 w-full pb-4 text-center print:hidden">
             <p class="text-center text-sm">
               <span
                 v-html="
@@ -429,7 +429,7 @@
       },
       {
         id: 66,
-        active: computed(() => route.path === "/collection/tools"),
+        active: computed(() => route.path.startsWith("/collection/tools")),
         name: computed(() => t("collection.tabs.tools")),
         to: "/collection/tools",
         visible: can("tools", "view"),

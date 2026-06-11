@@ -44,7 +44,7 @@
 
   <div
     v-else
-    class="group peer hidden md:block"
+    class="group peer hidden md:block print:hidden"
     :data-state="state"
     :data-collapsible="state === 'collapsed' ? collapsible : ''"
     :data-variant="variant"

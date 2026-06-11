@@ -11,7 +11,6 @@ const ROUTE_SECTIONS: [prefix: string, section: PermSection][] = [
   ["/a/", "items"],
   ["/label/", "items"],
   ["/scanner-ar", "items"],
-  ["/reports/label-generator", "items"],
   ["/locations", "locations"],
   ["/location/", "locations"],
   ["/tags", "tags"],

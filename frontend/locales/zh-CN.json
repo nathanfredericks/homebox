@@ -821,7 +821,6 @@
             "input_placeholder": "在此输入",
             "instruction_1": "HomeBox 标签生成器是一个帮助您打印 Homebox 库存标签的工具。这些标签是\n预打印的设计，这样您就可以一次性打印出多张标签，并可以随时将它们粘贴到物品上",
             "instruction_2": "因此，这些标签会打印一个 URL 的二维码以及资产ID信息来完成工作。\n如果您在 HomeBox 设置中禁用了资产ID，您仍然可以使用此工具，但资产编号将不会和任何物品相关",
-            "instruction_3": "此功能处于早期开发阶段，可能会在未来版本中发生变化，如果您有反馈，请\n在'<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub讨论'</a>'中提供",
             "label_height": "标签高度",
             "label_width": "标签宽度",
             "measure_type": "长度单位",

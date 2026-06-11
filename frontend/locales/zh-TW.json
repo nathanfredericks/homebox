@@ -780,7 +780,6 @@
             "input_placeholder": "在此輸入",
             "instruction_1": "HomeBox標籤產生器可協助您為HomeBox物品列印標籤。\n且可以次性列印多個物品標籤，並直接貼於您的物品上",
             "instruction_2": "標籤產生器將於標籤上列印網址QR Code和Asset ID。 \n若HomeBox設定中停用AssetID，此工具仍然可以使用但所產生的Asset ID將不會對應到任何項目",
-            "instruction_3": "此功能目前仍在開發階段，未來可能會有所調整。\n若您有任何建議，歡迎於 '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub討論'</a>'提出",
             "label_height": "標籤高度",
             "label_width": "標籤寬度",
             "measure_type": "測量單位",

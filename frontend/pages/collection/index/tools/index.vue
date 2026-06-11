@@ -11,7 +11,7 @@
           </BaseSectionHeader>
         </template>
         <div class="divide-y border-t p-4">
-          <DetailAction to="/reports/label-generator">
+          <DetailAction to="/collection/tools/label-generator">
             <template #title>{{ $t("tools.reports_set.asset_labels") }}</template>
             {{ $t("tools.reports_set.asset_labels_sub") }}
             <template #button>

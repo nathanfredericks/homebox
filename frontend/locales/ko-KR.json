@@ -809,7 +809,6 @@
             "input_placeholder": "여기에 입력하세요",
             "instruction_1": "HomeBox 라벨 생성기는 HomeBox 인벤토리용 라벨 출력을 돕는 도구입니다. \n이 기능은 라벨을 미리 대량으로 출력해 두었다가 필요할 때 바로 부착하여 사용할 수 있도록 설계되었습니다",
             "instruction_2": "이에 따라, 각 라벨에는 URL QR 코드와 자산 ID(AssetID) 정보가 인쇄됩니다. \nHomeBox 설정에서 자산 ID를 비활성화한 경우에도 이 도구를 사용할 수 있지만, 이 경우 인쇄된 자산 ID는 특정 물품을 참조하지 않습니다",
-            "instruction_3": "이 기능은 현재 초기 개발 단계에 있으며 향후 릴리스에서 변경될 수 있습니다. \n의견이 있으시면 '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'GitHub Discussion'</a>' 섹션에 피드백을 남겨주세요",
             "label_height": "라벨 높이",
             "label_width": "라벨 너비",
             "measure_type": "측정 유형",

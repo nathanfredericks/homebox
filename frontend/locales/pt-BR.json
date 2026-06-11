@@ -785,7 +785,6 @@
             "input_placeholder": "Digite aqui",
             "instruction_1": "O Gerador de etiquetas do HomeBox é uma ferramenta que ajuda você a imprimir etiquetas do seu inventário. Ele foi feita para\n antecipar arquivo de impressão das etiquetas e deixá-lo pronto para imprimir e usar",
             "instruction_2": "Dessa forma, essas é geradoum código QR com o URL e informações de AssetID em uma etiqueta. Se você desativou os\n AssetIDs nas configurações do HomeBox, a ferramenta ainda funciona, mas os AssetIDs não farão referência a nenhum item",
-            "instruction_3": "Este recurso está em estágios iniciais de desenvolvimento e pode mudar em versões futuras. Se você tiver algum feedback,\nfaça-o na '<a href=\"https://github.com/sysadminsmedia/homebox/discussions/53\">'Discussão do GitHub'</a>'",
             "label_height": "Altura da Etiqueta",
             "label_width": "Largura da Etiqueta",
             "measure_type": "Tipo da Medida",
