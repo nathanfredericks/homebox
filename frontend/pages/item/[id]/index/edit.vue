@@ -630,7 +630,7 @@
           </div>
         </BaseCard>
 
-        <BaseCard v-if="preferences.editorAdvancedView">
+        <BaseCard>
           <template #title> {{ $t("items.custom_fields") }} </template>
           <div class="space-y-4 divide-y border-t px-5">
             <div
