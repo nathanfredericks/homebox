@@ -447,7 +447,9 @@
         }
     },
     "errors": {
-        "api_failure": "Backend API call failed: "
+        "api_failure": "Backend API call failed: ",
+        "load_failed": "Failed to load data from the server.",
+        "network_unreachable": "Cannot reach the server. Check your connection and try again."
     },
     "global": {
         "add": "Add",

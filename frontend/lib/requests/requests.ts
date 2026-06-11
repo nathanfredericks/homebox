@@ -95,7 +95,17 @@ export class Requests {
       }
     }
 
-    const response = await fetch(this.url(rargs.url), payload);
+    let response: Response;
+    try {
+      response = await fetch(this.url(rargs.url), payload);
+    } catch {
+      // Network failure (server unreachable, CORS, aborted). Normalize to a
+      // status-0 response so callers' `if (res.error)` paths handle it instead
+      // of the browser's raw TypeError propagating into the UI.
+      const errResponse = Response.error();
+      this.callResponseInterceptors(errResponse, payload);
+      return { status: 0, error: true, data: {} as T, response: errResponse };
+    }
     this.callResponseInterceptors(response, payload);
 
     const data: T = await (async () => {

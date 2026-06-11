@@ -18,61 +18,56 @@
   useHead({ title: `HomeBox | ${t("collection.tabs.settings")}` });
 
   const api = useUserApi();
-  const { selectedCollection, load: reloadCollections } = useCollections();
+  const { selectedCollection, selectedId, load: reloadCollections } = useCollections();
 
-  const loading = ref(true);
   const saving = ref(false);
-  const error = ref<string | null>(null);
 
-  const group = ref<Group | null>(null);
-  const currencies = ref<CurrenciesCurrency[]>([]);
   const name = ref("");
   const currencyCode = ref("USD");
   const currencyExample = ref("$1,000.00");
 
-  const loadSettings = async () => {
-    if (!selectedCollection.value) {
-      loading.value = false;
-      return;
-    }
-
-    loading.value = true;
-    error.value = null;
-
-    try {
-      if (!currencies.value.length) {
-        const respCurrencies = await api.group.currencies();
-        if (respCurrencies.error) {
-          toast.error(t("profile.toast.failed_get_currencies"));
-        } else if (respCurrencies.data) {
-          currencies.value = respCurrencies.data;
-        }
-      }
-
-      const res = await api.group.get(selectedCollection.value.id);
-      if (res.error || !res.data) {
-        const msg = t("errors.api_failure") + String(res.error ?? "");
-        error.value = msg;
-        toast.error(msg);
-        return;
-      }
-
-      group.value = res.data;
-      name.value = res.data.name;
-      currencyCode.value = res.data.currency;
-    } catch (e) {
-      const msg = (e as Error).message ?? String(e);
-      error.value = msg;
-      toast.error(msg);
-    } finally {
-      loading.value = false;
-    }
+  type SettingsData = {
+    failed: boolean;
+    group: Group | null;
+    currencies: CurrenciesCurrency[];
   };
 
+  // Fetched during SSR; re-runs client-side only when the selected collection
+  // changes. Failures render the inline error block — no toasts on load.
+  const {
+    data: settings,
+    status,
+    refresh,
+  } = await useAsyncData<SettingsData | null>(
+    "collection-settings",
+    async () => {
+      if (!selectedId.value) {
+        return null;
+      }
+
+      const [currenciesRes, groupRes] = await Promise.all([api.group.currencies(), api.group.get(selectedId.value)]);
+
+      if (currenciesRes.error || groupRes.error || !groupRes.data) {
+        return { failed: true, group: null, currencies: [] };
+      }
+
+      return { failed: false, group: groupRes.data, currencies: currenciesRes.data ?? [] };
+    },
+    { watch: [selectedId] }
+  );
+
+  const loading = computed(() => status.value === "pending");
+  const loadFailed = computed(() => settings.value?.failed === true);
+  const group = computed(() => settings.value?.group ?? null);
+  const currencies = computed(() => settings.value?.currencies ?? []);
+
   watch(
-    () => selectedCollection.value?.id,
-    () => {
-      void loadSettings();
+    group,
+    g => {
+      if (g) {
+        name.value = g.name;
+        currencyCode.value = g.currency;
+      }
     },
     { immediate: true }
   );
@@ -94,7 +89,6 @@
     if (!selectedCollection.value) return;
 
     saving.value = true;
-    error.value = null;
 
     try {
       const res = await api.group.update(
@@ -106,21 +100,17 @@
       );
 
       if (res.error || !res.data) {
-        const msg = t("profile.toast.failed_update_group");
-        error.value = msg;
-        toast.error(msg);
+        toast.error(t("profile.toast.failed_update_group"));
         return;
       }
 
-      group.value = res.data;
       setCurrency(res.data.currency);
       toast.success(t("profile.toast.group_updated"));
 
       await reloadCollections();
-    } catch (e) {
-      const msg = (e as Error).message ?? String(e);
-      error.value = msg;
-      toast.error(msg);
+      await refresh();
+    } catch {
+      toast.error(t("profile.toast.failed_update_group"));
     } finally {
       saving.value = false;
     }
@@ -136,6 +126,10 @@
     <div v-else>
       <div v-if="!selectedCollection" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
         {{ $t("components.collection.selector.select_collection") }}
+      </div>
+
+      <div v-else-if="loadFailed" class="rounded-md border bg-card p-4 text-sm text-destructive">
+        {{ $t("errors.load_failed") }}
       </div>
 
       <div v-else class="space-y-4 rounded-md border bg-card p-4">

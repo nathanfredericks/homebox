@@ -89,7 +89,7 @@
   import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
   import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
   import { cn } from "~/lib/utils";
-  import { ref, computed, watch, onMounted } from "vue";
+  import { ref, computed, watch } from "vue";
   import { useSidebar } from "@/components/ui/sidebar/utils";
   import { useI18n } from "vue-i18n";
   import { DialogID } from "@/components/ui/dialog-provider/utils";
@@ -113,7 +113,9 @@
   const open = ref(false);
   const search = ref("");
 
-  const { collections, selectedCollection, load, set } = useCollections();
+  // Collections are loaded during SSR by the default layout; explicit load()
+  // calls happen only after mutations (create/delete/rename).
+  const { collections, selectedCollection, set } = useCollections();
   const collectionsList = computed(() => collections.value);
 
   function selectCollection(collection: CollectionSummary) {
@@ -140,8 +142,4 @@
       }
     }
   );
-
-  onMounted(() => {
-    load();
-  });
 </script>

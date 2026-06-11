@@ -3,7 +3,6 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
   import { Badge } from "@/components/ui/badge";
   import { Button } from "@/components/ui/button";
-  import { toast } from "@/components/ui/sonner";
   import MdiPencil from "~icons/mdi/pencil";
   import type { RoleOut } from "~~/lib/api/types/data-contracts";
 
@@ -19,8 +18,18 @@
   const { can } = usePermissions();
   const { selectedId } = useCollections();
 
-  const loading = ref(true);
-  const groups = ref<RoleOut[]>([]);
+  // Fetched during SSR; failures render the inline error block below.
+  const { data: rolesData, status } = await useAsyncData("collection-access", async () => {
+    const res = await api.roles.getAll();
+    if (res.error) {
+      return { failed: true, groups: [] as RoleOut[] };
+    }
+    return { failed: false, groups: res.data ?? [] };
+  });
+
+  const loading = computed(() => status.value === "pending");
+  const loadFailed = computed(() => rolesData.value?.failed === true);
+  const groups = computed<RoleOut[]>(() => rolesData.value?.groups ?? []);
 
   // Which groups grant anything on the current collection, and what.
   type AccessRow = { group: RoleOut; sections: string[]; full: boolean };
@@ -50,25 +59,6 @@
 
     return out;
   });
-
-  const loadGroups = async () => {
-    loading.value = true;
-    try {
-      const res = await api.roles.getAll();
-      if (res.error) {
-        toast.error(t("errors.api_failure") + String(res.error));
-        groups.value = [];
-      } else {
-        groups.value = res.data ?? [];
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  onMounted(() => {
-    void loadGroups();
-  });
 </script>
 
 <template>
@@ -80,7 +70,11 @@
     </div>
 
     <div v-else>
-      <div v-if="!rows.length" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
+      <div v-if="loadFailed" class="rounded-md border bg-card p-4 text-sm text-destructive">
+        {{ $t("errors.load_failed") }}
+      </div>
+
+      <div v-else-if="!rows.length" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
         {{ $t("collection.access.empty") }}
       </div>
 

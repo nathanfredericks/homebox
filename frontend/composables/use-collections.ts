@@ -1,18 +1,21 @@
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { useUserApi } from "~/composables/use-api";
 import { useViewPreferences } from "~/composables/use-preferences";
-import { useRoute, navigateTo } from "#imports";
+import { useRoute, navigateTo, useState } from "#imports";
 
 export type CollectionSummary = {
   id: string;
   name: string;
 };
 
-const collections = ref<CollectionSummary[]>([]);
-const selectedId = ref<string | null>(null);
-const refreshing = ref(false);
-
 export const useCollections = () => {
+  // useState keeps the state per-request during SSR (module-scope refs would
+  // leak between requests) and serializes it into the payload so the client
+  // hydrates with the collections already loaded.
+  const collections = useState<CollectionSummary[]>("collections", () => []);
+  const selectedId = useState<string | null>("collections-selected-id", () => null);
+  const refreshing = useState("collections-refreshing", () => false);
+
   const load = async () => {
     if (useRoute().path === "/") {
       console.debug("[useCollections] On root path '/', skipping load");
@@ -31,12 +34,23 @@ export const useCollections = () => {
       const prefs = useViewPreferences();
 
       console.debug("[useCollections] Fetching current user");
-      const { data: userResp } = await api.user.self();
-      const user = userResp?.item;
+      const userRes = await api.user.self();
+      if (userRes.error) {
+        // Backend unreachable or session invalid: keep whatever state we have
+        // rather than mistaking the failure for "user has no collections".
+        console.error("[useCollections] Failed to fetch current user, keeping existing state");
+        return;
+      }
+      const user = userRes.data?.item;
       console.debug("[useCollections] User loaded", { userId: user?.id, defaultGroupId: user?.defaultGroupId });
 
       console.debug("[useCollections] Fetching all groups");
-      const { data: allGroups } = await api.group.getAll();
+      const groupsRes = await api.group.getAll();
+      if (groupsRes.error) {
+        console.error("[useCollections] Failed to fetch groups, keeping existing state");
+        return;
+      }
+      const allGroups = groupsRes.data;
       const available = Array.isArray(allGroups)
         ? (allGroups as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))
         : [];
@@ -51,7 +65,7 @@ export const useCollections = () => {
         const route = useRoute();
         if (collections.value.length === 0) {
           console.warn("[useCollections] No collections available for user");
-          if (import.meta.client && route.path !== "/no-collections" && route.path !== "/") {
+          if (route.path !== "/no-collections" && route.path !== "/") {
             console.log("[useCollections] Navigating to /no-collections (no available collections)");
             void navigateTo("/no-collections");
           }

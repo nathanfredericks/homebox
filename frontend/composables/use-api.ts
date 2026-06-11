@@ -1,3 +1,4 @@
+import { toast } from "@/components/ui/sonner";
 import { PublicApi } from "~~/lib/api/public";
 import { UserClient } from "~~/lib/api/user";
 import { Requests } from "~~/lib/requests";
@@ -21,6 +22,20 @@ export function defineObserver(key: string, observer: Observer): RemoveObserver 
 
 function logger(r: Response) {
   console.log(`${r.status}   ${r.url}   ${r.statusText}`);
+}
+
+// A dead backend fails every in-flight request at once; surface a single
+// friendly toast instead of one raw browser error per request.
+let lastNetworkErrorToastAt = 0;
+const NETWORK_ERROR_TOAST_INTERVAL_MS = 5000;
+
+function notifyNetworkError(t: (key: string) => string) {
+  const now = Date.now();
+  if (now - lastNetworkErrorToastAt < NETWORK_ERROR_TOAST_INTERVAL_MS) {
+    return;
+  }
+  lastNetworkErrorToastAt = now;
+  toast.error(t("errors.network_unreachable"));
 }
 
 // In the browser requests stay relative (same origin, routed by the reverse
@@ -63,6 +78,16 @@ export function useUserApi(): UserClient {
 
   const requests = new Requests(apiBaseUrl(), "", headers);
   requests.addResponseInterceptor(logger);
+
+  if (import.meta.client) {
+    const { $i18nGlobal } = useNuxtApp();
+    requests.addResponseInterceptor(r => {
+      if (r.status === 0) {
+        notifyNetworkError(key => $i18nGlobal.t(key));
+      }
+    });
+  }
+
   requests.addResponseInterceptor(async r => {
     if (r.status === 401) {
       console.error("unauthorized request, invalidating session");

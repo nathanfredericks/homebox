@@ -61,8 +61,8 @@
 
       toast.success(t("admin.groups.created"));
       closeDialog(DialogID.AdminGroupCreate, res.data.id);
-    } catch (e) {
-      toast.error((e as Error).message ?? String(e));
+    } catch {
+      toast.error(t("errors.api_failure"));
     } finally {
       loading.value = false;
     }

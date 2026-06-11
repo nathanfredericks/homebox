@@ -95,9 +95,8 @@
       toast.success(t("collection.deleted_collection"));
       await reloadCollections();
       window.location.reload();
-    } catch (e) {
-      const msg = (e as Error).message ?? String(e);
-      toast.error(msg);
+    } catch {
+      toast.error(t("errors.api_failure"));
     } finally {
       actionLoading.value = false;
     }

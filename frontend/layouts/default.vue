@@ -556,6 +556,13 @@
   // fetched data reaches the client via the serialized Pinia state). Data the
   // user cannot view is never fetched.
   const sidebarFetches: Promise<unknown>[] = [];
+  const { load: loadCollections } = useCollections();
+  sidebarFetches.push(
+    useAsyncData("collections", async () => {
+      await loadCollections();
+      return true;
+    })
+  );
   if (canAny("tags", "view")) {
     sidebarFetches.push(
       useAsyncData("sidebar-tags", async () => {
