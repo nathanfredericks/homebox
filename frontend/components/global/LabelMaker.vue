@@ -66,7 +66,7 @@
     return data;
   });
 
-  const { settings, sansFontFamily, monoFontFamily, resolvedBaseURL } = useLabelSettings();
+  const { settings, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } = useLabelSettings();
 
   const labelAssetId = computed(() =>
     props.type !== "location" && hasAssetID(props.assetId) ? fmtAssetID(props.assetId!) : null
@@ -95,6 +95,7 @@
     if (!el) {
       return null;
     }
+    await ensureFontsLoaded();
     return await renderNodeToPng(el);
   }
 

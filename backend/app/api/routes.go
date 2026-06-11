@@ -144,6 +144,25 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Delete("/admin/settings/{section}", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsReset(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionEdit))...))
 		r.Post("/admin/settings/algolia/reindex", chain.ToHandlerFunc(v1Ctrl.HandleAdminSettingsAlgoliaReindex(), with(siteMW, a.mwPermission(permissions.SectionSiteSettings, permissions.ActionEdit))...))
 
+		// Theming administration (site-scoped). The active theme's branding
+		// assets are additionally served unauthenticated further below for
+		// the login page.
+		r.Get("/themes", chain.ToHandlerFunc(v1Ctrl.HandleThemesGetAll(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionView))...))
+		r.Post("/themes", chain.ToHandlerFunc(v1Ctrl.HandleThemeCreate(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionCreate))...))
+		r.Get("/themes/{id}", chain.ToHandlerFunc(v1Ctrl.HandleThemeGet(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionView))...))
+		r.Put("/themes/{id}", chain.ToHandlerFunc(v1Ctrl.HandleThemeUpdate(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionEdit))...))
+		r.Delete("/themes/{id}", chain.ToHandlerFunc(v1Ctrl.HandleThemeDelete(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionDelete))...))
+		r.Post("/themes/{id}/assets/{kind}", chain.ToHandlerFunc(v1Ctrl.HandleThemeAssetUpload(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionEdit))...))
+		r.Delete("/themes/{id}/assets/{kind}", chain.ToHandlerFunc(v1Ctrl.HandleThemeAssetDelete(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionEdit))...))
+		r.Get("/themes/{id}/assets/{kind}", chain.ToHandlerFunc(v1Ctrl.HandleThemeAssetGet(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionView))...))
+		r.Get("/theming/active", chain.ToHandlerFunc(v1Ctrl.HandleThemingActive(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionView))...))
+		r.Put("/theming/active", chain.ToHandlerFunc(v1Ctrl.HandleThemingActiveSet(), with(siteMW, a.mwPermission(permissions.SectionTheming, permissions.ActionEdit))...))
+
+		// Unauthenticated: branding images of the *active* theme only (the
+		// route takes no theme ID, so non-active themes are not enumerable).
+		// The login page renders these pre-auth.
+		r.Get("/theming/assets/{kind}", chain.ToHandlerFunc(v1Ctrl.HandleThemingActiveAssetGet()))
+
 		// Collection endpoints
 		r.Get("/groups/all", chain.ToHandlerFunc(v1Ctrl.HandleGroupsGetAll(), userMW...))
 		r.Post("/groups", chain.ToHandlerFunc(v1Ctrl.HandleGroupCreate(), with(siteMW, a.mwPermission(permissions.SectionCollections, permissions.ActionCreate))...))

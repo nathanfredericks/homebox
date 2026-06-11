@@ -19,7 +19,7 @@
     middleware: ["auth"],
   });
   useHead({
-    title: "HomeBox | " + t("menu.home"),
+    title: t("menu.home"),
   });
 
   const api = useUserApi();

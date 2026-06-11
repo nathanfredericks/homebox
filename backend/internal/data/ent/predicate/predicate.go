@@ -60,5 +60,8 @@ type Tag func(*sql.Selector)
 // TemplateField is the predicate function for templatefield builders.
 type TemplateField func(*sql.Selector)
 
+// Theme is the predicate function for theme builders.
+type Theme func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

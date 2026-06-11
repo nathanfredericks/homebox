@@ -1,7 +1,6 @@
 import type { Ref } from "vue";
 import type { NuxtApp } from "nuxt/app";
 import type { EntitySummary } from "~/lib/api/types/data-contracts";
-import type { DaisyTheme } from "~~/lib/data/themes";
 
 export type ViewType = "table" | "card";
 
@@ -28,8 +27,10 @@ export type LabelMakerPreferences = {
   pageBottomPadding: number;
   pageLeftPadding: number;
   pageRightPadding: number;
-  sansFont: "default" | "open-sans";
-  monoFont: "default" | "geist-mono";
+  // "default" for the system stack, otherwise a Google Font family name
+  // (legacy values "open-sans"/"geist-mono" are mapped in use-label-settings).
+  sansFont: string;
+  monoFont: string;
   bordered: boolean;
   printLocationRow: boolean;
   labelPerQuantity: boolean;
@@ -40,7 +41,6 @@ export type LocationViewPreferences = {
   showEmpty: boolean;
   editorAdvancedView: boolean;
   itemDisplayView: ViewType;
-  theme: DaisyTheme;
   itemsPerTablePage: number;
   tableHeaders?: {
     value: keyof EntitySummary;
@@ -65,7 +65,6 @@ const DEFAULT_PREFERENCES: LocationViewPreferences = {
   showEmpty: true,
   editorAdvancedView: false,
   itemDisplayView: "card",
-  theme: "homebox",
   itemsPerTablePage: 10,
   displayLegacyHeader: false,
   legacyImageFit: false,
@@ -120,11 +119,11 @@ const PREFERENCE_COOKIE_OPTS = {
 } as const;
 
 // Bulk preferences live in localStorage (browser-only). The few fields the
-// server needs to render correct HTML — theme (data-theme attr), language
-// (SSR locale), and collectionId (X-Tenant header) — are mirrored to cookies
-// so SSR sees them.
+// server needs to render correct HTML — language (SSR locale) and
+// collectionId (X-Tenant header) — are mirrored to cookies so SSR sees them.
+// The theme is no longer per-user: the instance-wide active theme comes from
+// /status (use-instance-theme).
 function createPreferences(): Ref<LocationViewPreferences> {
-  const themeCookie = useCookie<DaisyTheme | null>("hb.theme", { ...PREFERENCE_COOKIE_OPTS, default: () => null });
   const localeCookie = useCookie<string | null>("hb.locale", { ...PREFERENCE_COOKIE_OPTS, default: () => null });
   const collectionCookie = useCookie<string | null>("hb.collection", {
     ...PREFERENCE_COOKIE_OPTS,
@@ -136,7 +135,6 @@ function createPreferences(): Ref<LocationViewPreferences> {
     // don't unify in this codebase
     return useState<LocationViewPreferences>("preferences", () => ({
       ...DEFAULT_PREFERENCES,
-      ...(themeCookie.value ? { theme: themeCookie.value } : {}),
       ...(localeCookie.value ? { language: localeCookie.value } : {}),
       ...(collectionCookie.value ? { collectionId: collectionCookie.value } : {}),
     })) as unknown as Ref<LocationViewPreferences>;
@@ -147,9 +145,8 @@ function createPreferences(): Ref<LocationViewPreferences> {
   }) as unknown as Ref<LocationViewPreferences>;
 
   watch(
-    () => [stored.value.theme, stored.value.language, stored.value.collectionId] as const,
-    ([theme, language, collectionId]) => {
-      themeCookie.value = theme ?? null;
+    () => [stored.value.language, stored.value.collectionId] as const,
+    ([language, collectionId]) => {
       localeCookie.value = language ?? null;
       collectionCookie.value = collectionId ?? null;
     },

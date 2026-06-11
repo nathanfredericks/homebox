@@ -27,7 +27,7 @@
   });
 
   useHead({
-    title: "HomeBox | " + t("global.items"),
+    title: t("global.items"),
   });
 
   const searchLocked = ref(false);

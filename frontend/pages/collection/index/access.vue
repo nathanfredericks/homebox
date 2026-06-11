@@ -12,7 +12,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("collection.tabs.access")}` });
+  useHead({ title: t("collection.tabs.access") });
 
   const api = useUserApi();
   const { can } = usePermissions();

@@ -2652,6 +2652,405 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/themes": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Get All Themes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/repo.ThemeOut"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Create Theme",
+                "parameters": [
+                    {
+                        "description": "Theme Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeOut"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/themes/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Get Theme",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeOut"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Update Theme",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Theme Data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeOut"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Delete Theme",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "409": {
+                        "description": "theme is active",
+                        "schema": {
+                            "$ref": "#/definitions/validate.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/themes/{id}/assets/{kind}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Get Theme Branding Asset (editor preview)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "nav-logo",
+                            "sidebar-logo",
+                            "login-icon"
+                        ],
+                        "type": "string",
+                        "description": "Asset kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Upload Theme Branding Asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "nav-logo",
+                            "sidebar-logo",
+                            "login-icon"
+                        ],
+                        "type": "string",
+                        "description": "Asset kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeOut"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Delete Theme Branding Asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Theme ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "nav-logo",
+                            "sidebar-logo",
+                            "login-icon"
+                        ],
+                        "type": "string",
+                        "description": "Asset kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemeOut"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/theming/active": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Get Active Theme Pointer",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemingSettings"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Set Active Theme",
+                "parameters": [
+                    {
+                        "description": "Active theme pointer",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemingSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.ThemingSettings"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/theming/assets/{kind}": {
+            "get": {
+                "description": "Serves a branding image of the site-wide active theme. Unauthenticated so the login page can use it.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Theming"
+                ],
+                "summary": "Get Active Theme Branding Asset",
+                "parameters": [
+                    {
+                        "enum": [
+                            "nav-logo",
+                            "sidebar-logo",
+                            "login-icon"
+                        ],
+                        "type": "string",
+                        "description": "Asset kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "get": {
                 "security": [
@@ -6597,6 +6996,128 @@ const docTemplate = `{
                 }
             }
         },
+        "repo.ThemeAssets": {
+            "type": "object",
+            "properties": {
+                "loginIcon": {
+                    "type": "boolean"
+                },
+                "navLogo": {
+                    "type": "boolean"
+                },
+                "sidebarLogo": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "repo.ThemeCreate": {
+            "type": "object",
+            "required": [
+                "colors",
+                "name"
+            ],
+            "properties": {
+                "branding": {
+                    "$ref": "#/definitions/schema.ThemeBranding"
+                },
+                "colors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "fontMono": {
+                    "type": "string"
+                },
+                "fontSans": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "radius": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.ThemeOut": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "$ref": "#/definitions/repo.ThemeAssets"
+                },
+                "branding": {
+                    "$ref": "#/definitions/schema.ThemeBranding"
+                },
+                "colors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "fontMono": {
+                    "type": "string"
+                },
+                "fontSans": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "radius": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.ThemeUpdate": {
+            "type": "object",
+            "required": [
+                "colors",
+                "name"
+            ],
+            "properties": {
+                "branding": {
+                    "$ref": "#/definitions/schema.ThemeBranding"
+                },
+                "colors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "fontMono": {
+                    "type": "string"
+                },
+                "fontSans": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "radius": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.ThemingSettings": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "string"
+                }
+            }
+        },
         "repo.TotalsByOrganizer": {
             "type": "object",
             "properties": {
@@ -6705,6 +7226,38 @@ const docTemplate = `{
                 },
                 "value": {
                     "type": "number"
+                }
+            }
+        },
+        "schema.SocialLink": {
+            "type": "object",
+            "properties": {
+                "icon": {
+                    "description": "github | mastodon | discord | docs | link",
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ThemeBranding": {
+            "type": "object",
+            "properties": {
+                "appName": {
+                    "type": "string"
+                },
+                "loginSubtitle": {
+                    "type": "string"
+                },
+                "socialLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.SocialLink"
+                    }
                 }
             }
         },
@@ -6838,6 +7391,22 @@ const docTemplate = `{
                 1000000000,
                 60000000000,
                 3600000000000,
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000,
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000,
                 1,
                 1000,
                 1000000,
@@ -6846,6 +7415,22 @@ const docTemplate = `{
                 3600000000000
             ],
             "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour",
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour",
                 "minDuration",
                 "maxDuration",
                 "Nanosecond",
@@ -6895,6 +7480,9 @@ const docTemplate = `{
                 },
                 "telemetry": {
                     "$ref": "#/definitions/v1.TelemetryStatus"
+                },
+                "theming": {
+                    "$ref": "#/definitions/v1.ThemingStatus"
                 },
                 "title": {
                     "type": "string"
@@ -7098,6 +7686,42 @@ const docTemplate = `{
             "properties": {
                 "enabled": {
                     "type": "boolean"
+                }
+            }
+        },
+        "v1.ThemingStatus": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "string"
+                },
+                "assets": {
+                    "$ref": "#/definitions/repo.ThemeAssets"
+                },
+                "branding": {
+                    "$ref": "#/definitions/schema.ThemeBranding"
+                },
+                "colors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "fontMono": {
+                    "type": "string"
+                },
+                "fontSans": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "radius": {
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version changes whenever the active theme row changes; the\nfrontend appends it to asset URLs as a cache buster.",
+                    "type": "integer"
                 }
             }
         },

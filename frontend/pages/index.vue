@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import type { Component } from "vue";
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
   import MdiGithub from "~icons/mdi/github";
@@ -6,6 +7,7 @@
   import MdiFolder from "~icons/mdi/folder";
   import MdiAccount from "~icons/mdi/account";
   import MdiMastodon from "~icons/mdi/mastodon";
+  import MdiLinkVariant from "~icons/mdi/link-variant";
   import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
   import { Button } from "@/components/ui/button";
   import LanguageSelector from "~/components/App/LanguageSelector.vue";
@@ -20,7 +22,7 @@
   const { t } = useI18n();
 
   useHead({
-    title: "HomeBox | " + t("index.title"),
+    title: t("index.title"),
   });
 
   definePageMeta({
@@ -48,10 +50,20 @@
   const oidcError = ref<string | null>(null);
   const shownErrorMessage = ref(false);
 
-  const { data: status } = await useAsyncData("app-status", async () => {
-    const { data } = await api.status();
-    return data;
-  });
+  const status = useAppStatus();
+  const branding = useBranding();
+
+  const SOCIAL_ICONS: Record<string, Component> = {
+    github: MdiGithub,
+    mastodon: MdiMastodon,
+    discord: MdiDiscord,
+    docs: MdiFolder,
+    link: MdiLinkVariant,
+  };
+
+  function socialIcon(icon: string) {
+    return SOCIAL_ICONS[icon] ?? MdiLinkVariant;
+  }
 
   // Side effects from the status response are browser-only and must run after
   // the onMounted below has parsed any OIDC error from the URL.
@@ -225,7 +237,19 @@
         }"
       >
         <div class="z-10">
-          <h2 class="mt-1 flex text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+          <h2
+            v-if="branding.hasCustomName.value || branding.loginIconUrl.value"
+            class="mt-1 flex items-center gap-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+          >
+            <img
+              v-if="branding.loginIconUrl.value"
+              :src="branding.loginIconUrl.value"
+              :alt="branding.appName.value"
+              class="-mb-2 size-12 object-contain sm:size-14"
+            />
+            {{ branding.appName.value }}
+          </h2>
+          <h2 v-else class="mt-1 flex text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             HomeB
             <AppLogo class="-mb-4 w-12" />
             x
@@ -237,45 +261,18 @@
               'text-white': isLofiTheme,
             }"
           >
-            {{ $t("index.tagline") }}
+            {{ branding.loginSubtitle.value || $t("index.tagline") }}
           </p>
         </div>
         <TooltipProvider :delay-duration="0">
           <div class="z-10 ml-auto mt-6 flex items-center gap-4 sm:mt-0">
-            <Tooltip>
+            <Tooltip v-for="(link, i) in branding.socialLinks.value" :key="i">
               <TooltipTrigger as-child>
-                <a href="https://github.com/sysadminsmedia/homebox" target="_blank" rel="noopener noreferrer">
-                  <MdiGithub class="size-8" />
+                <a :href="link.url" target="_blank" rel="noopener noreferrer">
+                  <component :is="socialIcon(link.icon)" class="size-8" />
                 </a>
               </TooltipTrigger>
-              <TooltipContent>{{ $t("global.github") }}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <a href="https://noc.social/@sysadminszone" target="_blank" rel="noopener noreferrer">
-                  <MdiMastodon class="size-8" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>{{ $t("global.follow_dev") }}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <a href="https://discord.gg/aY4DCkpNA9" target="_blank" rel="noopener noreferrer">
-                  <MdiDiscord class="size-8" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>{{ $t("global.join_discord") }}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <a href="https://homebox.software/en/" target="_blank" rel="noopener noreferrer">
-                  <MdiFolder class="size-8" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>{{ $t("global.read_docs") }}</TooltipContent>
+              <TooltipContent>{{ link.label || (link.labelKey ? $t(link.labelKey) : link.url) }}</TooltipContent>
             </Tooltip>
 
             <LanguageSelector class="z-10 text-primary" :expanded="false" />

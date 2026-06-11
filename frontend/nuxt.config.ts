@@ -46,12 +46,6 @@ export default defineNuxtConfig({
   // (not nitro.devProxy, which hangs requests when the backend is down).
   // WebSockets connect directly to the backend port in dev (see use-server-events.ts).
 
-  app: {
-    head: {
-      script: [{ src: "/set-theme.js" }],
-    },
-  },
-
   css: ["@/assets/css/main.css"],
 
   pwa: {

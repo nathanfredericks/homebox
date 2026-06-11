@@ -127,6 +127,7 @@
         { id: "roles", collectionScoped: false, actions: ["view", "create", "edit", "delete"] },
         { id: "collections", collectionScoped: false, actions: ["view", "create"] },
         { id: "site_settings", collectionScoped: false, actions: ["view", "edit"] },
+        { id: "theming", collectionScoped: false, actions: ["view", "create", "edit", "delete"] },
       ],
     },
   ];

@@ -30,6 +30,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/sitesetting"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/theme"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -109,6 +110,7 @@ func checkColumn(t, c string) error {
 			sitesetting.Table:         sitesetting.ValidColumn,
 			tag.Table:                 tag.ValidColumn,
 			templatefield.Table:       templatefield.ValidColumn,
+			theme.Table:               theme.ValidColumn,
 			user.Table:                user.ValidColumn,
 		})
 	})

@@ -1700,6 +1700,277 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/repo.EntityOut"
+  /v1/themes:
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Get All Themes
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/repo.ThemeOut"
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Create Theme
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/repo.ThemeCreate"
+        description: Theme Data
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemeOut"
+  "/v1/themes/{id}":
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Get Theme
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemeOut"
+    put:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Update Theme
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/repo.ThemeUpdate"
+        description: Theme Data
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemeOut"
+    delete:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Delete Theme
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "409":
+          description: theme is active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/validate.ErrorResponse"
+  "/v1/themes/{id}/assets/{kind}":
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Get Theme Branding Asset (editor preview)
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - description: Asset kind
+          name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - nav-logo
+              - sidebar-logo
+              - login-icon
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Upload Theme Branding Asset
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - description: Asset kind
+          name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - nav-logo
+              - sidebar-logo
+              - login-icon
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  description: Image file
+                  type: string
+                  format: binary
+              required:
+                - file
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemeOut"
+    delete:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Delete Theme Branding Asset
+      parameters:
+        - description: Theme ID
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - description: Asset kind
+          name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - nav-logo
+              - sidebar-logo
+              - login-icon
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemeOut"
+  /v1/theming/active:
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Get Active Theme Pointer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemingSettings"
+    put:
+      security:
+        - Bearer: []
+      tags:
+        - Theming
+      summary: Set Active Theme
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/repo.ThemingSettings"
+        description: Active theme pointer
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/repo.ThemingSettings"
+  "/v1/theming/assets/{kind}":
+    get:
+      description: Serves a branding image of the site-wide active theme.
+        Unauthenticated so the login page can use it.
+      tags:
+        - Theming
+      summary: Get Active Theme Branding Asset
+      parameters:
+        - description: Asset kind
+          name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - nav-logo
+              - sidebar-logo
+              - login-icon
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
   /v1/users:
     get:
       security:
@@ -4425,6 +4696,87 @@ components:
           type: string
         name:
           type: string
+    repo.ThemeAssets:
+      type: object
+      properties:
+        loginIcon:
+          type: boolean
+        navLogo:
+          type: boolean
+        sidebarLogo:
+          type: boolean
+    repo.ThemeCreate:
+      type: object
+      required:
+        - colors
+        - name
+      properties:
+        branding:
+          $ref: "#/components/schemas/schema.ThemeBranding"
+        colors:
+          type: object
+          additionalProperties:
+            type: string
+        fontMono:
+          type: string
+        fontSans:
+          type: string
+        name:
+          type: string
+          maxLength: 255
+        radius:
+          type: string
+    repo.ThemeOut:
+      type: object
+      properties:
+        assets:
+          $ref: "#/components/schemas/repo.ThemeAssets"
+        branding:
+          $ref: "#/components/schemas/schema.ThemeBranding"
+        colors:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+        fontMono:
+          type: string
+        fontSans:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        radius:
+          type: string
+        updatedAt:
+          type: string
+    repo.ThemeUpdate:
+      type: object
+      required:
+        - colors
+        - name
+      properties:
+        branding:
+          $ref: "#/components/schemas/schema.ThemeBranding"
+        colors:
+          type: object
+          additionalProperties:
+            type: string
+        fontMono:
+          type: string
+        fontSans:
+          type: string
+        name:
+          type: string
+          maxLength: 255
+        radius:
+          type: string
+    repo.ThemingSettings:
+      type: object
+      properties:
+        active:
+          type: string
     repo.TotalsByOrganizer:
       type: object
       properties:
@@ -4497,6 +4849,27 @@ components:
           type: string
         value:
           type: number
+    schema.SocialLink:
+      type: object
+      properties:
+        icon:
+          description: github | mastodon | discord | docs | link
+          type: string
+        label:
+          type: string
+        url:
+          type: string
+    schema.ThemeBranding:
+      type: object
+      properties:
+        appName:
+          type: string
+        loginSubtitle:
+          type: string
+        socialLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/schema.SocialLink"
     services.Latest:
       type: object
       properties:
@@ -4590,6 +4963,22 @@ components:
         - 1000000000
         - 60000000000
         - 3600000000000
+        - -9223372036854776000
+        - 9223372036854776000
+        - 1
+        - 1000
+        - 1000000
+        - 1000000000
+        - 60000000000
+        - 3600000000000
+        - -9223372036854776000
+        - 9223372036854776000
+        - 1
+        - 1000
+        - 1000000
+        - 1000000000
+        - 60000000000
+        - 3600000000000
         - 1
         - 1000
         - 1000000
@@ -4597,6 +4986,22 @@ components:
         - 60000000000
         - 3600000000000
       x-enum-varnames:
+        - minDuration
+        - maxDuration
+        - Nanosecond
+        - Microsecond
+        - Millisecond
+        - Second
+        - Minute
+        - Hour
+        - minDuration
+        - maxDuration
+        - Nanosecond
+        - Microsecond
+        - Millisecond
+        - Second
+        - Minute
+        - Hour
         - minDuration
         - maxDuration
         - Nanosecond
@@ -4637,6 +5042,8 @@ components:
           type: boolean
         telemetry:
           $ref: "#/components/schemas/v1.TelemetryStatus"
+        theming:
+          $ref: "#/components/schemas/v1.ThemingStatus"
         title:
           type: string
         versions:
@@ -4774,6 +5181,32 @@ components:
       properties:
         enabled:
           type: boolean
+    v1.ThemingStatus:
+      type: object
+      properties:
+        active:
+          type: string
+        assets:
+          $ref: "#/components/schemas/repo.ThemeAssets"
+        branding:
+          $ref: "#/components/schemas/schema.ThemeBranding"
+        colors:
+          type: object
+          additionalProperties:
+            type: string
+        fontMono:
+          type: string
+        fontSans:
+          type: string
+        name:
+          type: string
+        radius:
+          type: string
+        version:
+          description: |-
+            Version changes whenever the active theme row changes; the
+            frontend appends it to asset URLs as a cache buster.
+          type: integer
     v1.TokenResponse:
       type: object
       properties:

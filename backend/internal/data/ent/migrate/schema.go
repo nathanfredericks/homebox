@@ -619,6 +619,27 @@ var (
 			},
 		},
 	}
+	// ThemesColumns holds the columns for the "themes" table.
+	ThemesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "colors", Type: field.TypeJSON},
+		{Name: "radius", Type: field.TypeString, Nullable: true, Default: "0.5rem"},
+		{Name: "font_sans", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "font_mono", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "branding", Type: field.TypeJSON},
+		{Name: "nav_logo_path", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "sidebar_logo_path", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "login_icon_path", Type: field.TypeString, Nullable: true, Default: ""},
+	}
+	// ThemesTable holds the schema information for the "themes" table.
+	ThemesTable = &schema.Table{
+		Name:       "themes",
+		Columns:    ThemesColumns,
+		PrimaryKey: []*schema.Column{ThemesColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -716,6 +737,7 @@ var (
 		SiteSettingsTable,
 		TagsTable,
 		TemplateFieldsTable,
+		ThemesTable,
 		UsersTable,
 		TagEntitiesTable,
 		UserRolesTable,

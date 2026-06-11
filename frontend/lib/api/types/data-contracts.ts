@@ -21,12 +21,28 @@ export enum TimeDuration {
   Second = 1000000000,
   Minute = 60000000000,
   Hour = 3600000000000,
-  Nanosecond1 = 1,
-  Microsecond2 = 1000,
-  Millisecond3 = 1000000,
-  Second4 = 1000000000,
-  Minute5 = 60000000000,
-  Hour6 = 3600000000000,
+  MinDuration1 = -9223372036854776000,
+  MaxDuration2 = 9223372036854776000,
+  Nanosecond3 = 1,
+  Microsecond4 = 1000,
+  Millisecond5 = 1000000,
+  Second6 = 1000000000,
+  Minute7 = 60000000000,
+  Hour8 = 3600000000000,
+  MinDuration9 = -9223372036854776000,
+  MaxDuration10 = 9223372036854776000,
+  Nanosecond11 = 1,
+  Microsecond12 = 1000,
+  Millisecond13 = 1000000,
+  Second14 = 1000000000,
+  Minute15 = 60000000000,
+  Hour16 = 3600000000000,
+  Nanosecond17 = 1,
+  Microsecond18 = 1000,
+  Millisecond19 = 1000000,
+  Second20 = 1000000000,
+  Minute21 = 60000000000,
+  Hour22 = 3600000000000,
 }
 
 export enum TemplatefieldType {
@@ -1421,6 +1437,49 @@ export interface TemplateTagSummary {
   name: string;
 }
 
+export interface ThemeAssets {
+  loginIcon: boolean;
+  navLogo: boolean;
+  sidebarLogo: boolean;
+}
+
+export interface ThemeCreate {
+  branding: SchemaThemeBranding;
+  colors: Record<string, string>;
+  fontMono: string;
+  fontSans: string;
+  /** @maxLength 255 */
+  name: string;
+  radius: string;
+}
+
+export interface ThemeOut {
+  assets: ThemeAssets;
+  branding: SchemaThemeBranding;
+  colors: Record<string, string>;
+  createdAt: Date | string;
+  fontMono: string;
+  fontSans: string;
+  id: string;
+  name: string;
+  radius: string;
+  updatedAt: Date | string;
+}
+
+export interface ThemeUpdate {
+  branding: SchemaThemeBranding;
+  colors: Record<string, string>;
+  fontMono: string;
+  fontSans: string;
+  /** @maxLength 255 */
+  name: string;
+  radius: string;
+}
+
+export interface ThemingSettings {
+  active: string;
+}
+
 export interface TotalsByOrganizer {
   id: string;
   name: string;
@@ -1461,6 +1520,19 @@ export interface ValueOverTimeEntry {
   date: Date | string;
   name: string;
   value: number;
+}
+
+export interface SchemaSocialLink {
+  /** github | mastodon | discord | docs | link */
+  icon: string;
+  label: string;
+  url: string;
+}
+
+export interface SchemaThemeBranding {
+  appName: string;
+  loginSubtitle: string;
+  socialLinks: SchemaSocialLink[];
 }
 
 export interface Latest {
@@ -1516,6 +1588,7 @@ export interface APISummary {
    */
   setup: boolean;
   telemetry: TelemetryStatus;
+  theming: ThemingStatus;
   title: string;
   versions: string[];
 }
@@ -1603,6 +1676,22 @@ export interface ResultsRepoExportOut {
 
 export interface TelemetryStatus {
   enabled: boolean;
+}
+
+export interface ThemingStatus {
+  active: string;
+  assets: ThemeAssets;
+  branding: SchemaThemeBranding;
+  colors: Record<string, string>;
+  fontMono: string;
+  fontSans: string;
+  name: string;
+  radius: string;
+  /**
+   * Version changes whenever the active theme row changes; the
+   * frontend appends it to asset URLs as a cache buster.
+   */
+  version: number;
 }
 
 export interface TokenResponse {

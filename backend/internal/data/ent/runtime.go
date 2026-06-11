@@ -24,6 +24,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/sitesetting"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/theme"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -854,6 +855,67 @@ func init() {
 	templatefieldDescID := templatefieldMixinFields0[0].Descriptor()
 	// templatefield.DefaultID holds the default value on creation for the id field.
 	templatefield.DefaultID = templatefieldDescID.Default.(func() uuid.UUID)
+	themeMixin := schema.Theme{}.Mixin()
+	themeMixinFields0 := themeMixin[0].Fields()
+	_ = themeMixinFields0
+	themeFields := schema.Theme{}.Fields()
+	_ = themeFields
+	// themeDescCreatedAt is the schema descriptor for created_at field.
+	themeDescCreatedAt := themeMixinFields0[1].Descriptor()
+	// theme.DefaultCreatedAt holds the default value on creation for the created_at field.
+	theme.DefaultCreatedAt = themeDescCreatedAt.Default.(func() time.Time)
+	// themeDescUpdatedAt is the schema descriptor for updated_at field.
+	themeDescUpdatedAt := themeMixinFields0[2].Descriptor()
+	// theme.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	theme.DefaultUpdatedAt = themeDescUpdatedAt.Default.(func() time.Time)
+	// theme.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	theme.UpdateDefaultUpdatedAt = themeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// themeDescName is the schema descriptor for name field.
+	themeDescName := themeFields[0].Descriptor()
+	// theme.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	theme.NameValidator = func() func(string) error {
+		validators := themeDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// themeDescRadius is the schema descriptor for radius field.
+	themeDescRadius := themeFields[2].Descriptor()
+	// theme.DefaultRadius holds the default value on creation for the radius field.
+	theme.DefaultRadius = themeDescRadius.Default.(string)
+	// themeDescFontSans is the schema descriptor for font_sans field.
+	themeDescFontSans := themeFields[3].Descriptor()
+	// theme.DefaultFontSans holds the default value on creation for the font_sans field.
+	theme.DefaultFontSans = themeDescFontSans.Default.(string)
+	// themeDescFontMono is the schema descriptor for font_mono field.
+	themeDescFontMono := themeFields[4].Descriptor()
+	// theme.DefaultFontMono holds the default value on creation for the font_mono field.
+	theme.DefaultFontMono = themeDescFontMono.Default.(string)
+	// themeDescNavLogoPath is the schema descriptor for nav_logo_path field.
+	themeDescNavLogoPath := themeFields[6].Descriptor()
+	// theme.DefaultNavLogoPath holds the default value on creation for the nav_logo_path field.
+	theme.DefaultNavLogoPath = themeDescNavLogoPath.Default.(string)
+	// themeDescSidebarLogoPath is the schema descriptor for sidebar_logo_path field.
+	themeDescSidebarLogoPath := themeFields[7].Descriptor()
+	// theme.DefaultSidebarLogoPath holds the default value on creation for the sidebar_logo_path field.
+	theme.DefaultSidebarLogoPath = themeDescSidebarLogoPath.Default.(string)
+	// themeDescLoginIconPath is the schema descriptor for login_icon_path field.
+	themeDescLoginIconPath := themeFields[8].Descriptor()
+	// theme.DefaultLoginIconPath holds the default value on creation for the login_icon_path field.
+	theme.DefaultLoginIconPath = themeDescLoginIconPath.Default.(string)
+	// themeDescID is the schema descriptor for id field.
+	themeDescID := themeMixinFields0[0].Descriptor()
+	// theme.DefaultID holds the default value on creation for the id field.
+	theme.DefaultID = themeDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

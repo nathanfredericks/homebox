@@ -24,6 +24,7 @@ type AllRepos struct {
 	Notifiers           *NotifierRepository
 	Exports             *ExportRepository
 	SiteSettings        *SiteSettingsRepository
+	Themes              *ThemeRepository
 }
 
 // StaticThumbnail adapts a fixed thumbnail config to the getter New expects,
@@ -50,5 +51,6 @@ func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubC
 		Notifiers:           NewNotifierRepository(db),
 		Exports:             &ExportRepository{db},
 		SiteSettings:        NewSiteSettingsRepository(db),
+		Themes:              NewThemeRepository(db, attachments),
 	}
 }

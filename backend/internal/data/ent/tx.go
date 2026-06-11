@@ -48,6 +48,8 @@ type Tx struct {
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
 	TemplateField *TemplateFieldClient
+	// Theme is the client for interacting with the Theme builders.
+	Theme *ThemeClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -199,6 +201,7 @@ func (tx *Tx) init() {
 	tx.SiteSetting = NewSiteSettingClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TemplateField = NewTemplateFieldClient(tx.config)
+	tx.Theme = NewThemeClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

@@ -20,6 +20,7 @@ const ROUTE_SECTIONS: [prefix: string, section: PermSection][] = [
   ["/maintenance", "maintenance"],
   ["/admin/users", "users"],
   ["/admin/groups", "roles"],
+  ["/admin/theming", "theming"],
   ["/collection/access", "roles"],
   ["/collection/notifiers", "notifiers"],
   ["/collection/settings", "collection_settings"],

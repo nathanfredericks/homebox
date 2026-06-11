@@ -18,7 +18,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("admin.tabs.settings")}` });
+  useHead({ title: t("admin.tabs.settings") });
 
   const api = useUserApi();
   const confirm = useConfirm();

@@ -2,83 +2,25 @@ import type { ComputedRef } from "vue";
 import type { DaisyTheme } from "~~/lib/data/themes";
 
 export interface UseTheme {
-  theme: ComputedRef<DaisyTheme>;
-  setTheme: (theme: DaisyTheme) => void;
+  /** Active built-in theme slug, or "custom" when a custom theme is active. */
+  theme: ComputedRef<string>;
 }
 
+/**
+ * Read-only view of the instance-wide active theme. Theming is administered
+ * site-wide (admin settings → theming); there is no per-user theme, so this
+ * exposes no setter. Application to the DOM happens in use-instance-theme.
+ */
 export function useTheme(): UseTheme {
-  const preferences = useViewPreferences();
-  const theme = computed(() => preferences.value.theme);
-  const htmlEl = ref<HTMLElement | null>(null);
-
-  const applyThemeToDom = (newTheme: DaisyTheme) => {
-    if (!htmlEl.value) {
-      return;
-    }
-
-    htmlEl.value.setAttribute("data-theme", newTheme);
-
-    const prefixedThemeClasses = Array.from(htmlEl.value.classList).filter(className => className.startsWith("theme-"));
-    if (prefixedThemeClasses.length > 0) {
-      htmlEl.value.classList.remove(...prefixedThemeClasses);
-    }
-
-    htmlEl.value.classList.remove(...themes);
-    htmlEl.value.classList.add("theme-" + newTheme);
-  };
-
-  const setTheme = (newTheme: DaisyTheme) => {
-    preferences.value.theme = newTheme;
-  };
-
-  onMounted(() => {
-    htmlEl.value = document.querySelector("html");
-    applyThemeToDom(theme.value);
-  });
-
-  watch(theme, newTheme => {
-    applyThemeToDom(newTheme);
-  });
-
-  return { theme, setTheme };
+  const { slug } = useInstanceTheme();
+  return { theme: slug };
 }
 
+/**
+ * True when the active theme is one of the given built-in slugs. Custom
+ * themes never match; use useIsDarkTheme() for light/dark behavior.
+ */
 export function useIsThemeInList(list: DaisyTheme[]) {
-  const theme = useTheme();
-
-  return computed(() => {
-    return list.includes(theme.theme.value);
-  });
+  const { theme } = useTheme();
+  return computed(() => list.includes(theme.value as DaisyTheme));
 }
-
-export const themes = [
-  "dark",
-  "theme-aqua",
-  "theme-black",
-  "theme-bumblebee",
-  "theme-cmyk",
-  "theme-corporate",
-  "theme-cupcake",
-  "theme-cyberpunk",
-  "theme-dracula",
-  "theme-emerald",
-  "theme-fantasy",
-  "theme-forest",
-  "theme-garden",
-  "theme-halloween",
-  "theme-light",
-  "theme-lofi",
-  "theme-luxury",
-  "theme-pastel",
-  "theme-retro",
-  "theme-synthwave",
-  "theme-valentine",
-  "theme-wireframe",
-  "theme-autumn",
-  "theme-business",
-  "theme-acid",
-  "theme-lemonade",
-  "theme-night",
-  "theme-coffee",
-  "theme-winter",
-];

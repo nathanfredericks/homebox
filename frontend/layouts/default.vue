@@ -26,7 +26,13 @@
           }}</SidebarGroupLabel>
           <NuxtLink class="group-data-[collapsible=icon]:hidden" to="/home">
             <div class="flex size-24 items-center justify-center rounded-full bg-background-accent p-4">
-              <AppLogo />
+              <img
+                v-if="sidebarLogoUrl"
+                :src="sidebarLogoUrl"
+                :alt="brandAppName"
+                class="max-h-full max-w-full object-contain"
+              />
+              <AppLogo v-else />
             </div>
           </NuxtLink>
 
@@ -293,6 +299,7 @@
 
   const { t, locale } = useI18n();
   const username = computed(() => authCtx.user?.name || "User");
+  const { sidebarLogoUrl, appName: brandAppName } = useBranding();
 
   const { openDialog } = useDialog();
 

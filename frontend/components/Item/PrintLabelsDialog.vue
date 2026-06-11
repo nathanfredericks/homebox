@@ -34,7 +34,7 @@
   const { t } = useI18n();
   const { registerOpenDialogCallback } = useDialog();
 
-  const { settings, sansFontFamily, monoFontFamily, resolvedBaseURL } = useLabelSettings();
+  const { settings, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } = useLabelSettings();
 
   const items = ref<EntitySummary[]>([]);
   const printing = ref(false);
@@ -91,6 +91,7 @@
 
   async function renderAllLabels(): Promise<Map<string, string>> {
     const images = new Map<string, string>();
+    await ensureFontsLoaded();
 
     for (const label of labels.value) {
       if (images.has(label.url)) {

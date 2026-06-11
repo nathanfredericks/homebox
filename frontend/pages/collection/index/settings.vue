@@ -15,7 +15,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("collection.tabs.general")}` });
+  useHead({ title: t("collection.tabs.general") });
 
   const api = useUserApi();
   const { selectedCollection, selectedId, load: reloadCollections } = useCollections();

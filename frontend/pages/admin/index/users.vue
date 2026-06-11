@@ -20,7 +20,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("admin.tabs.users")}` });
+  useHead({ title: t("admin.tabs.users") });
 
   const api = useUserApi();
   const auth = useAuthContext();

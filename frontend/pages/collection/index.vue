@@ -14,7 +14,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("collection.collection_settings")}` });
+  useHead({ title: t("collection.collection_settings") });
 
   const api = useUserApi();
   const confirm = useConfirm();

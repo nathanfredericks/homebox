@@ -5,7 +5,7 @@
     </ClientOnly>
 
     <NuxtLayout>
-      <Html :lang="locale" :data-theme="theme || 'homebox'" />
+      <Html :lang="locale" />
       <Link rel="icon" type="image/svg" href="/favicon.svg" />
       <Link rel="apple-touch-icon" href="/apple-touch-icon.png" size="180x180" />
       <Link rel="mask-icon" href="/mask-icon.svg" color="#5b7f67" />
@@ -21,9 +21,15 @@
   import { DialogProvider } from "@/components/ui/dialog-provider";
   import { Toaster } from "@/components/ui/sonner";
 
-  const { theme } = useTheme();
-
   const { locale } = useI18n();
+
+  // Resolve the instance-wide theme + branding during SSR so the first paint
+  // already carries the active palette, fonts and app name.
+  useApplyInstanceTheme();
+  const { appName } = useBranding();
+  useHead({
+    titleTemplate: title => (title ? `${appName.value} | ${title}` : appName.value),
+  });
 
   useViewPreferencesSync();
 </script>

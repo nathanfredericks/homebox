@@ -76,6 +76,10 @@ func (_m *TemplateField) GetID() uuid.UUID {
 	return _m.ID
 }
 
+func (_m *Theme) GetID() uuid.UUID {
+	return _m.ID
+}
+
 func (_m *User) GetID() uuid.UUID {
 	return _m.ID
 }

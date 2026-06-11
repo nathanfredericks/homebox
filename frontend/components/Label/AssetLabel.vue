@@ -1,7 +1,4 @@
 <script setup lang="ts">
-  import "@fontsource/open-sans/400.css";
-  import "@fontsource/open-sans/700.css";
-  import "@fontsource/geist-mono/400.css";
   import { MapPin } from "lucide-vue-next";
 
   withDefaults(

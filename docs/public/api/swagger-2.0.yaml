@@ -2261,6 +2261,87 @@ definitions:
       name:
         type: string
     type: object
+  repo.ThemeAssets:
+    properties:
+      loginIcon:
+        type: boolean
+      navLogo:
+        type: boolean
+      sidebarLogo:
+        type: boolean
+    type: object
+  repo.ThemeCreate:
+    properties:
+      branding:
+        $ref: '#/definitions/schema.ThemeBranding'
+      colors:
+        additionalProperties:
+          type: string
+        type: object
+      fontMono:
+        type: string
+      fontSans:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      radius:
+        type: string
+    required:
+    - colors
+    - name
+    type: object
+  repo.ThemeOut:
+    properties:
+      assets:
+        $ref: '#/definitions/repo.ThemeAssets'
+      branding:
+        $ref: '#/definitions/schema.ThemeBranding'
+      colors:
+        additionalProperties:
+          type: string
+        type: object
+      createdAt:
+        type: string
+      fontMono:
+        type: string
+      fontSans:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      radius:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  repo.ThemeUpdate:
+    properties:
+      branding:
+        $ref: '#/definitions/schema.ThemeBranding'
+      colors:
+        additionalProperties:
+          type: string
+        type: object
+      fontMono:
+        type: string
+      fontSans:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      radius:
+        type: string
+    required:
+    - colors
+    - name
+    type: object
+  repo.ThemingSettings:
+    properties:
+      active:
+        type: string
+    type: object
   repo.TotalsByOrganizer:
     properties:
       id:
@@ -2332,6 +2413,27 @@ definitions:
         type: string
       value:
         type: number
+    type: object
+  schema.SocialLink:
+    properties:
+      icon:
+        description: github | mastodon | discord | docs | link
+        type: string
+      label:
+        type: string
+      url:
+        type: string
+    type: object
+  schema.ThemeBranding:
+    properties:
+      appName:
+        type: string
+      loginSubtitle:
+        type: string
+      socialLinks:
+        items:
+          $ref: '#/definitions/schema.SocialLink'
+        type: array
     type: object
   services.Latest:
     properties:
@@ -2424,6 +2526,22 @@ definitions:
     - 1000000000
     - 60000000000
     - 3600000000000
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
     - 1
     - 1000
     - 1000000
@@ -2433,6 +2551,22 @@ definitions:
     format: int64
     type: integer
     x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
     - minDuration
     - maxDuration
     - Nanosecond
@@ -2472,6 +2606,8 @@ definitions:
         type: boolean
       telemetry:
         $ref: '#/definitions/v1.TelemetryStatus'
+      theming:
+        $ref: '#/definitions/v1.ThemingStatus'
       title:
         type: string
       versions:
@@ -2609,6 +2745,32 @@ definitions:
     properties:
       enabled:
         type: boolean
+    type: object
+  v1.ThemingStatus:
+    properties:
+      active:
+        type: string
+      assets:
+        $ref: '#/definitions/repo.ThemeAssets'
+      branding:
+        $ref: '#/definitions/schema.ThemeBranding'
+      colors:
+        additionalProperties:
+          type: string
+        type: object
+      fontMono:
+        type: string
+      fontSans:
+        type: string
+      name:
+        type: string
+      radius:
+        type: string
+      version:
+        description: |-
+          Version changes whenever the active theme row changes; the
+          frontend appends it to asset URLs as a cache buster.
+        type: integer
     type: object
   v1.TokenResponse:
     properties:
@@ -4294,6 +4456,258 @@ paths:
       summary: Create Entity from Template
       tags:
       - Entity Templates
+  /v1/themes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repo.ThemeOut'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get All Themes
+      tags:
+      - Theming
+    post:
+      parameters:
+      - description: Theme Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.ThemeCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/repo.ThemeOut'
+      security:
+      - Bearer: []
+      summary: Create Theme
+      tags:
+      - Theming
+  /v1/themes/{id}:
+    delete:
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "409":
+          description: theme is active
+          schema:
+            $ref: '#/definitions/validate.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete Theme
+      tags:
+      - Theming
+    get:
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemeOut'
+      security:
+      - Bearer: []
+      summary: Get Theme
+      tags:
+      - Theming
+    put:
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Theme Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.ThemeUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemeOut'
+      security:
+      - Bearer: []
+      summary: Update Theme
+      tags:
+      - Theming
+  /v1/themes/{id}/assets/{kind}:
+    delete:
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Asset kind
+        enum:
+        - nav-logo
+        - sidebar-logo
+        - login-icon
+        in: path
+        name: kind
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemeOut'
+      security:
+      - Bearer: []
+      summary: Delete Theme Branding Asset
+      tags:
+      - Theming
+    get:
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Asset kind
+        enum:
+        - nav-logo
+        - sidebar-logo
+        - login-icon
+        in: path
+        name: kind
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - Bearer: []
+      summary: Get Theme Branding Asset (editor preview)
+      tags:
+      - Theming
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Theme ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Asset kind
+        enum:
+        - nav-logo
+        - sidebar-logo
+        - login-icon
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemeOut'
+      security:
+      - Bearer: []
+      summary: Upload Theme Branding Asset
+      tags:
+      - Theming
+  /v1/theming/active:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemingSettings'
+      security:
+      - Bearer: []
+      summary: Get Active Theme Pointer
+      tags:
+      - Theming
+    put:
+      parameters:
+      - description: Active theme pointer
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.ThemingSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ThemingSettings'
+      security:
+      - Bearer: []
+      summary: Set Active Theme
+      tags:
+      - Theming
+  /v1/theming/assets/{kind}:
+    get:
+      description: Serves a branding image of the site-wide active theme. Unauthenticated
+        so the login page can use it.
+      parameters:
+      - description: Asset kind
+        enum:
+        - nav-logo
+        - sidebar-logo
+        - login-icon
+        in: path
+        name: kind
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Get Active Theme Branding Asset
+      tags:
+      - Theming
   /v1/users:
     get:
       produces:

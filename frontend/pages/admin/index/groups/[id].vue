@@ -13,7 +13,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("admin.tabs.groups")}` });
+  useHead({ title: t("admin.tabs.groups") });
 
   const api = useUserApi();
   const route = useRoute();

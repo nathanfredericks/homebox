@@ -1,5 +1,10 @@
 <template>
+  <img v-if="navLogoUrl" :src="navLogoUrl" :alt="appName" class="w-auto object-contain" />
+  <span v-else-if="hasCustomName" class="text-xl font-bold tracking-tight text-secondary-foreground">
+    {{ appName }}
+  </span>
   <svg
+    v-else
     viewBox="0 0 263 45"
     role="img"
     fill="none"
@@ -104,3 +109,7 @@
     </g>
   </svg>
 </template>
+
+<script setup lang="ts">
+  const { appName, hasCustomName, navLogoUrl } = useBranding();
+</script>

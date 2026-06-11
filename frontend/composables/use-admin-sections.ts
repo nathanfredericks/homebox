@@ -2,6 +2,7 @@ import type { Component } from "vue";
 import { computed } from "vue";
 import MdiAccountMultiple from "~icons/mdi/account-multiple";
 import MdiCog from "~icons/mdi/cog";
+import MdiPalette from "~icons/mdi/palette";
 import MdiShieldAccount from "~icons/mdi/shield-account";
 import { usePermissions } from "~/composables/use-permissions";
 
@@ -43,6 +44,13 @@ export function useAdminSections() {
         to: "/admin/settings",
         icon: MdiCog,
         visible: can("site_settings", "view"),
+      },
+      {
+        id: "theming",
+        labelKey: "admin.tabs.theming",
+        to: "/admin/theming",
+        icon: MdiPalette,
+        visible: can("theming", "view"),
       },
     ]
       .filter(section => section.visible)

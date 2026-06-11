@@ -108,7 +108,70 @@
         "tabs": {
             "groups": "Groups",
             "settings": "Settings",
+            "theming": "Theming",
             "users": "Users"
+        },
+        "theming": {
+            "active": "Active",
+            "active_theme": "Active theme",
+            "active_theme_sub": "The selected theme applies to every user of this instance, including the login page.",
+            "activated": "Theme activated",
+            "add_link": "Add link",
+            "app_name": "App name",
+            "asset_removed": "Image removed",
+            "asset_uploaded": "Image uploaded",
+            "back": "Back to Theming",
+            "branding": "Branding",
+            "branding_sub": "Replace the HomeBox name, logos and login page content. Empty fields keep the defaults.",
+            "color_names": {
+                "accent": "Accent",
+                "background": "Background",
+                "destructive": "Destructive",
+                "foreground": "Text",
+                "primary": "Primary",
+                "secondary": "Secondary"
+            },
+            "colors": "Colors",
+            "colors_sub": "Six core colors define the whole palette; shades, borders and text contrasts are derived automatically.",
+            "copy_suffix": "copy",
+            "created": "Theme created",
+            "custom_themes": "Custom themes",
+            "custom_themes_sub": "Create your own themes with custom colors, fonts and branding.",
+            "delete_confirm": "Delete theme {name}? This cannot be undone.",
+            "deleted": "Theme deleted",
+            "duplicate": "Duplicate",
+            "empty": "No custom themes yet.",
+            "font_mono": "Monospace font",
+            "font_sans": "Interface font",
+            "fonts": "Fonts",
+            "fonts_sub": "Any Google Font, loaded from the Google Fonts CDN. The system stack is used as fallback.",
+            "link_label": "Label",
+            "login_icon": "Login icon",
+            "login_subtitle": "Login subtitle",
+            "name": "Name",
+            "nav_logo": "Header logo",
+            "new_theme": "New theme",
+            "new_theme_name": "New theme",
+            "no_image": "No image",
+            "preview": "Preview",
+            "preview_card": "Cards, dialogs and popovers use this surface.",
+            "radius": "Corner radius",
+            "remove": "Remove",
+            "saved": "Theme saved",
+            "seed_from": "Start from",
+            "seed_from_placeholder": "Pick a built-in theme",
+            "sidebar_logo": "Sidebar logo",
+            "social_icons": {
+                "discord": "Discord",
+                "docs": "Docs",
+                "github": "GitHub",
+                "link": "Link",
+                "mastodon": "Mastodon"
+            },
+            "social_links": "Login page links",
+            "social_links_sub": "Links shown in the login page header. Leave empty to keep the default HomeBox links.",
+            "system_font": "System",
+            "upload": "Upload"
         },
         "title": "Administration",
         "users": {
@@ -255,6 +318,11 @@
             "randomize": "Randomize color"
         },
         "form": {
+            "google_font_select": {
+                "no_results": "No fonts found",
+                "search": "Search Google Fonts...",
+                "system_default": "System default"
+            },
             "min_length": "min {min}",
             "password": {
                 "toggle_show": "Toggle Password Show"
@@ -920,6 +988,7 @@
             "statistics": "Statistics",
             "tags": "Tags",
             "templates": "Templates",
+            "theming": "Theming",
             "tools": "Tools",
             "users": "Users"
         },
@@ -965,8 +1034,6 @@
         "notifiers_sub": "Get notifications for upcoming maintenance reminders",
         "override_locale": "Override Date and Currency Language",
         "test": "Test",
-        "theme_settings": "Theme Settings",
-        "theme_settings_sub": "Theme settings are stored in your browser's local storage. You can change the theme at any time. If you're\n having trouble setting your theme try refreshing your browser.",
         "toast": {
             "account_deleted": "Your account has been deleted.",
             "api_key_created": "API key created.",

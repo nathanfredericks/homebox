@@ -34,6 +34,7 @@ const (
 	SectionRoles        Section = "roles"
 	SectionCollections  Section = "collections"
 	SectionSiteSettings Section = "site_settings"
+	SectionTheming      Section = "theming"
 )
 
 // AllSections lists every valid section, in UI display order.
@@ -52,6 +53,7 @@ var AllSections = []Section{
 	SectionRoles,
 	SectionCollections,
 	SectionSiteSettings,
+	SectionTheming,
 }
 
 var siteSections = map[Section]bool{
@@ -59,6 +61,7 @@ var siteSections = map[Section]bool{
 	SectionRoles:        true,
 	SectionCollections:  true,
 	SectionSiteSettings: true,
+	SectionTheming:      true,
 }
 
 // IsValid reports whether s is a known section.

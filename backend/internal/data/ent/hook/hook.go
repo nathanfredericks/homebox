@@ -225,6 +225,18 @@ func (f TemplateFieldFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TemplateFieldMutation", m)
 }
 
+// The ThemeFunc type is an adapter to allow the use of ordinary
+// function as Theme mutator.
+type ThemeFunc func(context.Context, *ent.ThemeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ThemeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ThemeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ThemeMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

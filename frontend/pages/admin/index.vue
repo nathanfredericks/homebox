@@ -11,7 +11,7 @@
 
   const { t } = useI18n();
 
-  useHead({ title: `HomeBox | ${t("admin.title")}` });
+  useHead({ title: t("admin.title") });
 
   const route = useRoute();
   const { sections } = useAdminSections();

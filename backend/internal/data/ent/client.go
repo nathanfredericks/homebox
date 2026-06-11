@@ -34,6 +34,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/sitesetting"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/theme"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -78,6 +79,8 @@ type Client struct {
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
 	TemplateField *TemplateFieldClient
+	// Theme is the client for interacting with the Theme builders.
+	Theme *ThemeClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -109,6 +112,7 @@ func (c *Client) init() {
 	c.SiteSetting = NewSiteSettingClient(c.config)
 	c.Tag = NewTagClient(c.config)
 	c.TemplateField = NewTemplateFieldClient(c.config)
+	c.Theme = NewThemeClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -220,6 +224,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SiteSetting:         NewSiteSettingClient(cfg),
 		Tag:                 NewTagClient(cfg),
 		TemplateField:       NewTemplateFieldClient(cfg),
+		Theme:               NewThemeClient(cfg),
 		User:                NewUserClient(cfg),
 	}, nil
 }
@@ -258,6 +263,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SiteSetting:         NewSiteSettingClient(cfg),
 		Tag:                 NewTagClient(cfg),
 		TemplateField:       NewTemplateFieldClient(cfg),
+		Theme:               NewThemeClient(cfg),
 		User:                NewUserClient(cfg),
 	}, nil
 }
@@ -291,7 +297,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
 		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.MaintenanceEntry,
 		c.Notifier, c.PasswordResetTokens, c.Role, c.RolePermission, c.SiteSetting,
-		c.Tag, c.TemplateField, c.User,
+		c.Tag, c.TemplateField, c.Theme, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -304,7 +310,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
 		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.MaintenanceEntry,
 		c.Notifier, c.PasswordResetTokens, c.Role, c.RolePermission, c.SiteSetting,
-		c.Tag, c.TemplateField, c.User,
+		c.Tag, c.TemplateField, c.Theme, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -349,6 +355,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Tag.mutate(ctx, m)
 	case *TemplateFieldMutation:
 		return c.TemplateField.mutate(ctx, m)
+	case *ThemeMutation:
+		return c.Theme.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -3422,6 +3430,139 @@ func (c *TemplateFieldClient) mutate(ctx context.Context, m *TemplateFieldMutati
 	}
 }
 
+// ThemeClient is a client for the Theme schema.
+type ThemeClient struct {
+	config
+}
+
+// NewThemeClient returns a client for the Theme from the given config.
+func NewThemeClient(c config) *ThemeClient {
+	return &ThemeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `theme.Hooks(f(g(h())))`.
+func (c *ThemeClient) Use(hooks ...Hook) {
+	c.hooks.Theme = append(c.hooks.Theme, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `theme.Intercept(f(g(h())))`.
+func (c *ThemeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Theme = append(c.inters.Theme, interceptors...)
+}
+
+// Create returns a builder for creating a Theme entity.
+func (c *ThemeClient) Create() *ThemeCreate {
+	mutation := newThemeMutation(c.config, OpCreate)
+	return &ThemeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Theme entities.
+func (c *ThemeClient) CreateBulk(builders ...*ThemeCreate) *ThemeCreateBulk {
+	return &ThemeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ThemeClient) MapCreateBulk(slice any, setFunc func(*ThemeCreate, int)) *ThemeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ThemeCreateBulk{err: fmt.Errorf("calling to ThemeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ThemeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ThemeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Theme.
+func (c *ThemeClient) Update() *ThemeUpdate {
+	mutation := newThemeMutation(c.config, OpUpdate)
+	return &ThemeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ThemeClient) UpdateOne(_m *Theme) *ThemeUpdateOne {
+	mutation := newThemeMutation(c.config, OpUpdateOne, withTheme(_m))
+	return &ThemeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ThemeClient) UpdateOneID(id uuid.UUID) *ThemeUpdateOne {
+	mutation := newThemeMutation(c.config, OpUpdateOne, withThemeID(id))
+	return &ThemeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Theme.
+func (c *ThemeClient) Delete() *ThemeDelete {
+	mutation := newThemeMutation(c.config, OpDelete)
+	return &ThemeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ThemeClient) DeleteOne(_m *Theme) *ThemeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ThemeClient) DeleteOneID(id uuid.UUID) *ThemeDeleteOne {
+	builder := c.Delete().Where(theme.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ThemeDeleteOne{builder}
+}
+
+// Query returns a query builder for Theme.
+func (c *ThemeClient) Query() *ThemeQuery {
+	return &ThemeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTheme},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Theme entity by its id.
+func (c *ThemeClient) Get(ctx context.Context, id uuid.UUID) (*Theme, error) {
+	return c.Query().Where(theme.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ThemeClient) GetX(ctx context.Context, id uuid.UUID) *Theme {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ThemeClient) Hooks() []Hook {
+	return c.hooks.Theme
+}
+
+// Interceptors returns the client interceptors.
+func (c *ThemeClient) Interceptors() []Interceptor {
+	return c.inters.Theme
+}
+
+func (c *ThemeClient) mutate(ctx context.Context, m *ThemeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ThemeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ThemeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ThemeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ThemeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Theme mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -3640,11 +3781,12 @@ type (
 	hooks struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
 		EntityType, Export, Group, MaintenanceEntry, Notifier, PasswordResetTokens,
-		Role, RolePermission, SiteSetting, Tag, TemplateField, User []ent.Hook
+		Role, RolePermission, SiteSetting, Tag, TemplateField, Theme, User []ent.Hook
 	}
 	inters struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
 		EntityType, Export, Group, MaintenanceEntry, Notifier, PasswordResetTokens,
-		Role, RolePermission, SiteSetting, Tag, TemplateField, User []ent.Interceptor
+		Role, RolePermission, SiteSetting, Tag, TemplateField, Theme,
+		User []ent.Interceptor
 	}
 )

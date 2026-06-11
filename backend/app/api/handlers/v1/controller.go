@@ -2,6 +2,7 @@
 package v1
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"sync/atomic"
@@ -15,6 +16,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
 
@@ -162,6 +164,24 @@ type (
 		LabelPrinting bool            `json:"labelPrinting"`
 		OIDC          OIDCStatus      `json:"oidc"`
 		Telemetry     TelemetryStatus `json:"telemetry"`
+		Theming       ThemingStatus   `json:"theming"`
+	}
+
+	// ThemingStatus describes the site-wide active theme so pre-auth pages
+	// (login) can render colors, fonts and branding. Colors/fonts/branding
+	// are only populated for custom themes; built-ins live in the frontend.
+	ThemingStatus struct {
+		Active   string                `json:"active"`
+		Name     string                `json:"name,omitempty"`
+		Colors   map[string]string     `json:"colors,omitempty"`
+		Radius   string                `json:"radius,omitempty"`
+		FontSans string                `json:"fontSans,omitempty"`
+		FontMono string                `json:"fontMono,omitempty"`
+		Branding *schema.ThemeBranding `json:"branding,omitempty"`
+		Assets   repo.ThemeAssets      `json:"assets"`
+		// Version changes whenever the active theme row changes; the
+		// frontend appends it to asset URLs as a cache buster.
+		Version int64 `json:"version,omitempty"`
 	}
 
 	OIDCStatus struct {
@@ -229,10 +249,16 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			}
 		}
 
+		theming := ctrl.themingStatus(r.Context())
+		title := "Homebox"
+		if theming.Branding != nil && theming.Branding.AppName != "" {
+			title = theming.Branding.AppName
+		}
+
 		rt := ctrl.runtime()
 		return server.JSON(w, http.StatusOK, APISummary{
 			Healthy:           ready(),
-			Title:             "Homebox",
+			Title:             title,
 			Message:           "Track, Manage, and Organize your Things",
 			Build:             build,
 			Latest:            ctrl.svc.BackgroundService.GetLatestVersion(),
@@ -249,8 +275,33 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			Telemetry: TelemetryStatus{
 				Enabled: ctrl.config.Otel.Enabled,
 			},
+			Theming: theming,
 		})
 	}
+}
+
+// themingStatus resolves the active theme for the public status payload.
+// Failures degrade to the default built-in theme rather than failing /status.
+func (ctrl *V1Controller) themingStatus(ctx context.Context) ThemingStatus {
+	active, theme, err := ctrl.repo.Themes.GetActiveTheme(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to resolve active theme for status")
+		return ThemingStatus{Active: repo.DefaultActiveTheme}
+	}
+
+	status := ThemingStatus{Active: active}
+	if theme != nil {
+		branding := theme.Branding
+		status.Name = theme.Name
+		status.Colors = theme.Colors
+		status.Radius = theme.Radius
+		status.FontSans = theme.FontSans
+		status.FontMono = theme.FontMono
+		status.Branding = &branding
+		status.Assets = theme.Assets
+		status.Version = theme.UpdatedAt.Unix()
+	}
+	return status
 }
 
 // HandleCurrency godoc

@@ -1,37 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
-  safelist: [
-    "dark",
-    "theme-aqua",
-    "theme-black",
-    "theme-bumblebee",
-    "theme-cmyk",
-    "theme-corporate",
-    "theme-cupcake",
-    "theme-cyberpunk",
-    "theme-dracula",
-    "theme-emerald",
-    "theme-fantasy",
-    "theme-forest",
-    "theme-garden",
-    "theme-halloween",
-    "theme-light",
-    "theme-lofi",
-    "theme-luxury",
-    "theme-pastel",
-    "theme-retro",
-    "theme-synthwave",
-    "theme-valentine",
-    "theme-wireframe",
-    "theme-autumn",
-    "theme-business",
-    "theme-acid",
-    "theme-lemonade",
-    "theme-night",
-    "theme-coffee",
-    "theme-winter",
-  ],
+  safelist: ["dark"],
   prefix: "",
 
   theme: {
@@ -43,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

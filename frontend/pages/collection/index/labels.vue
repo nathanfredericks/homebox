@@ -12,13 +12,13 @@
     getQRCodeUrl,
   } from "~~/lib/labels";
   import AssetLabel from "@/components/Label/AssetLabel.vue";
+  import FormGoogleFontSelect from "~/components/Form/GoogleFontSelect.vue";
   import { toast } from "@/components/ui/sonner";
   import { Separator } from "@/components/ui/separator";
   import { Button } from "@/components/ui/button";
   import { Label } from "@/components/ui/label";
   import { Input } from "@/components/ui/input";
   import { Checkbox } from "@/components/ui/checkbox";
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
   import BaseContainer from "@/components/Base/Container.vue";
   import BaseCard from "@/components/Base/Card.vue";
   import BaseSectionHeader from "@/components/Base/SectionHeader.vue";
@@ -30,7 +30,7 @@
     middleware: ["auth"],
   });
   useHead({
-    title: "HomeBox | " + t("reports.label_generator.title"),
+    title: t("reports.label_generator.title"),
   });
 
   const api = useUserApi();
@@ -281,36 +281,18 @@
             />
           </div>
           <div class="flex w-full max-w-xs flex-col">
-            <Label for="select-sansFont">
-              {{ $t("reports.label_generator.sans_serif_font") }}
-            </Label>
-            <Select id="select-sansFont" v-model="settings.sansFont" class="w-full max-w-xs">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">
-                  {{ $t("reports.label_generator.font_default") }}
-                </SelectItem>
-                <SelectItem value="open-sans"> Open Sans </SelectItem>
-              </SelectContent>
-            </Select>
+            <FormGoogleFontSelect
+              v-model="settings.sansFont"
+              :label="$t('reports.label_generator.sans_serif_font')"
+              class="w-full max-w-xs"
+            />
           </div>
           <div class="flex w-full max-w-xs flex-col">
-            <Label for="select-monoFont">
-              {{ $t("reports.label_generator.monospace_font") }}
-            </Label>
-            <Select id="select-monoFont" v-model="settings.monoFont" class="w-full max-w-xs">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">
-                  {{ $t("reports.label_generator.font_default") }}
-                </SelectItem>
-                <SelectItem value="geist-mono"> Geist Mono </SelectItem>
-              </SelectContent>
-            </Select>
+            <FormGoogleFontSelect
+              v-model="settings.monoFont"
+              :label="$t('reports.label_generator.monospace_font')"
+              class="w-full max-w-xs"
+            />
           </div>
         </div>
         <div class="max-w-xs">

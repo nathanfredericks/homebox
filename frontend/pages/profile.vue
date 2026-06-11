@@ -5,7 +5,6 @@
   import MdiLoading from "~icons/mdi/loading";
   import MdiAccount from "~icons/mdi/account";
   import MdiDelete from "~icons/mdi/delete";
-  import MdiFill from "~icons/mdi/fill";
   import MdiKeyVariant from "~icons/mdi/key-variant";
   import MdiContentCopy from "~icons/mdi/content-copy";
   import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@
   import { useDialog } from "@/components/ui/dialog-provider";
   import LanguageSelector from "~/components/App/LanguageSelector.vue";
   import { DialogID } from "~/components/ui/dialog-provider/utils";
-  import ThemePicker from "~/components/App/ThemePicker.vue";
   import ItemDuplicateSettings from "~/components/Item/DuplicateSettings.vue";
   import FormPassword from "~/components/Form/Password.vue";
   import FormTextField from "~/components/Form/TextField.vue";
@@ -33,7 +31,7 @@
     middleware: ["auth"],
   });
   useHead({
-    title: "HomeBox | " + t("menu.profile"),
+    title: t("menu.profile"),
   });
 
   const api = useUserApi();
@@ -394,22 +392,6 @@
               {{ $t("profile.api_key_create") }}
             </Button>
           </div>
-        </div>
-      </BaseCard>
-
-      <BaseCard>
-        <template #title>
-          <BaseSectionHeader>
-            <MdiFill class="mr-2" />
-            <span> {{ $t("profile.theme_settings") }} </span>
-            <template #description>
-              {{ $t("profile.theme_settings_sub") }}
-            </template>
-          </BaseSectionHeader>
-        </template>
-
-        <div class="px-4 pb-4">
-          <ThemePicker />
         </div>
       </BaseCard>
 
