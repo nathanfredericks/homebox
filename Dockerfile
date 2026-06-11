@@ -27,7 +27,7 @@ COPY --from=builder-dependencies /go/pkg/mod /go/pkg/mod
 COPY ./backend .
 
 # Use cache for Go build artifacts
-RUN --mount=type=cache,target=/root/.cache/go-build \
+RUN --mount=type=cache,id=s/8e2ac6dc-ef1e-4b23-a6da-920513133f90-/root/.cache/go-build,target=/root/.cache/go-build \
     if [ "$TARGETARCH" = "arm" ] || [ "$TARGETARCH" = "riscv64" ];  \
     then echo "nodynamic" $TARGETOS $TARGETARCH; CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build \
         -ldflags "-s -w -X main.commit=$COMMIT -X main.buildTime=$BUILD_TIME -X main.version=$VERSION" \
@@ -66,8 +66,6 @@ WORKDIR /app
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD [ "wget", "--no-verbose", "--tries=1", "-O", "-", "http://localhost:7745/api/v1/status" ]
 
-# Persist volume
-VOLUME [ "/data" ]
 
 # Entrypoint and CMD
 ENTRYPOINT [ "/app/api" ]
