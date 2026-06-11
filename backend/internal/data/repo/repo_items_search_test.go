@@ -1,9 +1,12 @@
 package repo
 
 import (
+	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/sysadminsmedia/homebox/backend/pkgs/textutils"
 )
 
@@ -181,6 +184,95 @@ func TestEntityRepository_AccentInsensitiveSearch(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEntityRepository_SearchByAssetIDAndTextFields(t *testing.T) {
+	entities := useEntities(t, 2)
+
+	first := entities[0]
+	second := entities[1]
+
+	makeUpdate := func(e EntityOut) EntityUpdate {
+		u := EntityUpdate{
+			ID:          e.ID,
+			Name:        e.Name,
+			Description: e.Description,
+			Quantity:    e.Quantity,
+		}
+		if e.EntityType != nil {
+			u.EntityTypeID = e.EntityType.ID
+		}
+		return u
+	}
+
+	firstUpdate := makeUpdate(first)
+	firstUpdate.AssetID = AssetID(10) // displays as "000-010"
+	firstUpdate.PurchaseFrom = "Lee Valley Tools"
+	firstUpdate.SoldTo = "Aunt Roberta"
+	firstUpdate.SoldNotes = "sold at the flea market"
+	firstUpdate.WarrantyDetails = "lifetime frame coverage"
+	firstUpdate.Fields = []EntityFieldData{
+		{Type: "text", Name: "Color", TextValue: "Burgundy"},
+	}
+	_, err := tRepos.Entities.UpdateByGroup(context.Background(), tGroup.ID, firstUpdate)
+	require.NoError(t, err)
+
+	secondUpdate := makeUpdate(second)
+	secondUpdate.AssetID = AssetID(1001) // displays as "001-001"
+	_, err = tRepos.Entities.UpdateByGroup(context.Background(), tGroup.ID, secondUpdate)
+	require.NoError(t, err)
+
+	containsID := func(items []EntitySummary, id uuid.UUID) bool {
+		for _, item := range items {
+			if item.ID == id {
+				return true
+			}
+		}
+		return false
+	}
+
+	testCases := []struct {
+		name       string
+		search     string
+		wantFirst  bool
+		wantSecond bool
+	}{
+		{"asset id without leading zeros", "10", true, false},
+		{"asset id with leading zeros", "010", true, false},
+		{"asset id display format", "000-010", true, false},
+		{"asset id padded without dash", "000010", true, false},
+		{"larger asset id bare", "1001", false, true},
+		{"larger asset id display format", "001-001", false, true},
+		{"zero never matches by asset id", "0", false, false},
+		{"text query unaffected by asset branch", first.Name, true, false},
+		{"purchase from", "Lee Valley", true, false},
+		{"sold to", "Aunt Roberta", true, false},
+		{"sold notes", "flea market", true, false},
+		{"warranty details", "frame coverage", true, false},
+		{"custom field text value", "Burgundy", true, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			results, err := tRepos.Entities.QueryByGroup(context.Background(), tGroup.ID, EntityQuery{Search: tc.search})
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.wantFirst, containsID(results.Items, first.ID),
+				"search %q: first item (asset 000-010) match mismatch", tc.search)
+			assert.Equal(t, tc.wantSecond, containsID(results.Items, second.ID),
+				"search %q: second item (asset 001-001) match mismatch", tc.search)
+		})
+	}
+
+	t.Run("exact asset id query still filters", func(t *testing.T) {
+		results, err := tRepos.Entities.QueryByGroup(context.Background(), tGroup.ID, EntityQuery{AssetID: AssetID(10)})
+		require.NoError(t, err)
+
+		assert.True(t, containsID(results.Items, first.ID), "exact asset id query should match the first item")
+		for _, item := range results.Items {
+			assert.Equal(t, AssetID(10), item.AssetID, "exact asset id query should only return asset id 10")
+		}
+	})
 }
 
 func TestNormalizeSearchQueryIntegration(t *testing.T) {

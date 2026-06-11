@@ -18,6 +18,7 @@
   import SearchFilter from "~/components/Search/Filter.vue";
   import ItemViewSelectable from "~/components/Item/View/Selectable.vue";
   import type { LocationQueryRaw } from "vue-router";
+  import { fmtAssetID } from "~~/lib/labels";
 
   const { t } = useI18n();
 
@@ -197,7 +198,7 @@
   const locIDs = computed(() => selectedLocations.value.map(l => l.id));
   const tagIDs = computed(() => selectedTags.value.map(l => l.id));
 
-  function parseAssetIDString(d: string) {
+  function parseAssetIDString(d: string): [number, boolean] {
     d = d.replace(/"/g, "").replace(/-/g, "");
 
     const aidInt = parseInt(d);
@@ -208,7 +209,18 @@
     return [aidInt, true];
   }
 
-  const byAssetId = computed(() => query.value?.startsWith("#") || false);
+  const byAssetId = computed(() => {
+    const q = query.value || "";
+    if (q.startsWith("#")) {
+      return true;
+    }
+    // Bare digit/dash queries (10, 010, 000-010, 001-001) also match by asset ID
+    if (!/^[\d-]+$/.test(q)) {
+      return false;
+    }
+    const [aid, valid] = parseAssetIDString(q);
+    return valid && aid > 0;
+  });
   const parsedAssetId = computed(() => {
     if (!byAssetId.value) {
       return "";
@@ -217,7 +229,7 @@
       if (!valid) {
         return t("items.invalid_asset_id");
       } else {
-        return aid;
+        return fmtAssetID(aid);
       }
     }
   });

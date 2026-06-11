@@ -639,16 +639,25 @@ func (r *EntityRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q En
 	}
 
 	if q.Search != "" {
-		qb.Where(
-			entity.Or(
-				entity.NameContainsFold(q.Search),
-				entity.DescriptionContainsFold(q.Search),
-				entity.SerialNumberContainsFold(q.Search),
-				entity.ModelNumberContainsFold(q.Search),
-				entity.ManufacturerContainsFold(q.Search),
-				entity.NotesContainsFold(q.Search),
-			),
-		)
+		searchPredicates := []predicate.Entity{
+			entity.NameContainsFold(q.Search),
+			entity.DescriptionContainsFold(q.Search),
+			entity.SerialNumberContainsFold(q.Search),
+			entity.ModelNumberContainsFold(q.Search),
+			entity.ManufacturerContainsFold(q.Search),
+			entity.NotesContainsFold(q.Search),
+			entity.PurchaseFromContainsFold(q.Search),
+			entity.SoldToContainsFold(q.Search),
+			entity.SoldNotesContainsFold(q.Search),
+			entity.WarrantyDetailsContainsFold(q.Search),
+			entity.HasFieldsWith(entityfield.TextValueContainsFold(q.Search)),
+		}
+
+		if aid, ok := ParseAssetID(q.Search); ok && aid > 0 {
+			searchPredicates = append(searchPredicates, entity.AssetID(int64(aid)))
+		}
+
+		qb.Where(entity.Or(searchPredicates...))
 	}
 
 	if !q.AssetID.Nil() {
