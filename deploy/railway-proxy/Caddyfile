@@ -5,6 +5,16 @@
 }
 
 :{$PORT} {
+	# Compress text responses; egress is metered, images are skipped
+	# by encode's default content-type matcher.
+	encode zstd gzip
+
+	# Deploy-time healthcheck target that doesn't depend on (and
+	# doesn't wake) the upstream services.
+	handle /healthz {
+		respond "ok" 200
+	}
+
 	# API and swagger go to the Go backend (incl. the /api/v1/ws/events
 	# websocket upgrade); everything else is server-side rendered by the
 	# frontend. Mirrors the Caddyfile in docker-compose.yml.
