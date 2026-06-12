@@ -296,3 +296,44 @@ func TestUpdateSectionMergesWithExistingOverride(t *testing.T) {
 		t.Errorf("height: got %d, want 900 (from second update)", got.Height)
 	}
 }
+
+func TestAIFieldPrefsOverride(t *testing.T) {
+	svc := newTestService(t, baseConfig())
+	ctx := context.Background()
+
+	// Per-field prefs default to enabled with no instruction override.
+	if got := svc.Get().AI.Fields; !got.SerialNumber.Enabled || !got.Tags.Enabled {
+		t.Fatalf("defaults: got %+v, want all fields enabled", got)
+	}
+
+	// The fields document is one top-level key and replaces wholesale; an
+	// update touching other keys must not disturb it.
+	payload := json.RawMessage(`{"fields":{"serialNumber":{"enabled":false,"instruction":""},"name":{"enabled":true,"instruction":"short names"}}}`)
+	if err := svc.UpdateSection(ctx, SectionAI, payload); err != nil {
+		t.Fatalf("updating fields: %v", err)
+	}
+	if err := svc.UpdateSection(ctx, SectionAI, json.RawMessage(`{"outputLanguage":"German"}`)); err != nil {
+		t.Fatalf("updating language: %v", err)
+	}
+
+	got := svc.Get().AI
+	if got.Fields.SerialNumber.Enabled {
+		t.Error("serialNumber: expected disabled after override")
+	}
+	if got.Fields.Name.Instruction != "short names" {
+		t.Errorf("name instruction: got %q", got.Fields.Name.Instruction)
+	}
+	if got.OutputLanguage != "German" {
+		t.Errorf("outputLanguage: got %q", got.OutputLanguage)
+	}
+	// Unmentioned fields keep their compiled default inside the sparse doc.
+	if !got.Fields.Tags.Enabled {
+		t.Error("tags: expected to remain enabled")
+	}
+
+	// Unknown nested keys are rejected by the strict round-trip.
+	bad := json.RawMessage(`{"fields":{"serialNumber":{"enabledd":true}}}`)
+	if err := svc.UpdateSection(ctx, SectionAI, bad); !errors.Is(err, ErrInvalidPayload) {
+		t.Errorf("unknown nested key: got %v, want ErrInvalidPayload", err)
+	}
+}

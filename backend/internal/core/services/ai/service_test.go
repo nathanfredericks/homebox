@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
@@ -103,6 +104,183 @@ func TestAnalyzeImagesParsesAndFlagsDuplicates(t *testing.T) {
 	}
 	if items[1].Duplicate != nil {
 		t.Errorf("second item (no serial): unexpected duplicate %+v", items[1].Duplicate)
+	}
+}
+
+func TestAnalyzeImagesValidatesTagsFieldsAndDates(t *testing.T) {
+	svcPlaceholder, repos, group := newTestService(t, "")
+	_ = svcPlaceholder
+	ctx := context.Background()
+
+	tag, err := repos.Tags.Create(ctx, group.ID, repo.TagCreate{Name: "Tools"})
+	if err != nil {
+		t.Fatalf("creating tag: %v", err)
+	}
+	defaultTag, err := repos.Tags.Create(ctx, group.ID, repo.TagCreate{Name: "AI Imported"})
+	if err != nil {
+		t.Fatalf("creating default tag: %v", err)
+	}
+
+	// The model returns one valid tag, one hallucinated tag, a custom field
+	// from the template, a hallucinated custom field, and a junk date.
+	srv := llmStub(t, `{"items":[{
+		"name":"DeWalt Drill","quantity":1,"description":"","manufacturer":"","modelNumber":"","serialNumber":"",
+		"purchasePrice":0,"purchaseFrom":"","purchaseDate":"not-a-date","notes":"",
+		"tagIds":["`+tag.ID.String()+`","11111111-2222-3333-4444-555555555555","garbage"],
+		"customFields":{"Voltage":18,"Imaginary":"x"}
+	}]}`)
+
+	svc := NewService(repos, func() config.AIConf {
+		c := config.AIConf{Enabled: true, BaseURL: srv.URL, Model: "test-model", DefaultTagID: defaultTag.ID.String()}
+		c.Fields.Tags.Enabled = true
+		c.Fields.CustomFields.Enabled = true
+		return c
+	})
+
+	// Seed an entity type with a default template defining "Voltage".
+	tpl, err := repos.EntityTemplates.Create(ctx, group.ID, repo.EntityTemplateCreate{
+		Name:   "Tool Template",
+		Fields: []repo.TemplateField{{Type: "number", Name: "Voltage"}},
+	})
+	if err != nil {
+		t.Fatalf("creating template: %v", err)
+	}
+	et, err := repos.EntityTypes.Create(ctx, group.ID, repo.EntityTypeCreate{Name: "Tool"})
+	if err != nil {
+		t.Fatalf("creating entity type: %v", err)
+	}
+	if _, err := repos.EntityTypes.Update(ctx, group.ID, repo.EntityTypeUpdate{
+		ID: et.ID, Name: "Tool", DefaultTemplateID: &tpl.ID,
+	}); err != nil {
+		t.Fatalf("setting default template: %v", err)
+	}
+
+	items, err := svc.AnalyzeImages(ctx, group.ID, [][]byte{testPNG(t)}, AnalyzeOptions{EntityTypeID: et.ID})
+	if err != nil {
+		t.Fatalf("AnalyzeImages: %v", err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("items: got %d, want 1", len(items))
+	}
+
+	got := items[0].DetectedItem
+	if len(got.TagIDs) != 2 || got.TagIDs[0] != tag.ID || got.TagIDs[1] != defaultTag.ID {
+		t.Errorf("tagIds: got %v, want [%s %s] (valid tag + default, hallucinations dropped)", got.TagIDs, tag.ID, defaultTag.ID)
+	}
+	if len(got.Fields) != 1 || got.Fields[0].Name != "Voltage" || got.Fields[0].NumberValue != 18 {
+		t.Errorf("fields: got %+v, want only Voltage=18", got.Fields)
+	}
+	if got.PurchaseDate != "" {
+		t.Errorf("purchaseDate: junk date must blank, got %q", got.PurchaseDate)
+	}
+}
+
+func TestBuildSchemasRespectFieldToggles(t *testing.T) {
+	var fields config.AIFieldConfs
+	fields.Name.Enabled = true
+	fields.Quantity.Enabled = true
+	fields.SerialNumber.Enabled = false
+	fields.CustomFields.Enabled = true
+
+	schema := buildAnalyzeSchema(fields, true, []repo.TemplateField{
+		{Type: "number", Name: "Voltage"},
+		{Type: "text", Name: ""},        // unusable: empty name
+		{Type: "text", Name: "voltage"}, // duplicate after case fold
+	})
+
+	var parsed struct {
+		Properties struct {
+			Items struct {
+				Items struct {
+					Properties map[string]json.RawMessage `json:"properties"`
+					Required   []string                   `json:"required"`
+				} `json:"items"`
+			} `json:"items"`
+		} `json:"properties"`
+	}
+	if err := json.Unmarshal(schema, &parsed); err != nil {
+		t.Fatalf("unmarshaling schema: %v", err)
+	}
+
+	props := parsed.Properties.Items.Items.Properties
+	if _, ok := props["serialNumber"]; ok {
+		t.Error("disabled serialNumber must be absent from schema")
+	}
+	if _, ok := props["name"]; !ok {
+		t.Error("name must always be present")
+	}
+	if _, ok := props["tagIds"]; !ok {
+		t.Error("tagIds expected when tags are enabled and present")
+	}
+	if len(parsed.Properties.Items.Items.Required) != len(props) {
+		t.Errorf("strict mode requires every property in required: %d props, %d required",
+			len(props), len(parsed.Properties.Items.Items.Required))
+	}
+
+	var custom struct {
+		Properties map[string]json.RawMessage `json:"properties"`
+	}
+	if err := json.Unmarshal(props["customFields"], &custom); err != nil {
+		t.Fatalf("customFields schema: %v", err)
+	}
+	if len(custom.Properties) != 1 {
+		t.Errorf("custom fields: got %d properties, want 1 (empty + case-duplicate dropped)", len(custom.Properties))
+	}
+}
+
+func TestTagAndCustomFieldSuggestions(t *testing.T) {
+	toolsID := uuid.New()
+	ownedID := uuid.New()
+	groupTags := []repo.TagSummary{{ID: toolsID, Name: "Tools"}, {ID: ownedID, Name: "Owned"}}
+	itemTags := []repo.TagSummary{{ID: ownedID, Name: "Owned"}}
+
+	tags := tagSuggestions(groupTags, itemTags, []string{
+		toolsID.String(),                       // new -> suggested
+		ownedID.String(),                       // already on item -> dropped
+		toolsID.String(),                       // duplicate -> dropped
+		"11111111-2222-3333-4444-555555555555", // unknown -> dropped
+		"garbage",                              // not a uuid -> dropped
+	})
+	if len(tags) != 1 || tags[0].ID != toolsID || tags[0].Name != "Tools" {
+		t.Errorf("tag suggestions: got %+v, want only Tools", tags)
+	}
+
+	template := []repo.TemplateField{
+		{Type: "number", Name: "Voltage"},
+		{Type: "text", Name: "Color"},
+		{Type: "boolean", Name: "Cordless"},
+	}
+	current := []repo.EntityFieldData{
+		{Type: "text", Name: "Color", TextValue: "Yellow"},
+	}
+	proposed := map[string]any{
+		"Voltage":  float64(18),
+		"Color":    "Black", // current non-empty, no overwrite -> dropped
+		"Cordless": true,
+		"Ghost":    "x", // not in template -> dropped
+	}
+
+	got := customFieldSuggestions(template, current, proposed, false)
+	want := map[string]string{"Voltage": "18", "Cordless": "true"}
+	if len(got) != len(want) {
+		t.Fatalf("custom suggestions: got %+v, want %v", got, want)
+	}
+	for _, s := range got {
+		if want[s.Name] != s.Suggested {
+			t.Errorf("field %s: got %q, want %q", s.Name, s.Suggested, want[s.Name])
+		}
+	}
+
+	// With overwrite, the filled Color field becomes suggestible.
+	got = customFieldSuggestions(template, current, proposed, true)
+	found := false
+	for _, s := range got {
+		if s.Name == "Color" && s.Suggested == "Black" && s.Current == "Yellow" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("overwrite: expected Color suggestion, got %+v", got)
 	}
 }
 

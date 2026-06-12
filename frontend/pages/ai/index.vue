@@ -4,6 +4,7 @@
   import { Button } from "@/components/ui/button";
   import { Label } from "@/components/ui/label";
   import { Checkbox } from "@/components/ui/checkbox";
+  import { Textarea } from "@/components/ui/textarea";
   import BaseContainer from "@/components/Base/Container.vue";
   import BaseCard from "@/components/Base/Card.vue";
   import BaseSectionHeader from "@/components/Base/SectionHeader.vue";
@@ -53,6 +54,15 @@
   // --- Step 2: photos -------------------------------------------------------
   const photos = ref<CapturePhoto[]>([]);
   const singleItem = ref(false);
+  const hint = ref("");
+
+  // Group tags feed the per-item tag editor on review cards; failures just
+  // hide the editor.
+  const { data: groupTags } = await useAsyncData("ai-capture-tags", async () => {
+    const { data, error } = await api.tags.getAll();
+    if (error || !data) return [];
+    return data;
+  });
 
   function addPhotos(files: File[]) {
     for (const file of files) {
@@ -108,6 +118,8 @@
       const compressed = await Promise.all(photos.value.map(p => compressPhoto(p.file)));
       const { data, error } = await api.ai.analyze(compressed, {
         singleItem: singleItem.value,
+        ...(hint.value.trim() ? { hint: hint.value.trim() } : {}),
+        ...(itemEntityType.value ? { entityTypeId: itemEntityType.value.id } : {}),
         ...(feedback
           ? {
               feedback,
@@ -160,7 +172,7 @@
           name: item.name,
           quantity: item.quantity || 1,
           description: item.description,
-          tagIds: [],
+          tagIds: item.tagIds ?? [],
           ...(itemEntityType.value ? { entityTypeId: itemEntityType.value.id } : {}),
           serialNumber: item.serialNumber,
           modelNumber: item.modelNumber,
@@ -174,11 +186,14 @@
         }
         result.id = created.id;
 
-        if (item.purchasePrice > 0 || item.purchaseFrom) {
+        // Fields EntityCreate doesn't carry are applied in a follow-up patch.
+        if (item.purchasePrice > 0 || item.purchaseFrom || item.purchaseDate || item.fields?.length) {
           await api.items.patch(created.id, {
             id: created.id,
             ...(item.purchasePrice > 0 ? { purchasePrice: item.purchasePrice } : {}),
             ...(item.purchaseFrom ? { purchaseFrom: item.purchaseFrom } : {}),
+            ...(item.purchaseDate ? { purchaseDate: String(item.purchaseDate) } : {}),
+            ...(item.fields?.length ? { fields: item.fields } : {}),
           });
         }
 
@@ -210,6 +225,7 @@
     items.value = [];
     results.value = [];
     singleItem.value = false;
+    hint.value = "";
     step.value = "location";
   }
 
@@ -253,6 +269,10 @@
             <Checkbox id="aiSingleItem" v-model="singleItem" />
             <Label class="cursor-pointer" for="aiSingleItem">{{ $t("ai.capture.single_item") }}</Label>
           </div>
+          <div class="flex flex-col gap-1.5">
+            <Label class="px-1" for="aiHint">{{ $t("ai.capture.hint_label") }}</Label>
+            <Textarea id="aiHint" v-model="hint" :placeholder="$t('ai.capture.hint_placeholder')" rows="2" />
+          </div>
           <div class="flex gap-2">
             <Button variant="outline" @click="step = 'location'">
               <MdiArrowLeft />
@@ -278,6 +298,7 @@
             v-model="items[idx]!"
             :index="idx"
             :photos="photos"
+            :tags="groupTags ?? []"
           />
 
           <CorrectionBar :busy="analyzing" @correct="feedback => analyze(feedback)" />

@@ -621,6 +621,58 @@ func TestEntityRepository_Patch_ScalarFields(t *testing.T) {
 	assert.Empty(t, got.Notes, "pointed-to empty string must clear the field")
 }
 
+func TestEntityRepository_Patch_PurchaseDateAndFields(t *testing.T) {
+	e := useEntities(t, 1)[0]
+	ctx := context.Background()
+
+	date := types.DateFromString("2024-06-15")
+	err := tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID:           e.ID,
+		PurchaseDate: &date,
+		Fields: []EntityFieldData{
+			{Type: "text", Name: "Color", TextValue: "Yellow"},
+			{Type: "number", Name: "Voltage", NumberValue: 18},
+		},
+	})
+	require.NoError(t, err)
+
+	got, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "2024-06-15", got.PurchaseDate.Time().Format("2006-01-02"))
+	require.Len(t, got.Fields, 2)
+
+	// Upsert by name: an existing field is updated in place, untouched
+	// fields survive, and nothing is deleted.
+	err = tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID: e.ID,
+		Fields: []EntityFieldData{
+			{Type: "text", Name: "Color", TextValue: "Black"},
+		},
+	})
+	require.NoError(t, err)
+
+	got, err = tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	require.NoError(t, err)
+	require.Len(t, got.Fields, 2, "upsert must never delete unmentioned fields")
+	values := map[string]string{}
+	for _, f := range got.Fields {
+		values[f.Name] = f.TextValue
+	}
+	assert.Equal(t, "Black", values["Color"])
+
+	// Nil PurchaseDate leaves the date untouched; zero date clears it.
+	err = tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{ID: e.ID})
+	require.NoError(t, err)
+	got, _ = tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	assert.False(t, got.PurchaseDate.Time().IsZero(), "nil date must not clear")
+
+	zero := types.Date{}
+	err = tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{ID: e.ID, PurchaseDate: &zero})
+	require.NoError(t, err)
+	got, _ = tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	assert.True(t, got.PurchaseDate.Time().IsZero(), "zero date must clear")
+}
+
 func TestEntityRepository_GetBySerialNumber(t *testing.T) {
 	e := useEntities(t, 1)[0]
 	ctx := context.Background()

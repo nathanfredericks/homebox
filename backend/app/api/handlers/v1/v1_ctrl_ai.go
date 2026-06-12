@@ -31,7 +31,9 @@ type (
 	}
 
 	AISuggestResult struct {
-		Suggestions []ai.FieldSuggestion `json:"suggestions"`
+		Suggestions  []ai.FieldSuggestion       `json:"suggestions"`
+		Tags         []ai.TagSuggestion         `json:"tags"`
+		CustomFields []ai.CustomFieldSuggestion `json:"customFields"`
 	}
 )
 
@@ -140,11 +142,15 @@ func (ctrl *V1Controller) HandleAISuggest() errchain.HandlerFunc {
 	fn := func(r *http.Request, ID uuid.UUID, body AISuggestRequest) (AISuggestResult, error) {
 		ctx := services.NewContext(r.Context())
 
-		suggestions, err := ctrl.svc.AI.SuggestForItem(ctx, ctx.GID, ID, body.Overwrite)
+		result, err := ctrl.svc.AI.SuggestForItem(ctx, ctx.GID, ID, body.Overwrite)
 		if err != nil {
 			return AISuggestResult{}, aiError(err)
 		}
-		return AISuggestResult{Suggestions: suggestions}, nil
+		return AISuggestResult{
+			Suggestions:  result.Suggestions,
+			Tags:         result.Tags,
+			CustomFields: result.CustomFields,
+		}, nil
 	}
 
 	return adapters.ActionID("id", fn, http.StatusOK)

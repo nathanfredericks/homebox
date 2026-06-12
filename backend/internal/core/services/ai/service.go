@@ -6,11 +6,14 @@ package ai
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"strings"
+
+	"github.com/google/uuid"
 
 	_ "image/png"
 
@@ -60,13 +63,70 @@ func (s *Service) Enabled() bool {
 	return c.Enabled && c.BaseURL != "" && c.Model != ""
 }
 
-// client returns a configured LLM client or ErrDisabled.
-func (s *Service) client() (*llm.Client, string, error) {
+// client returns a configured LLM client plus the effective AI configuration
+// snapshot, or ErrDisabled.
+func (s *Service) client() (*llm.Client, config.AIConf, error) {
 	c := s.conf()
 	if !c.Enabled || c.BaseURL == "" || c.Model == "" {
-		return nil, "", ErrDisabled
+		return nil, config.AIConf{}, ErrDisabled
 	}
-	return llm.NewClient(c.BaseURL, c.APIKey, c.Model), c.ExtraInstructions, nil
+	return llm.NewClient(c.BaseURL, c.APIKey, c.Model), c, nil
+}
+
+// groupTags returns the group's tags for prompt/schema use, or nil when the
+// tags field is disabled. Lookup failures degrade to "no tags" — tag
+// suggestions are an enhancement, not a reason to fail an analysis.
+func (s *Service) groupTags(ctx context.Context, gid uuid.UUID, c config.AIConf) []repo.TagSummary {
+	if !fieldEnabled(c.Fields, "tags") {
+		return nil
+	}
+	tags, err := s.repos.Tags.GetAll(ctx, gid)
+	if err != nil {
+		return nil
+	}
+	return tags
+}
+
+// templateFields loads the custom fields of one template. Nil template or any
+// failure degrades to "no custom fields".
+func (s *Service) templateFields(ctx context.Context, gid uuid.UUID, c config.AIConf, templateID *uuid.UUID) []repo.TemplateField {
+	if !fieldEnabled(c.Fields, "customFields") || templateID == nil || *templateID == uuid.Nil {
+		return nil
+	}
+	tpl, err := s.repos.EntityTemplates.GetOne(ctx, gid, *templateID)
+	if err != nil {
+		return nil
+	}
+	return tpl.Fields
+}
+
+// templateFieldsForType resolves an entity type (or the group default item
+// type when typeID is zero) to its default template's custom fields.
+func (s *Service) templateFieldsForType(ctx context.Context, gid uuid.UUID, c config.AIConf, typeID uuid.UUID) []repo.TemplateField {
+	if !fieldEnabled(c.Fields, "customFields") {
+		return nil
+	}
+
+	var templateID *uuid.UUID
+	if typeID == uuid.Nil {
+		def, err := s.repos.EntityTypes.GetDefault(ctx, gid, false)
+		if err != nil {
+			return nil
+		}
+		templateID = def.DefaultTemplateID
+	} else {
+		types, err := s.repos.EntityTypes.GetAll(ctx, gid)
+		if err != nil {
+			return nil
+		}
+		for _, et := range types {
+			if et.ID == typeID {
+				templateID = et.DefaultTemplateID
+				break
+			}
+		}
+	}
+	return s.templateFields(ctx, gid, c, templateID)
 }
 
 // prepareImage decodes raw upload bytes (JPEG/PNG/WebP/HEIC/AVIF), downscales

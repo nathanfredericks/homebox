@@ -7,6 +7,8 @@
   import MdiLoading from "~icons/mdi/loading";
   import SectionCard from "~/components/Admin/Settings/SectionCard.vue";
   import SettingField from "~/components/Admin/Settings/SettingField.vue";
+  import AiFieldPrefs from "~/components/Admin/Settings/AiFieldPrefs.vue";
+  import TagSingleSelector from "~/components/Tag/SingleSelector.vue";
   import type { FieldDef } from "~/components/Admin/Settings/SettingField.vue";
   import type { SettingsSection } from "~~/lib/api/classes/admin-settings";
   import type { AdminSettingsOut } from "~~/lib/api/types/data-contracts";
@@ -215,9 +217,16 @@
           help: t("admin.settings.ai.model_help"),
         },
         {
+          key: "outputLanguage",
+          label: t("admin.settings.ai.output_language"),
+          type: "text",
+          placeholder: "English",
+          help: t("admin.settings.ai.output_language_help"),
+        },
+        {
           key: "extraInstructions",
           label: t("admin.settings.ai.extra_instructions"),
-          type: "text",
+          type: "textarea",
           help: t("admin.settings.ai.extra_instructions_help"),
         },
       ],
@@ -346,6 +355,22 @@
 
   const algoliaEnabledSaved = computed(() => initial.value.algolia?.enabled === true);
 
+  // Group tags for the AI default-tag picker; failures just leave it empty.
+  const { data: groupTags } = await useAsyncData("admin-settings-tags", async () => {
+    const { data, error } = await api.tags.getAll();
+    if (error || !data) return [];
+    return data;
+  });
+
+  const aiDefaultTag = computed({
+    get: () => {
+      const id = String(forms.ai?.defaultTagId ?? "");
+      if (!id) return null;
+      return (groupTags.value ?? []).find(tag => tag.id === id) ?? null;
+    },
+    set: tag => setField("ai", "defaultTagId", tag?.id ?? ""),
+  });
+
   async function reindexNow() {
     reindexing.value = true;
     try {
@@ -409,6 +434,27 @@
               </div>
             </div>
           </div>
+        </template>
+
+        <template v-if="def.id === 'ai'">
+          <div v-if="canEdit" class="flex flex-col gap-1.5">
+            <TagSingleSelector
+              v-model="aiDefaultTag"
+              :tags="groupTags ?? []"
+              :name="$t('admin.settings.ai.default_tag')"
+            />
+            <p class="px-1 text-xs text-muted-foreground">{{ $t("admin.settings.ai.default_tag_help") }}</p>
+          </div>
+          <div v-else class="flex items-baseline justify-between gap-4 text-sm">
+            <span class="text-muted-foreground">{{ $t("admin.settings.ai.default_tag") }}</span>
+            <span class="text-right font-medium">{{ aiDefaultTag?.name ?? "—" }}</span>
+          </div>
+
+          <AiFieldPrefs
+            :model-value="forms.ai?.fields"
+            :view-only="!canEdit"
+            @update:model-value="v => setField('ai', 'fields', v)"
+          />
         </template>
 
         <template v-if="def.id === 'algolia' && canEdit && algoliaEnabledSaved" #actions>

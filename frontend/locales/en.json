@@ -20,10 +20,43 @@
                 "description": "Vision model used for AI item capture and field suggestions.",
                 "enabled": "Enable AI features",
                 "extra_instructions": "Extra instructions",
-                "extra_instructions_help": "Appended to every AI prompt, e.g. output language or naming conventions.",
+                "extra_instructions_help": "Appended to every AI prompt for instructions that don't fit a single field.",
                 "model": "Model",
                 "model_help": "Must support image input and JSON output.",
-                "title": "AI"
+                "title": "AI",
+                "output_language": "Output language",
+                "output_language_help": "Language for AI-written names, descriptions and notes. Empty means English.",
+                "default_tag": "Default tag",
+                "default_tag_help": "Added to every AI-detected item on capture.",
+                "fields_title": "AI fields",
+                "fields_help": "Toggle which fields the AI fills and optionally override its instructions. Empty instruction uses the built-in rule shown as placeholder.",
+                "fields_instruction": "Instructions for {field}",
+                "fields": {
+                    "name": "Name",
+                    "name_default": "Concise title-case name, \"Brand Model Item\" when identifiable.",
+                    "quantity": "Quantity",
+                    "quantity_default": "How many identical units this entry covers. 1 when unsure.",
+                    "description": "Description",
+                    "description_default": "What the item is, visible features and specs. Max 500 characters.",
+                    "manufacturer": "Manufacturer",
+                    "manufacturer_default": "Only brands/logos actually visible.",
+                    "modelNumber": "Model number",
+                    "modelNumber_default": "Only text actually readable on labels or stickers. Never guess.",
+                    "serialNumber": "Serial number",
+                    "serialNumber_default": "Only text actually readable on labels or stickers. Never guess.",
+                    "purchasePrice": "Purchase price",
+                    "purchasePrice_default": "Only from a visible price tag or receipt.",
+                    "purchaseFrom": "Purchased from",
+                    "purchaseFrom_default": "Only from visible packaging or receipts.",
+                    "purchaseDate": "Purchase date",
+                    "purchaseDate_default": "Only from a visible receipt or dated label.",
+                    "notes": "Notes",
+                    "notes_default": "Visible damage, missing parts, or new/sealed condition.",
+                    "tags": "Tags",
+                    "tags_default": "Assign listed tags that clearly apply to the item.",
+                    "customFields": "Custom fields",
+                    "customFields_default": "Fill template custom fields only when determinable from the photos."
+                }
             },
             "algolia": {
                 "admin_api_key": "Admin API key",
@@ -225,7 +258,10 @@
             "single_item": "All photos show a single item",
             "target_location": "Items will be created in {location}",
             "title": "AI Capture",
-            "view_item": "View item"
+            "view_item": "View item",
+            "hint_label": "Anything the AI should know?",
+            "hint_placeholder": "e.g. Everything is from the garage shelf; the receipt is in photo 2",
+            "reanalyze": "Re-analyze"
         },
         "fill": {
             "accept_all": "Accept all",
@@ -240,7 +276,10 @@
             "no_suggestions": "No suggestions — the photos didn't reveal anything new.",
             "overwrite": "Suggest replacements for filled fields too",
             "suggested": "Suggested",
-            "title": "AI field suggestions"
+            "title": "AI field suggestions",
+            "edit_value": "Edit suggested value for {field}",
+            "suggested_tags": "Suggested tags",
+            "suggested_custom_fields": "Suggested custom fields"
         },
         "review": {
             "approve": "Apply suggestions",
@@ -718,7 +757,14 @@
         "updating": "Updating",
         "value": "Value",
         "welcome": "Welcome, { username }",
-        "yes": "Yes"
+        "yes": "Yes",
+        "purchase_date": "Purchase date",
+        "manufacturer": "Manufacturer",
+        "model_number": "Model number",
+        "serial_number": "Serial number",
+        "purchase_price": "Purchase price",
+        "purchased_from": "Purchased from",
+        "notes": "Notes"
     },
     "home": {
         "quick_statistics": "Quick Statistics",

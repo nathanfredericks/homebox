@@ -86,6 +86,7 @@ type (
 		TextValue    string    `json:"textValue"`
 		NumberValue  int       `json:"numberValue"`
 		BooleanValue bool      `json:"booleanValue"`
+		TimeValue    time.Time `json:"timeValue"`
 	}
 
 	EntityCreate struct {
@@ -169,6 +170,14 @@ type (
 		PurchaseFrom  *string  `json:"purchaseFrom,omitempty"  validate:"omitempty,max=255"       extensions:"x-nullable,x-omitempty"`
 		PurchasePrice *float64 `json:"purchasePrice,omitempty" extensions:"x-nullable,x-omitempty"`
 		Archived      *bool    `json:"archived,omitempty"      extensions:"x-nullable,x-omitempty"`
+
+		// PurchaseDate: nil leaves the date untouched, a zero date clears it.
+		PurchaseDate *types.Date `json:"purchaseDate,omitempty" extensions:"x-nullable,x-omitempty"`
+
+		// Fields are upserted by name: existing fields with a matching name are
+		// updated, others are created. Unlike EntityUpdate.Fields this never
+		// deletes fields, so partial updates (e.g. AI suggestions) are safe.
+		Fields []EntityFieldData `json:"fields,omitempty" extensions:"x-nullable,x-omitempty"`
 	}
 
 	EntitySummary struct {
@@ -338,6 +347,7 @@ func mapEntityFields(fields []*ent.EntityField) []EntityFieldData {
 			TextValue:    f.TextValue,
 			NumberValue:  f.NumberValue,
 			BooleanValue: f.BooleanValue,
+			TimeValue:    f.TimeValue,
 		}
 	})
 }
@@ -1591,14 +1601,17 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 	// Update Existing Fields
 	for _, f := range data.Fields {
 		if f.ID == uuid.Nil {
-			_, err = r.db.EntityField.Create().
+			create := r.db.EntityField.Create().
 				SetEntityID(data.ID).
 				SetType(entityfield.Type(f.Type)).
 				SetName(f.Name).
 				SetTextValue(f.TextValue).
 				SetNumberValue(f.NumberValue).
-				SetBooleanValue(f.BooleanValue).
-				Save(fieldsCtx)
+				SetBooleanValue(f.BooleanValue)
+			if !f.TimeValue.IsZero() {
+				create.SetTimeValue(f.TimeValue)
+			}
+			_, err = create.Save(fieldsCtx)
 			if err != nil {
 				recordSpanError(fieldsSpan, err)
 				fieldsSpan.End()
@@ -1618,6 +1631,9 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 			SetTextValue(f.TextValue).
 			SetNumberValue(f.NumberValue).
 			SetBooleanValue(f.BooleanValue)
+		if !f.TimeValue.IsZero() {
+			opt.SetTimeValue(f.TimeValue)
+		}
 
 		_, err = opt.Save(fieldsCtx)
 		if err != nil {
@@ -1732,6 +1748,62 @@ func patchSyncTags(ctx context.Context, tx *ent.Tx, gid, id uuid.UUID, want []uu
 		attribute.Int("tags.added.count", len(addTags)),
 		attribute.Int("tags.removed.count", set.Len()),
 	)
+	return nil
+}
+
+// patchUpsertFields updates the entity's custom fields matching by name and
+// creates the rest. Fields not mentioned are left alone — partial sources
+// like AI suggestions must never delete data they didn't propose.
+func patchUpsertFields(ctx context.Context, tx *ent.Tx, gid, id uuid.UUID, fields []EntityFieldData) error {
+	fieldsCtx, fieldsSpan := entityTracer().Start(ctx, "repo.EntityRepository.Patch.fields",
+		trace.WithAttributes(attribute.Int("fields.input.count", len(fields))))
+	defer fieldsSpan.End()
+
+	existing, err := tx.EntityField.Query().
+		Where(entityfield.HasEntityWith(entity.ID(id), entity.HasGroupWith(group.ID(gid)))).
+		All(fieldsCtx)
+	if err != nil {
+		recordSpanError(fieldsSpan, err)
+		return err
+	}
+	byName := make(map[string]*ent.EntityField, len(existing))
+	for _, f := range existing {
+		byName[f.Name] = f
+	}
+
+	for _, f := range fields {
+		if f.Name == "" {
+			continue
+		}
+		if cur, ok := byName[f.Name]; ok {
+			upd := tx.EntityField.UpdateOneID(cur.ID).
+				SetType(entityfield.Type(f.Type)).
+				SetTextValue(f.TextValue).
+				SetNumberValue(f.NumberValue).
+				SetBooleanValue(f.BooleanValue)
+			// A zero time means "no value supplied", not year one.
+			if !f.TimeValue.IsZero() {
+				upd.SetTimeValue(f.TimeValue)
+			}
+			err = upd.Exec(fieldsCtx)
+		} else {
+			cr := tx.EntityField.Create().
+				SetEntityID(id).
+				SetType(entityfield.Type(f.Type)).
+				SetName(f.Name).
+				SetTextValue(f.TextValue).
+				SetNumberValue(f.NumberValue).
+				SetBooleanValue(f.BooleanValue)
+			if !f.TimeValue.IsZero() {
+				cr.SetTimeValue(f.TimeValue)
+			}
+			err = cr.Exec(fieldsCtx)
+		}
+		if err != nil {
+			recordSpanError(fieldsSpan, err)
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1869,6 +1941,14 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 		SetNillablePurchasePrice(data.PurchasePrice).
 		SetNillableArchived(data.Archived)
 
+	if data.PurchaseDate != nil {
+		if t := data.PurchaseDate.Time(); t.IsZero() {
+			q.ClearPurchaseDate()
+		} else {
+			q.SetPurchaseDate(t)
+		}
+	}
+
 	_, execSpan := entityTracer().Start(ctx, "repo.EntityRepository.Patch.exec")
 	err = q.Exec(ctx)
 	if err != nil {
@@ -1881,6 +1961,13 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 
 	if data.TagIDs != nil {
 		if err := patchSyncTags(ctx, tx, gid, id, data.TagIDs); err != nil {
+			recordSpanError(span, err)
+			return err
+		}
+	}
+
+	if len(data.Fields) > 0 {
+		if err := patchUpsertFields(ctx, tx, gid, id, data.Fields); err != nil {
 			recordSpanError(span, err)
 			return err
 		}

@@ -31,9 +31,38 @@
         <FormTextField v-model="item.serialNumber" :label="$t('global.serial_number')" />
         <FormTextField v-model="item.purchaseFrom" :label="$t('global.purchased_from')" />
         <FormTextField v-model.number="item.purchasePrice" type="number" :label="$t('global.purchase_price')" />
+        <FormTextField v-model="purchaseDate" type="date" :label="$t('global.purchase_date')" />
       </div>
 
+      <TagSelector v-if="tags.length" v-model="item.tagIds" :tags="tags" />
+
       <FormTextArea v-model="item.notes" :label="$t('global.notes')" />
+
+      <div v-if="item.fields?.length" class="flex flex-col gap-1.5">
+        <Label class="px-1">{{ $t("items.custom_fields") }}</Label>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <template v-for="(field, fi) in item.fields" :key="`cf-${fi}`">
+            <div v-if="field.type === 'boolean'" class="flex items-center gap-2 pt-2">
+              <Switch :id="`cf-${index}-${fi}`" v-model="field.booleanValue" />
+              <Label :for="`cf-${index}-${fi}`">{{ field.name }}</Label>
+            </div>
+            <FormTextField
+              v-else-if="field.type === 'number'"
+              v-model.number="field.numberValue"
+              type="number"
+              :label="field.name"
+            />
+            <FormTextField
+              v-else-if="field.type === 'time'"
+              :model-value="(field.timeValue ?? '').slice(0, 10)"
+              type="date"
+              :label="field.name"
+              @update:model-value="(v: string | number) => (field.timeValue = dateToTimeValue(String(v ?? '')))"
+            />
+            <FormTextField v-else v-model="field.textValue" :label="field.name" :max-length="500" />
+          </template>
+        </div>
+      </div>
 
       <div v-if="photos.length > 1" class="flex flex-col gap-1.5">
         <Label class="px-1">{{ $t("ai.capture.attach_photos") }}</Label>
@@ -59,16 +88,31 @@
   import { Switch } from "@/components/ui/switch";
   import FormTextField from "~/components/Form/TextField.vue";
   import FormTextArea from "~/components/Form/TextArea.vue";
+  import TagSelector from "~/components/Tag/Selector.vue";
   import MdiAlert from "~icons/mdi/alert";
+  import type { TagOut } from "~~/lib/api/types/data-contracts";
   import type { CapturePhoto } from "./PhotoStep.vue";
-  import type { EditableDetectedItem } from "~~/composables/use-ai-capture-types";
+  import { dateToTimeValue, type EditableDetectedItem } from "~~/composables/use-ai-capture-types";
 
-  defineProps<{
-    index: number;
-    photos: CapturePhoto[];
-  }>();
+  withDefaults(
+    defineProps<{
+      index: number;
+      photos: CapturePhoto[];
+      tags?: TagOut[];
+    }>(),
+    { tags: () => [] }
+  );
 
   const item = defineModel<EditableDetectedItem>({ required: true });
+
+  // The model returns purchaseDate as a date-only string, which is exactly
+  // what a date input speaks.
+  const purchaseDate = computed({
+    get: () => String(item.value.purchaseDate ?? "").slice(0, 10),
+    set: (v: string) => {
+      item.value.purchaseDate = v;
+    },
+  });
 
   function togglePhoto(idx: number) {
     const set = new Set(item.value.photoIdx);

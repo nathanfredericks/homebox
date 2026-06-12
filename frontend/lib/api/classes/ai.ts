@@ -8,6 +8,10 @@ export type DetectedItem = Omit<AiAnalyzedItem, "duplicate">;
 export type AnalyzeOptions = {
   /** All photos show one item from multiple angles. */
   singleItem?: boolean;
+  /** Free-form user context about the photos, passed into the prompt. */
+  hint?: string;
+  /** Entity type whose template defines the custom fields to extract. */
+  entityTypeId?: string;
   /** Re-run with user corrections applied to priorItems. */
   feedback?: string;
   priorItems?: DetectedItem[];

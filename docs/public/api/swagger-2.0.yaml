@@ -9,6 +9,13 @@ definitions:
         - $ref: '#/definitions/ai.DuplicateMatch'
         x-nullable: true
         x-omitempty: true
+      fields:
+        description: |-
+          Fields are values for the entity type's template custom fields,
+          validated against the template (unknown names are dropped).
+        items:
+          $ref: '#/definitions/repo.EntityFieldData'
+        type: array
       manufacturer:
         type: string
       modelNumber:
@@ -17,6 +24,9 @@ definitions:
         type: string
       notes:
         type: string
+      purchaseDate:
+        description: PurchaseDate is "YYYY-MM-DD" or empty.
+        type: string
       purchaseFrom:
         type: string
       purchasePrice:
@@ -24,6 +34,24 @@ definitions:
       quantity:
         type: number
       serialNumber:
+        type: string
+      tagIds:
+        description: |-
+          TagIDs only ever contains tags that exist in the group; hallucinated
+          IDs are filtered out before the result leaves the service.
+        items:
+          type: string
+        type: array
+    type: object
+  ai.CustomFieldSuggestion:
+    properties:
+      current:
+        type: string
+      name:
+        type: string
+      suggested:
+        type: string
+      type:
         type: string
     type: object
   ai.DuplicateMatch:
@@ -42,6 +70,13 @@ definitions:
       field:
         type: string
       suggested:
+        type: string
+    type: object
+  ai.TagSuggestion:
+    properties:
+      id:
+        type: string
+      name:
         type: string
     type: object
   attachment.Type:
@@ -80,15 +115,63 @@ definitions:
         type: string
       baseUrl:
         type: string
+      defaultTagId:
+        description: |-
+          DefaultTagID is a tag UUID appended to every AI-detected item. Empty or
+          unknown IDs are ignored.
+        type: string
       enabled:
         type: boolean
       extraInstructions:
         description: |-
-          ExtraInstructions is appended to every AI prompt, e.g. output language
-          or naming conventions.
+          ExtraInstructions is appended to every AI prompt, e.g. naming
+          conventions that don't fit a single field's instruction.
         type: string
+      fields:
+        allOf:
+        - $ref: '#/definitions/config.AIFieldConfs'
+        description: Fields tunes each AI-fillable surface individually.
       model:
         type: string
+      outputLanguage:
+        description: |-
+          OutputLanguage is the language AI-written values (names, descriptions,
+          notes) are produced in. Empty means English and emits no prompt line.
+        type: string
+    type: object
+  config.AIFieldConf:
+    properties:
+      enabled:
+        type: boolean
+      instruction:
+        type: string
+    type: object
+  config.AIFieldConfs:
+    properties:
+      customFields:
+        $ref: '#/definitions/config.AIFieldConf'
+      description:
+        $ref: '#/definitions/config.AIFieldConf'
+      manufacturer:
+        $ref: '#/definitions/config.AIFieldConf'
+      modelNumber:
+        $ref: '#/definitions/config.AIFieldConf'
+      name:
+        $ref: '#/definitions/config.AIFieldConf'
+      notes:
+        $ref: '#/definitions/config.AIFieldConf'
+      purchaseDate:
+        $ref: '#/definitions/config.AIFieldConf'
+      purchaseFrom:
+        $ref: '#/definitions/config.AIFieldConf'
+      purchasePrice:
+        $ref: '#/definitions/config.AIFieldConf'
+      quantity:
+        $ref: '#/definitions/config.AIFieldConf'
+      serialNumber:
+        $ref: '#/definitions/config.AIFieldConf'
+      tags:
+        $ref: '#/definitions/config.AIFieldConf'
     type: object
   config.AlgoliaConf:
     properties:
@@ -1381,6 +1464,8 @@ definitions:
         type: integer
       textValue:
         type: string
+      timeValue:
+        type: string
       type:
         type: string
     type: object
@@ -1512,6 +1597,16 @@ definitions:
         type: string
         x-nullable: true
         x-omitempty: true
+      fields:
+        description: |-
+          Fields are upserted by name: existing fields with a matching name are
+          updated, others are created. Unlike EntityUpdate.Fields this never
+          deletes fields, so partial updates (e.g. AI suggestions) are safe.
+        items:
+          $ref: '#/definitions/repo.EntityFieldData'
+        type: array
+        x-nullable: true
+        x-omitempty: true
       id:
         type: string
       manufacturer:
@@ -1539,6 +1634,12 @@ definitions:
         x-nullable: true
         x-omitempty: true
       parentId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      purchaseDate:
+        description: 'PurchaseDate: nil leaves the date untouched, a zero date clears
+          it.'
         type: string
         x-nullable: true
         x-omitempty: true
@@ -2676,9 +2777,17 @@ definitions:
     type: object
   v1.AISuggestResult:
     properties:
+      customFields:
+        items:
+          $ref: '#/definitions/ai.CustomFieldSuggestion'
+        type: array
       suggestions:
         items:
           $ref: '#/definitions/ai.FieldSuggestion'
+        type: array
+      tags:
+        items:
+          $ref: '#/definitions/ai.TagSuggestion'
         type: array
     type: object
   v1.APISummary:

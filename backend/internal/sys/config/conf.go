@@ -210,9 +210,43 @@ type AIConf struct {
 	BaseURL string `json:"baseUrl" yaml:"base_url" conf:"default:https://api.openai.com/v1"`
 	APIKey  string `json:"apiKey"  yaml:"api_key"  conf:"mask"`
 	Model   string `json:"model"   yaml:"model"`
-	// ExtraInstructions is appended to every AI prompt, e.g. output language
-	// or naming conventions.
+	// ExtraInstructions is appended to every AI prompt, e.g. naming
+	// conventions that don't fit a single field's instruction.
 	ExtraInstructions string `json:"extraInstructions" yaml:"extra_instructions"`
+	// OutputLanguage is the language AI-written values (names, descriptions,
+	// notes) are produced in. Empty means English and emits no prompt line.
+	OutputLanguage string `json:"outputLanguage" yaml:"output_language"`
+	// DefaultTagID is a tag UUID appended to every AI-detected item. Empty or
+	// unknown IDs are ignored.
+	DefaultTagID string `json:"defaultTagId" yaml:"default_tag_id"`
+	// Fields tunes each AI-fillable surface individually.
+	Fields AIFieldConfs `json:"fields" yaml:"fields"`
+}
+
+// AIFieldConf tunes one AI-fillable field. Disabled fields are omitted from
+// both the prompt and the model's output schema. A non-empty Instruction
+// replaces the built-in rule for that field (see ai.defaultFieldRules).
+type AIFieldConf struct {
+	Enabled     bool   `json:"enabled"     yaml:"enabled" conf:"default:true"`
+	Instruction string `json:"instruction" yaml:"instruction"`
+}
+
+// AIFieldConfs holds the per-field AI settings. The name field is effectively
+// always enabled: the ai package ignores a disabled toggle on it because a
+// detected item without a name is unusable.
+type AIFieldConfs struct {
+	Name          AIFieldConf `json:"name"          yaml:"name"`
+	Quantity      AIFieldConf `json:"quantity"      yaml:"quantity"`
+	Description   AIFieldConf `json:"description"   yaml:"description"`
+	Manufacturer  AIFieldConf `json:"manufacturer"  yaml:"manufacturer"`
+	ModelNumber   AIFieldConf `json:"modelNumber"   yaml:"model_number"`
+	SerialNumber  AIFieldConf `json:"serialNumber"  yaml:"serial_number"`
+	PurchasePrice AIFieldConf `json:"purchasePrice" yaml:"purchase_price"`
+	PurchaseFrom  AIFieldConf `json:"purchaseFrom"  yaml:"purchase_from"`
+	PurchaseDate  AIFieldConf `json:"purchaseDate"  yaml:"purchase_date"`
+	Notes         AIFieldConf `json:"notes"         yaml:"notes"`
+	Tags          AIFieldConf `json:"tags"          yaml:"tags"`
+	CustomFields  AIFieldConf `json:"customFields"  yaml:"custom_fields"`
 }
 
 func (c AIConf) MarshalJSON() ([]byte, error) {

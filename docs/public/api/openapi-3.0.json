@@ -4138,6 +4138,13 @@
                         "x-omitempty": true,
                         "nullable": true
                     },
+                    "fields": {
+                        "description": "Fields are values for the entity type's template custom fields,\nvalidated against the template (unknown names are dropped).",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/repo.EntityFieldData"
+                        }
+                    },
                     "manufacturer": {
                         "type": "string"
                     },
@@ -4150,6 +4157,10 @@
                     "notes": {
                         "type": "string"
                     },
+                    "purchaseDate": {
+                        "description": "PurchaseDate is \"YYYY-MM-DD\" or empty.",
+                        "type": "string"
+                    },
                     "purchaseFrom": {
                         "type": "string"
                     },
@@ -4160,6 +4171,30 @@
                         "type": "number"
                     },
                     "serialNumber": {
+                        "type": "string"
+                    },
+                    "tagIds": {
+                        "description": "TagIDs only ever contains tags that exist in the group; hallucinated\nIDs are filtered out before the result leaves the service.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "ai.CustomFieldSuggestion": {
+                "type": "object",
+                "properties": {
+                    "current": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "suggested": {
+                        "type": "string"
+                    },
+                    "type": {
                         "type": "string"
                     }
                 }
@@ -4188,6 +4223,17 @@
                         "type": "string"
                     },
                     "suggested": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ai.TagSuggestion": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
                         "type": "string"
                     }
                 }
@@ -4237,15 +4283,83 @@
                     "baseUrl": {
                         "type": "string"
                     },
+                    "defaultTagId": {
+                        "description": "DefaultTagID is a tag UUID appended to every AI-detected item. Empty or\nunknown IDs are ignored.",
+                        "type": "string"
+                    },
                     "enabled": {
                         "type": "boolean"
                     },
                     "extraInstructions": {
-                        "description": "ExtraInstructions is appended to every AI prompt, e.g. output language\nor naming conventions.",
+                        "description": "ExtraInstructions is appended to every AI prompt, e.g. naming\nconventions that don't fit a single field's instruction.",
                         "type": "string"
+                    },
+                    "fields": {
+                        "description": "Fields tunes each AI-fillable surface individually.",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/config.AIFieldConfs"
+                            }
+                        ]
                     },
                     "model": {
                         "type": "string"
+                    },
+                    "outputLanguage": {
+                        "description": "OutputLanguage is the language AI-written values (names, descriptions,\nnotes) are produced in. Empty means English and emits no prompt line.",
+                        "type": "string"
+                    }
+                }
+            },
+            "config.AIFieldConf": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "instruction": {
+                        "type": "string"
+                    }
+                }
+            },
+            "config.AIFieldConfs": {
+                "type": "object",
+                "properties": {
+                    "customFields": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "description": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "modelNumber": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "name": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "notes": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "purchaseDate": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "purchaseFrom": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "purchasePrice": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "quantity": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "serialNumber": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
+                    },
+                    "tags": {
+                        "$ref": "#/components/schemas/config.AIFieldConf"
                     }
                 }
             },
@@ -6091,6 +6205,9 @@
                     "textValue": {
                         "type": "string"
                     },
+                    "timeValue": {
+                        "type": "string"
+                    },
                     "type": {
                         "type": "string"
                     }
@@ -6281,6 +6398,15 @@
                         "x-omitempty": true,
                         "nullable": true
                     },
+                    "fields": {
+                        "description": "Fields are upserted by name: existing fields with a matching name are\nupdated, others are created. Unlike EntityUpdate.Fields this never\ndeletes fields, so partial updates (e.g. AI suggestions) are safe.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/repo.EntityFieldData"
+                        },
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
                     "id": {
                         "type": "string"
                     },
@@ -6311,6 +6437,12 @@
                         "nullable": true
                     },
                     "parentId": {
+                        "type": "string",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "purchaseDate": {
+                        "description": "PurchaseDate: nil leaves the date untouched, a zero date clears it.",
                         "type": "string",
                         "x-omitempty": true,
                         "nullable": true
@@ -7979,10 +8111,22 @@
             "v1.AISuggestResult": {
                 "type": "object",
                 "properties": {
+                    "customFields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ai.CustomFieldSuggestion"
+                        }
+                    },
                     "suggestions": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/ai.FieldSuggestion"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ai.TagSuggestion"
                         }
                     }
                 }

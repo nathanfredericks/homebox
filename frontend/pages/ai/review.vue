@@ -8,10 +8,16 @@
   import BaseCard from "@/components/Base/Card.vue";
   import BaseSectionHeader from "@/components/Base/SectionHeader.vue";
   import LocationSelector from "~/components/Location/Selector.vue";
+  import SuggestionList from "~/components/AI/SuggestionList.vue";
   import MdiCreation from "~icons/mdi/creation";
   import MdiLoading from "~icons/mdi/loading";
-  import type { AiFieldSuggestion, EntitySummary } from "~~/lib/api/types/data-contracts";
-  import { suggestionsToPatch } from "~~/composables/use-ai-capture-types";
+  import type {
+    AiCustomFieldSuggestion,
+    AiFieldSuggestion,
+    AiTagSuggestion,
+    EntitySummary,
+  } from "~~/lib/api/types/data-contracts";
+  import { customFieldSuggestionsToFields, suggestionsToPatch } from "~~/composables/use-ai-capture-types";
 
   definePageMeta({
     middleware: ["auth"],
@@ -50,24 +56,16 @@
   const loading = ref(false);
   const applying = ref(false);
   const suggestions = ref<AiFieldSuggestion[]>([]);
+  const tagSuggestions = ref<AiTagSuggestion[]>([]);
+  const customFieldSuggestions = ref<AiCustomFieldSuggestion[]>([]);
   const appliedCount = ref(0);
   const skippedCount = ref(0);
 
-  const FIELD_LABELS: Record<string, string> = {
-    name: "components.item.create_modal.item_name",
-    description: "components.item.create_modal.item_description",
-    manufacturer: "global.manufacturer",
-    modelNumber: "global.model_number",
-    serialNumber: "global.serial_number",
-    purchasePrice: "global.purchase_price",
-    purchaseFrom: "global.purchased_from",
-    notes: "global.notes",
-  };
+  const listRef = ref<InstanceType<typeof SuggestionList> | null>(null);
 
-  function fieldLabel(field: string): string {
-    const key = FIELD_LABELS[field];
-    return key ? t(key) : field;
-  }
+  const hasSuggestions = computed(
+    () => suggestions.value.length > 0 || tagSuggestions.value.length > 0 || customFieldSuggestions.value.length > 0
+  );
 
   async function start() {
     if (!location.value) return;
@@ -104,6 +102,8 @@
     }
     loading.value = true;
     suggestions.value = [];
+    tagSuggestions.value = [];
+    customFieldSuggestions.value = [];
     try {
       const { data, error } = await api.ai.suggest(current.value.id, overwrite.value);
       if (error || !data) {
@@ -112,7 +112,9 @@
         return;
       }
       suggestions.value = data.suggestions;
-      if (data.suggestions.length === 0) {
+      tagSuggestions.value = data.tags ?? [];
+      customFieldSuggestions.value = data.customFields ?? [];
+      if (!hasSuggestions.value) {
         await next(true);
       }
     } finally {
@@ -133,10 +135,23 @@
   }
 
   async function approve() {
-    if (!current.value) return;
+    const selection = listRef.value?.selection;
+    if (!current.value || !selection) return;
     applying.value = true;
     try {
-      const patch = suggestionsToPatch(current.value.id, suggestions.value);
+      const patch = suggestionsToPatch(current.value.id, selection.fields);
+      if (selection.tagIds.length) {
+        // The patch endpoint syncs tags to the exact list; the queue's
+        // summaries may carry stale tag data, so the union is built from the
+        // item's authoritative current tags.
+        const { data: full } = await api.items.get(current.value.id);
+        const currentTags = (full?.tags ?? []).map(tag => tag.id);
+        patch.tagIds = [...new Set([...currentTags, ...selection.tagIds])];
+      }
+      if (selection.customFields.length) {
+        patch.fields = customFieldSuggestionsToFields(selection.customFields);
+      }
+
       const { error } = await api.items.patch(current.value.id, patch);
       if (error) {
         toast.error(t("ai.fill.apply_failed"));
@@ -153,6 +168,8 @@
     phase.value = "pick";
     queue.value = [];
     suggestions.value = [];
+    tagSuggestions.value = [];
+    customFieldSuggestions.value = [];
   }
 </script>
 
@@ -199,19 +216,18 @@
           </div>
 
           <template v-else>
-            <div v-for="s in suggestions" :key="s.field" class="rounded-md border p-3">
-              <div class="font-medium">{{ fieldLabel(s.field) }}</div>
-              <div class="mt-1 grid grid-cols-1 gap-1 text-sm">
-                <div v-if="s.current" class="text-muted-foreground line-through">{{ s.current }}</div>
-                <div>{{ s.suggested }}</div>
-              </div>
-            </div>
+            <SuggestionList
+              ref="listRef"
+              :suggestions="suggestions"
+              :tags="tagSuggestions"
+              :custom-fields="customFieldSuggestions"
+            />
 
             <div class="flex gap-2">
               <Button variant="outline" class="grow" :disabled="applying" @click="next(true)">
                 {{ $t("ai.review.skip") }}
               </Button>
-              <Button class="grow" :disabled="applying || suggestions.length === 0" @click="approve">
+              <Button class="grow" :disabled="applying || (listRef?.selectedCount ?? 0) === 0" @click="approve">
                 <MdiLoading v-if="applying" class="animate-spin" />
                 {{ $t("ai.review.approve") }}
               </Button>

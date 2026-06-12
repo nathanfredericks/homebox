@@ -6,7 +6,15 @@
   import { Textarea } from "@/components/ui/textarea";
   import FormGoogleFontSelect from "~/components/Form/GoogleFontSelect.vue";
 
-  export type FieldType = "boolean" | "number" | "text" | "secret" | "list" | "durationSeconds" | "googleFont";
+  export type FieldType =
+    | "boolean"
+    | "number"
+    | "text"
+    | "textarea"
+    | "secret"
+    | "list"
+    | "durationSeconds"
+    | "googleFont";
 
   export type FieldDef = {
     /** JSON key within the settings section payload. */
@@ -109,7 +117,13 @@
 
   <div v-else class="flex flex-col gap-1.5">
     <Label :for="fieldId" class="px-1">{{ def.label }}</Label>
-    <Textarea v-if="def.type === 'list'" :id="fieldId" v-model="textValue" :placeholder="def.placeholder" rows="3" />
+    <Textarea
+      v-if="def.type === 'list' || def.type === 'textarea'"
+      :id="fieldId"
+      v-model="textValue"
+      :placeholder="def.placeholder"
+      rows="3"
+    />
     <Input
       v-else
       :id="fieldId"

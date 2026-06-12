@@ -3851,6 +3851,13 @@ const docTemplate = `{
                     "x-nullable": true,
                     "x-omitempty": true
                 },
+                "fields": {
+                    "description": "Fields are values for the entity type's template custom fields,\nvalidated against the template (unknown names are dropped).",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.EntityFieldData"
+                    }
+                },
                 "manufacturer": {
                     "type": "string"
                 },
@@ -3863,6 +3870,10 @@ const docTemplate = `{
                 "notes": {
                     "type": "string"
                 },
+                "purchaseDate": {
+                    "description": "PurchaseDate is \"YYYY-MM-DD\" or empty.",
+                    "type": "string"
+                },
                 "purchaseFrom": {
                     "type": "string"
                 },
@@ -3873,6 +3884,30 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "serialNumber": {
+                    "type": "string"
+                },
+                "tagIds": {
+                    "description": "TagIDs only ever contains tags that exist in the group; hallucinated\nIDs are filtered out before the result leaves the service.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "ai.CustomFieldSuggestion": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "suggested": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -3901,6 +3936,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "suggested": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai.TagSuggestion": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -3950,15 +3996,83 @@ const docTemplate = `{
                 "baseUrl": {
                     "type": "string"
                 },
+                "defaultTagId": {
+                    "description": "DefaultTagID is a tag UUID appended to every AI-detected item. Empty or\nunknown IDs are ignored.",
+                    "type": "string"
+                },
                 "enabled": {
                     "type": "boolean"
                 },
                 "extraInstructions": {
-                    "description": "ExtraInstructions is appended to every AI prompt, e.g. output language\nor naming conventions.",
+                    "description": "ExtraInstructions is appended to every AI prompt, e.g. naming\nconventions that don't fit a single field's instruction.",
                     "type": "string"
+                },
+                "fields": {
+                    "description": "Fields tunes each AI-fillable surface individually.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/config.AIFieldConfs"
+                        }
+                    ]
                 },
                 "model": {
                     "type": "string"
+                },
+                "outputLanguage": {
+                    "description": "OutputLanguage is the language AI-written values (names, descriptions,\nnotes) are produced in. Empty means English and emits no prompt line.",
+                    "type": "string"
+                }
+            }
+        },
+        "config.AIFieldConf": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "instruction": {
+                    "type": "string"
+                }
+            }
+        },
+        "config.AIFieldConfs": {
+            "type": "object",
+            "properties": {
+                "customFields": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "description": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "manufacturer": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "modelNumber": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "name": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "notes": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "purchaseDate": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "purchaseFrom": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "purchasePrice": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "quantity": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "serialNumber": {
+                    "$ref": "#/definitions/config.AIFieldConf"
+                },
+                "tags": {
+                    "$ref": "#/definitions/config.AIFieldConf"
                 }
             }
         },
@@ -5804,6 +5918,9 @@ const docTemplate = `{
                 "textValue": {
                     "type": "string"
                 },
+                "timeValue": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "string"
                 }
@@ -5994,6 +6111,15 @@ const docTemplate = `{
                     "x-nullable": true,
                     "x-omitempty": true
                 },
+                "fields": {
+                    "description": "Fields are upserted by name: existing fields with a matching name are\nupdated, others are created. Unlike EntityUpdate.Fields this never\ndeletes fields, so partial updates (e.g. AI suggestions) are safe.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.EntityFieldData"
+                    },
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
                 "id": {
                     "type": "string"
                 },
@@ -6024,6 +6150,12 @@ const docTemplate = `{
                     "x-omitempty": true
                 },
                 "parentId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "purchaseDate": {
+                    "description": "PurchaseDate: nil leaves the date untouched, a zero date clears it.",
                     "type": "string",
                     "x-nullable": true,
                     "x-omitempty": true
@@ -7692,10 +7824,22 @@ const docTemplate = `{
         "v1.AISuggestResult": {
             "type": "object",
             "properties": {
+                "customFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ai.CustomFieldSuggestion"
+                    }
+                },
                 "suggestions": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/ai.FieldSuggestion"
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ai.TagSuggestion"
                     }
                 }
             }

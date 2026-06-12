@@ -70,14 +70,33 @@ export enum AttachmentType {
 export interface AiAnalyzedItem {
   description: string;
   duplicate?: AiDuplicateMatch | null;
+  /**
+   * Fields are values for the entity type's template custom fields,
+   * validated against the template (unknown names are dropped).
+   */
+  fields: EntityFieldData[];
   manufacturer: string;
   modelNumber: string;
   name: string;
   notes: string;
+  /** PurchaseDate is "YYYY-MM-DD" or empty. */
+  purchaseDate: Date | string;
   purchaseFrom: string;
   purchasePrice: number;
   quantity: number;
   serialNumber: string;
+  /**
+   * TagIDs only ever contains tags that exist in the group; hallucinated
+   * IDs are filtered out before the result leaves the service.
+   */
+  tagIds: string[];
+}
+
+export interface AiCustomFieldSuggestion {
+  current: string;
+  name: string;
+  suggested: string;
+  type: string;
 }
 
 export interface AiDuplicateMatch {
@@ -92,16 +111,53 @@ export interface AiFieldSuggestion {
   suggested: string;
 }
 
+export interface AiTagSuggestion {
+  id: string;
+  name: string;
+}
+
 export interface ConfigAIConf {
   apiKey: string;
   baseUrl: string;
+  /**
+   * DefaultTagID is a tag UUID appended to every AI-detected item. Empty or
+   * unknown IDs are ignored.
+   */
+  defaultTagId: string;
   enabled: boolean;
   /**
-   * ExtraInstructions is appended to every AI prompt, e.g. output language
-   * or naming conventions.
+   * ExtraInstructions is appended to every AI prompt, e.g. naming
+   * conventions that don't fit a single field's instruction.
    */
   extraInstructions: string;
+  /** Fields tunes each AI-fillable surface individually. */
+  fields: ConfigAIFieldConfs;
   model: string;
+  /**
+   * OutputLanguage is the language AI-written values (names, descriptions,
+   * notes) are produced in. Empty means English and emits no prompt line.
+   */
+  outputLanguage: string;
+}
+
+export interface ConfigAIFieldConf {
+  enabled: boolean;
+  instruction: string;
+}
+
+export interface ConfigAIFieldConfs {
+  customFields: ConfigAIFieldConf;
+  description: ConfigAIFieldConf;
+  manufacturer: ConfigAIFieldConf;
+  modelNumber: ConfigAIFieldConf;
+  name: ConfigAIFieldConf;
+  notes: ConfigAIFieldConf;
+  purchaseDate: ConfigAIFieldConf;
+  purchaseFrom: ConfigAIFieldConf;
+  purchasePrice: ConfigAIFieldConf;
+  quantity: ConfigAIFieldConf;
+  serialNumber: ConfigAIFieldConf;
+  tags: ConfigAIFieldConf;
 }
 
 export interface ConfigAlgoliaConf {
@@ -925,6 +981,7 @@ export interface EntityFieldData {
   name: string;
   numberValue: number;
   textValue: string;
+  timeValue: string;
   type: string;
 }
 
@@ -986,6 +1043,12 @@ export interface EntityPatch {
   /** @maxLength 1000 */
   description?: string | null;
   entityTypeId?: string | null;
+  /**
+   * Fields are upserted by name: existing fields with a matching name are
+   * updated, others are created. Unlike EntityUpdate.Fields this never
+   * deletes fields, so partial updates (e.g. AI suggestions) are safe.
+   */
+  fields?: EntityFieldData[] | null;
   id: string;
   /** @maxLength 255 */
   manufacturer?: string | null;
@@ -1001,6 +1064,8 @@ export interface EntityPatch {
   /** @maxLength 1000 */
   notes?: string | null;
   parentId?: string | null;
+  /** PurchaseDate: nil leaves the date untouched, a zero date clears it. */
+  purchaseDate?: string | null;
   /** @maxLength 255 */
   purchaseFrom?: string | null;
   purchasePrice?: number | null;
@@ -1627,7 +1692,9 @@ export interface AISuggestRequest {
 }
 
 export interface AISuggestResult {
+  customFields: AiCustomFieldSuggestion[];
   suggestions: AiFieldSuggestion[];
+  tags: AiTagSuggestion[];
 }
 
 export interface APISummary {
