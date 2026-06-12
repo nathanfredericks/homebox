@@ -57,13 +57,6 @@
                     "import_success": "Tuonti onnistui!",
                     "please_select_file": "Valitse tuotava tiedosto."
                 }
-            },
-            "outdated": {
-                "current_version": "Nykyinen versio",
-                "dismiss": "Hylkää",
-                "latest_version": "Uusin versio",
-                "new_version_available": "Uusi versio saatavilla",
-                "new_version_available_link": "Klikkaa tästä nähdäksesi versiotiedot"
             }
         },
         "collection": {

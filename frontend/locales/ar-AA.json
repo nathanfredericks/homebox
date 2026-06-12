@@ -58,13 +58,6 @@
                     "import_success": "تم الاستيراد بنجاح!",
                     "please_select_file": "يُرجى اختيار ملف لاستيراده."
                 }
-            },
-            "outdated": {
-                "current_version": "الإصدار الحالي",
-                "dismiss": "إغلاق",
-                "latest_version": "أحدث إصدار",
-                "new_version_available": "يتوفر إصدار جديد",
-                "new_version_available_link": "انقر هنا لعرض ملاحظات الإصدار"
             }
         },
         "collection": {

@@ -58,13 +58,6 @@
                     "import_success": "导入成功！",
                     "please_select_file": "请选择需要导入的文件。"
                 }
-            },
-            "outdated": {
-                "current_version": "当前版本",
-                "dismiss": "不再提醒",
-                "latest_version": "最新版本",
-                "new_version_available": "有新版本发布了",
-                "new_version_available_link": "点击这里了解新版本更新内容"
             }
         },
         "collection": {

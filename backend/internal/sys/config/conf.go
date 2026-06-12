@@ -63,13 +63,12 @@ type Config struct {
 	Auth       AuthConfig     `yaml:"auth"`
 	Notifier   NotifierConf   `yaml:"notifier"`
 	Algolia    AlgoliaConf    `yaml:"algolia"`
+	AI         AIConf         `yaml:"ai"`
 }
 
 type Options struct {
-	AllowRegistration    bool   `json:"allowRegistration"    yaml:"disable_registration"    conf:"default:true"`
 	AutoIncrementAssetID bool   `json:"autoIncrementAssetId" yaml:"auto_increment_asset_id" conf:"default:true"`
 	CurrencyConfig       string `json:"currencyConfig"       yaml:"currencies"`
-	GithubReleaseCheck   bool   `json:"githubReleaseCheck"   yaml:"check_github_release"    conf:"default:true"`
 	AllowAnalytics       bool   `json:"allowAnalytics"       yaml:"allow_analytics"         conf:"default:false"`
 	AllowLocalLogin      bool   `json:"allowLocalLogin"      yaml:"allow_local_login"       conf:"default:true"`
 	TrustProxy           bool   `json:"trustProxy"           yaml:"trust_proxy"             conf:"default:false"`
@@ -103,19 +102,30 @@ type WebConfig struct {
 	IdleTimeout   time.Duration `yaml:"idle_timeout"      conf:"default:30s"`
 }
 
+// LabelMakerConf is the instance-wide label sheet layout used by the
+// browser-side label renderer (labels always print as full sheets). Card and
+// page dimensions are expressed in Measure units. Per-print-job inputs (asset
+// range, skip-first-N) are deliberately not configuration.
 type LabelMakerConf struct {
-	Width                 int64          `json:"width"                 yaml:"width"                 conf:"default:526"`
-	Height                int64          `json:"height"                yaml:"height"                conf:"default:200"`
-	Padding               int64          `json:"padding"               yaml:"padding"               conf:"default:32"`
-	Margin                int64          `json:"margin"                yaml:"margin"                conf:"default:32"`
-	FontSize              float64        `json:"fontSize"              yaml:"font_size"             conf:"default:32.0"`
-	PrintCommand          *string        `json:"printCommand"          yaml:"string"`
-	AdditionalInformation *string        `json:"additionalInformation" yaml:"string"`
-	DynamicLength         bool           `json:"dynamicLength"         yaml:"bool"                  conf:"default:true"`
-	LabelServiceUrl       *string        `json:"labelServiceUrl"       yaml:"label_service_url"`
-	LabelServiceTimeout   *time.Duration `json:"labelServiceTimeout"   yaml:"label_service_timeout"`
-	RegularFontPath       *string        `json:"regularFontPath"       yaml:"regular_font_path"`
-	BoldFontPath          *string        `json:"boldFontPath"          yaml:"bold_font_path"`
+	// BaseURL is the base URL encoded into label QR codes; empty means the
+	// instance origin the page is served from.
+	BaseURL           string  `json:"baseUrl"           yaml:"base_url"`
+	Measure           string  `json:"measure"           yaml:"measure"             conf:"default:in"`
+	CardWidth         float64 `json:"cardWidth"         yaml:"card_width"          conf:"default:2.63"`
+	CardHeight        float64 `json:"cardHeight"        yaml:"card_height"         conf:"default:1"`
+	PageWidth         float64 `json:"pageWidth"         yaml:"page_width"          conf:"default:8.5"`
+	PageHeight        float64 `json:"pageHeight"        yaml:"page_height"         conf:"default:11"`
+	PageTopPadding    float64 `json:"pageTopPadding"    yaml:"page_top_padding"    conf:"default:0.52"`
+	PageBottomPadding float64 `json:"pageBottomPadding" yaml:"page_bottom_padding" conf:"default:0.42"`
+	PageLeftPadding   float64 `json:"pageLeftPadding"   yaml:"page_left_padding"   conf:"default:0.25"`
+	PageRightPadding  float64 `json:"pageRightPadding"  yaml:"page_right_padding"  conf:"default:0.1"`
+	// SansFont/MonoFont are Google Font family names; "default" keeps the
+	// built-in font stacks.
+	SansFont         string `json:"sansFont"         yaml:"sans_font" conf:"default:default"`
+	MonoFont         string `json:"monoFont"         yaml:"mono_font" conf:"default:default"`
+	Bordered         bool   `json:"bordered"         yaml:"bordered"  conf:"default:false"`
+	PrintLocationRow bool   `json:"printLocationRow" yaml:"print_location_row" conf:"default:true"`
+	LabelPerQuantity bool   `json:"labelPerQuantity" yaml:"label_per_quantity" conf:"default:false"`
 }
 
 type OIDCConf struct {
@@ -186,6 +196,30 @@ func (c AlgoliaConf) MarshalJSON() ([]byte, error) {
 	a := alias(c)
 	if a.AdminAPIKey != "" {
 		a.AdminAPIKey = redactedValue
+	}
+	return json.Marshal(a)
+}
+
+// AIConf configures the OpenAI-compatible endpoint used for vision-based item
+// detection and field suggestions. Every field can be overridden at runtime
+// through the site settings UI; the values here only provide the
+// environment/default layer. Request timeouts, image limits and prompt
+// structure are fixed in code.
+type AIConf struct {
+	Enabled bool   `json:"enabled" yaml:"enabled"  conf:"default:false"`
+	BaseURL string `json:"baseUrl" yaml:"base_url" conf:"default:https://api.openai.com/v1"`
+	APIKey  string `json:"apiKey"  yaml:"api_key"  conf:"mask"`
+	Model   string `json:"model"   yaml:"model"`
+	// ExtraInstructions is appended to every AI prompt, e.g. output language
+	// or naming conventions.
+	ExtraInstructions string `json:"extraInstructions" yaml:"extra_instructions"`
+}
+
+func (c AIConf) MarshalJSON() ([]byte, error) {
+	type alias AIConf
+	a := alias(c)
+	if a.APIKey != "" {
+		a.APIKey = redactedValue
 	}
 	return json.Marshal(a)
 }

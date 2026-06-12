@@ -58,13 +58,6 @@
                     "import_success": "Importeren gelukt!",
                     "please_select_file": "Kies een geldig bestand om te importeren."
                 }
-            },
-            "outdated": {
-                "current_version": "Huidige versie",
-                "dismiss": "Afwijzen",
-                "latest_version": "Nieuwste versie",
-                "new_version_available": "Nieuwe Versie Beschikbaar",
-                "new_version_available_link": "Klik hier om de release notes te bekijken"
             }
         },
         "collection": {

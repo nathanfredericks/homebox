@@ -180,18 +180,6 @@ func registerRecurringTasks(app *app, cfg *config.Config, runner *graceful.Runne
 		}
 	}))
 
-	// Checked per tick so the admin settings toggle applies without a restart.
-	runner.AddPlugin(NewTask("get-latest-github-release", time.Hour, func(ctx context.Context) {
-		if !app.settings.Get().Options.GithubReleaseCheck {
-			return
-		}
-		log.Debug().Msg("running get latest github release")
-		err := app.services.BackgroundService.GetLatestGithubRelease(context.Background())
-		if err != nil {
-			log.Error().Err(err).Msg("failed to get latest github release")
-		}
-	}))
-
 	if cfg.Debug.Enabled {
 		runner.AddFunc("debug", func(ctx context.Context) error {
 			// Bind to loopback only. pprof/expvar are unauthenticated and would

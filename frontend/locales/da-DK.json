@@ -58,13 +58,6 @@
                     "import_success": "Importen er gennemført!",
                     "please_select_file": "Vælg venligst en fil, der skal importeres."
                 }
-            },
-            "outdated": {
-                "current_version": "Nuværende version",
-                "dismiss": "Afvis",
-                "latest_version": "Nyeste version",
-                "new_version_available": "Ny version tilgængelig",
-                "new_version_available_link": "Klik her for at læse udgivelsesnoterne"
             }
         },
         "collection": {

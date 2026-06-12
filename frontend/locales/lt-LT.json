@@ -34,12 +34,6 @@
                 "change_warning": "Pasikeitė importo su esamais import_refs elgesys. Jei CSV faile yra import_ref, \nelementas bus atnaujintas su CSV failo reikšmėmis.",
                 "description": "Importuokite CSV dokumentą, kuriame yra jūsų elementai, etiketės ir vietos. Peržiūrėkite dokumentaciją dėl platesnės informacijos.",
                 "title": "Importuoti CSV dokumentą"
-            },
-            "outdated": {
-                "current_version": "Dabartinė Versija",
-                "dismiss": "Atmesti",
-                "new_version_available": "Galima Nauja Versija",
-                "new_version_available_link": "Spauskite čia Norėdami peržiūrėti išleidimo pastabas"
             }
         },
         "global": {

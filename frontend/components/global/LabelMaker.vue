@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { useI18n } from "vue-i18n";
-  import { type QueryValue, route } from "../../lib/api/base/urls";
   import PageQRCode from "./PageQRCode.vue";
   import {
     type LabelData,
@@ -37,6 +36,7 @@
 
   const { t } = useI18n();
   const { openDialog, closeDialog } = useDialog();
+  const { can } = usePermissions();
 
   const props = withDefaults(
     defineProps<{
@@ -54,19 +54,8 @@
     }
   );
 
-  const pubApi = usePublicApi();
-
-  const { data: status } = await useAsyncData("label-maker-status", async () => {
-    const { data, error } = await pubApi.status();
-    if (error) {
-      toast.error(t("components.global.label_maker.toast.load_status_failed"));
-      return;
-    }
-
-    return data;
-  });
-
-  const { settings, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } = useLabelSettings();
+  const { layout, job, labelPerQuantity, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } =
+    useLabelSettings();
 
   const labelAssetId = computed(() =>
     props.type !== "location" && hasAssetID(props.assetId) ? fmtAssetID(props.assetId!) : null
@@ -83,11 +72,10 @@
   );
 
   const copies = computed(() =>
-    props.type !== "location" && settings.value.labelPerQuantity ? Math.max(1, Math.floor(props.quantity)) : 1
+    props.type !== "location" && labelPerQuantity.value ? Math.max(1, Math.floor(props.quantity)) : 1
   );
 
   const labelRef = ref<InstanceType<typeof AssetLabel> | null>(null);
-  const serverPrinting = ref(false);
   const rendering = ref(false);
 
   async function renderLabel(): Promise<string | null> {
@@ -103,17 +91,17 @@
   // generator) so a partially used sheet can be reused via "skip first labels".
   async function browserPrint() {
     const grid = calculateGridData({
-      measure: settings.value.measure,
+      measure: layout.value.measure,
       page: {
-        height: settings.value.pageHeight,
-        width: settings.value.pageWidth,
-        pageTopPadding: settings.value.pageTopPadding,
-        pageBottomPadding: settings.value.pageBottomPadding,
-        pageLeftPadding: settings.value.pageLeftPadding,
-        pageRightPadding: settings.value.pageRightPadding,
+        height: layout.value.pageHeight,
+        width: layout.value.pageWidth,
+        pageTopPadding: layout.value.pageTopPadding,
+        pageBottomPadding: layout.value.pageBottomPadding,
+        pageLeftPadding: layout.value.pageLeftPadding,
+        pageRightPadding: layout.value.pageRightPadding,
       },
-      cardHeight: settings.value.cardHeight,
-      cardWidth: settings.value.cardWidth,
+      cardHeight: layout.value.cardHeight,
+      cardWidth: layout.value.cardWidth,
     });
 
     if (grid === null) {
@@ -141,7 +129,7 @@
         location: props.location,
       };
       const labels = Array.from({ length: copies.value }, () => labelData);
-      const pages = chunkIntoPages(labels, grid, clampSkipLabels(Number(settings.value.skipLabels), grid));
+      const pages = chunkIntoPages(labels, grid, clampSkipLabels(Number(job.value.skipLabels), grid));
 
       printLabelSheet(printWindow, pages, grid, new Map([[labelData.url, dataUrl]]));
     } catch (err) {
@@ -151,22 +139,6 @@
     } finally {
       rendering.value = false;
     }
-  }
-
-  async function serverPrint() {
-    serverPrinting.value = true;
-    try {
-      await fetch(getLabelUrl(true));
-    } catch (err) {
-      console.error("Failed to print labels:", err);
-      serverPrinting.value = false;
-      toast.error(t("components.global.label_maker.toast.print_failed"));
-      return;
-    }
-
-    toast.success(t("components.global.label_maker.toast.print_success"));
-    closeDialog(DialogID.PrintLabel);
-    serverPrinting.value = false;
   }
 
   async function downloadLabel() {
@@ -190,25 +162,6 @@
       rendering.value = false;
     }
   }
-
-  function getLabelUrl(print: boolean): string {
-    const { selectedId } = useCollections();
-    const params: Record<string, QueryValue> = { print };
-
-    if (selectedId.value) {
-      params.tenant = selectedId.value;
-    }
-
-    if (props.type === "item") {
-      return route(`/labelmaker/entity/${props.id}`, params);
-    } else if (props.type === "location") {
-      return route(`/labelmaker/location/${props.id}`, params);
-    } else if (props.type === "asset") {
-      return route(`/labelmaker/asset/${props.assetId ?? props.id}`, params);
-    } else {
-      throw new Error(`Unexpected labelmaker type ${props.type}`);
-    }
-  }
 </script>
 
 <template>
@@ -230,11 +183,11 @@
               :asset-id="labelAssetId"
               :location="type !== 'location' ? location : null"
               :qr-url="qrUrl"
-              :width="settings.cardWidth"
-              :height="settings.cardHeight"
-              :measure="settings.measure"
-              :bordered="settings.bordered"
-              :show-location="settings.printLocationRow"
+              :width="layout.cardWidth"
+              :height="layout.cardHeight"
+              :measure="layout.measure"
+              :bordered="layout.bordered"
+              :show-location="layout.printLocationRow"
               :sans-font-family="sansFontFamily"
               :mono-font-family="monoFontFamily"
             />
@@ -244,32 +197,27 @@
           <Label for="labelMakerSkip">
             {{ $t("reports.label_generator.skip_first_labels") }}
           </Label>
-          <Input id="labelMakerSkip" v-model="settings.skipLabels" type="number" :min="0" :step="1" />
+          <Input id="labelMakerSkip" v-model="job.skipLabels" type="number" :min="0" :step="1" />
         </div>
         <div v-if="type !== 'location' && quantity > 1" class="flex items-center gap-2">
-          <Checkbox id="labelMakerPerQuantity" v-model="settings.labelPerQuantity" />
+          <Checkbox id="labelMakerPerQuantity" v-model="labelPerQuantity" />
           <Label class="cursor-pointer" for="labelMakerPerQuantity">
             {{ $t("components.global.label_maker.label_per_quantity", { quantity }) }}
           </Label>
         </div>
         <NuxtLink
-          to="/collection/labels"
+          v-if="can('site_settings', 'edit')"
+          to="/admin/settings"
           class="text-sm text-primary underline-offset-4 hover:underline"
           @click="closeDialog(DialogID.PrintLabel)"
         >
           {{ $t("components.global.label_maker.configure_settings") }}
         </NuxtLink>
         <DialogFooter>
-          <ButtonGroup>
-            <Button v-if="status?.labelPrinting || false" type="submit" :disabled="serverPrinting" @click="serverPrint">
-              <MdiLoading v-if="serverPrinting" class="animate-spin" />
-              {{ $t("components.global.label_maker.server_print") }}
-            </Button>
-            <Button type="submit" :disabled="rendering" @click="browserPrint">
-              <MdiLoading v-if="rendering" class="animate-spin" />
-              {{ $t("components.global.label_maker.browser_print") }}
-            </Button>
-          </ButtonGroup>
+          <Button type="submit" :disabled="rendering" @click="browserPrint">
+            <MdiLoading v-if="rendering" class="animate-spin" />
+            {{ $t("components.global.label_maker.browser_print") }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -283,11 +231,11 @@
           :asset-id="labelAssetId"
           :location="type !== 'location' ? location : null"
           :qr-url="qrUrl"
-          :width="settings.cardWidth"
-          :height="settings.cardHeight"
-          :measure="settings.measure"
-          :bordered="settings.bordered"
-          :show-location="settings.printLocationRow"
+          :width="layout.cardWidth"
+          :height="layout.cardHeight"
+          :measure="layout.measure"
+          :bordered="layout.bordered"
+          :show-location="layout.printLocationRow"
           :sans-font-family="sansFontFamily"
           :mono-font-family="monoFontFamily"
         />

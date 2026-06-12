@@ -15,13 +15,6 @@
                     "import_success": "นำเข้าเสร็จสมบูรณ์",
                     "please_select_file": "เลือกไฟล์ที่ต้องการนำเข้า"
                 }
-            },
-            "outdated": {
-                "current_version": "เวอร์ชั่นปัจจุบัน",
-                "dismiss": "ยกเลิก",
-                "latest_version": "เวอร์ชั่นล่าสุด",
-                "new_version_available": "มีเวอร์ชั่นใหม่พร้อมใช้งาน",
-                "new_version_available_link": "กดที่นี่เพื่อดู Release notes"
             }
         },
         "color_selector": {

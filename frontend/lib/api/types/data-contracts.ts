@@ -11,34 +11,6 @@
  * ---------------------------------------------------------------
  */
 
-/** @format int64 */
-export enum TimeDuration {
-  MinDuration = -9223372036854776000,
-  MaxDuration = 9223372036854776000,
-  Nanosecond = 1,
-  Microsecond = 1000,
-  Millisecond = 1000000,
-  Second = 1000000000,
-  Minute = 60000000000,
-  Hour = 3600000000000,
-  MinDuration1 = -9223372036854776000,
-  MaxDuration2 = 9223372036854776000,
-  Nanosecond3 = 1,
-  Microsecond4 = 1000,
-  Millisecond5 = 1000000,
-  Second6 = 1000000000,
-  Minute7 = 60000000000,
-  Hour8 = 3600000000000,
-  MinDuration9 = -9223372036854776000,
-  MaxDuration10 = 9223372036854776000,
-  Nanosecond11 = 1,
-  Microsecond12 = 1000,
-  Millisecond13 = 1000000,
-  Second14 = 1000000000,
-  Minute15 = 60000000000,
-  Hour16 = 3600000000000,
-}
-
 export enum TemplatefieldType {
   TypeText = "text",
   TypeNumber = "number",
@@ -95,6 +67,43 @@ export enum AttachmentType {
   TypeThumbnail = "thumbnail",
 }
 
+export interface AiAnalyzedItem {
+  description: string;
+  duplicate?: AiDuplicateMatch | null;
+  manufacturer: string;
+  modelNumber: string;
+  name: string;
+  notes: string;
+  purchaseFrom: string;
+  purchasePrice: number;
+  quantity: number;
+  serialNumber: string;
+}
+
+export interface AiDuplicateMatch {
+  id: string;
+  name: string;
+  serialNumber: string;
+}
+
+export interface AiFieldSuggestion {
+  current: string;
+  field: string;
+  suggested: string;
+}
+
+export interface ConfigAIConf {
+  apiKey: string;
+  baseUrl: string;
+  enabled: boolean;
+  /**
+   * ExtraInstructions is appended to every AI prompt, e.g. output language
+   * or naming conventions.
+   */
+  extraInstructions: string;
+  model: string;
+}
+
 export interface ConfigAlgoliaConf {
   adminApiKey: string;
   appId: string;
@@ -128,18 +137,29 @@ export interface ConfigBarcodeAPIConf {
 }
 
 export interface ConfigLabelMakerConf {
-  additionalInformation: string;
-  boldFontPath: string;
-  dynamicLength: boolean;
-  fontSize: number;
-  height: number;
-  labelServiceTimeout: TimeDuration;
-  labelServiceUrl: string;
-  margin: number;
-  padding: number;
-  printCommand: string;
-  regularFontPath: string;
-  width: number;
+  /**
+   * BaseURL is the base URL encoded into label QR codes; empty means the
+   * instance origin the page is served from.
+   */
+  baseUrl: string;
+  bordered: boolean;
+  cardHeight: number;
+  cardWidth: number;
+  labelPerQuantity: boolean;
+  measure: string;
+  monoFont: string;
+  pageBottomPadding: number;
+  pageHeight: number;
+  pageLeftPadding: number;
+  pageRightPadding: number;
+  pageTopPadding: number;
+  pageWidth: number;
+  printLocationRow: boolean;
+  /**
+   * SansFont/MonoFont are Google Font family names; "default" keeps the
+   * built-in font stacks.
+   */
+  sansFont: string;
 }
 
 export interface ConfigMailerConf {
@@ -174,10 +194,8 @@ export interface ConfigNotifierConf {
 export interface ConfigOptions {
   allowAnalytics: boolean;
   allowLocalLogin: boolean;
-  allowRegistration: boolean;
   autoIncrementAssetId: boolean;
   currencyConfig: string;
-  githubReleaseCheck: boolean;
   hostname: string;
   trustProxy: boolean;
 }
@@ -860,6 +878,18 @@ export interface DuplicateOptions {
   copyPrefix: string;
 }
 
+export interface EntityBulkEdit {
+  addTagIds?: string[] | null;
+  archived?: boolean | null;
+  /**
+   * @maxItems 500
+   * @minItems 1
+   */
+  ids: string[];
+  parentId?: string | null;
+  removeTagIds?: string[] | null;
+}
+
 export interface EntityCreate {
   /** @maxLength 1000 */
   description: string;
@@ -952,10 +982,31 @@ export interface EntityOut {
 }
 
 export interface EntityPatch {
+  archived?: boolean | null;
+  /** @maxLength 1000 */
+  description?: string | null;
   entityTypeId?: string | null;
   id: string;
+  /** @maxLength 255 */
+  manufacturer?: string | null;
+  /** @maxLength 255 */
+  modelNumber?: string | null;
+  /**
+   * Scalar fields: nil leaves the field untouched, a pointed-to value
+   * (including "" / 0) overwrites it. Caps mirror EntityUpdate.
+   * @minLength 1
+   * @maxLength 255
+   */
+  name?: string | null;
+  /** @maxLength 1000 */
+  notes?: string | null;
   parentId?: string | null;
+  /** @maxLength 255 */
+  purchaseFrom?: string | null;
+  purchasePrice?: number | null;
   quantity?: number | null;
+  /** @maxLength 255 */
+  serialNumber?: string | null;
   tagIds?: string[] | null;
 }
 
@@ -1529,11 +1580,6 @@ export interface SchemaThemeBranding {
   socialLinks: SchemaSocialLink[];
 }
 
-export interface Latest {
-  date: Date | string;
-  version: string;
-}
-
 export interface UserAdminCreate {
   email: string;
   /** @maxLength 255 */
@@ -1558,6 +1604,7 @@ export interface UserRegistration {
 }
 
 export interface SettingsResolved {
+  ai: ConfigAIConf;
   algolia: ConfigAlgoliaConf;
   barcode: ConfigBarcodeAPIConf;
   labelmaker: ConfigLabelMakerConf;
@@ -1567,13 +1614,26 @@ export interface SettingsResolved {
   thumbnail: ConfigThumbnail;
 }
 
+export interface AIAnalyzeResult {
+  items: AiAnalyzedItem[];
+}
+
+export interface AIStatus {
+  enabled: boolean;
+}
+
+export interface AISuggestRequest {
+  overwrite: boolean;
+}
+
+export interface AISuggestResult {
+  suggestions: AiFieldSuggestion[];
+}
+
 export interface APISummary {
-  allowRegistration: boolean;
   build: Build;
   demo: boolean;
   health: boolean;
-  labelPrinting: boolean;
-  latest: Latest;
   message: string;
   oidc: OIDCStatus;
   /**
@@ -1608,6 +1668,14 @@ export interface ChangePassword {
 
 export interface CreateRequest {
   name: string;
+}
+
+export interface EntityBulkDeleteRequest {
+  /**
+   * @maxItems 500
+   * @minItems 1
+   */
+  ids: string[];
 }
 
 export interface EntityTemplateCreateItemRequest {

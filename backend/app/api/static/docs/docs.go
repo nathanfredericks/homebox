@@ -190,6 +190,120 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/ai/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Runs vision analysis over uploaded photos and returns detected inventory items",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Detect items in photos",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Photos to analyze (repeatable, max 8)",
+                        "name": "images",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "JSON-encoded ai.AnalyzeOptions",
+                        "name": "options",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AIAnalyzeResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/entities/{id}/suggest": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Analyzes an item's photo attachments and proposes values for its catalog fields",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Suggest field values from an item's photos",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Suggestion options",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AISuggestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AISuggestResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/status": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Reports whether AI features are enabled on this instance",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "AI integration status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/assets/{id}": {
             "get": {
                 "security": [
@@ -334,6 +448,84 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/repo.EntityOut"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Moves, tags/untags, or archives many entities in one call",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Bulk Edit Entities",
+                "parameters": [
+                    {
+                        "description": "Bulk edit payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.EntityBulkEdit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ActionAmountResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/bulk/delete": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Deletes many entities (and their attachments) in one call",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Bulk Delete Entities",
+                "parameters": [
+                    {
+                        "description": "Bulk delete payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.EntityBulkDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ActionAmountResult"
                         }
                     }
                 }
@@ -1596,118 +1788,26 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/labelmaker/asset/{id}": {
+        "/v1/labelmaker/settings": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
+                "description": "Returns the instance-wide label sheet layout used by the browser label renderer",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Items"
+                    "Labelmaker"
                 ],
-                "summary": "Get Asset label",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Asset ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Label layout settings",
                 "responses": {
                     "200": {
-                        "description": "image/png",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/labelmaker/item/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Get Item label",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "image/png",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/labelmaker/location/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Locations"
-                ],
-                "summary": "Get Location label",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Location ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "image/png",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/config.LabelMakerConf"
                         }
                     }
                 }
@@ -3736,6 +3836,75 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ai.AnalyzedItem": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "duplicate": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ai.DuplicateMatch"
+                        }
+                    ],
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "manufacturer": {
+                    "type": "string"
+                },
+                "modelNumber": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "purchaseFrom": {
+                    "type": "string"
+                },
+                "purchasePrice": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "serialNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai.DuplicateMatch": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "serialNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai.FieldSuggestion": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "suggested": {
+                    "type": "string"
+                }
+            }
+        },
         "attachment.Type": {
             "type": "string",
             "enum": [
@@ -3771,6 +3940,27 @@ const docTemplate = `{
                 "RoleUser",
                 "RoleAttachments"
             ]
+        },
+        "config.AIConf": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "baseUrl": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "extraInstructions": {
+                    "description": "ExtraInstructions is appended to every AI prompt, e.g. output language\nor naming conventions.",
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                }
+            }
         },
         "config.AlgoliaConf": {
             "type": "object",
@@ -3819,41 +4009,52 @@ const docTemplate = `{
         "config.LabelMakerConf": {
             "type": "object",
             "properties": {
-                "additionalInformation": {
+                "baseUrl": {
+                    "description": "BaseURL is the base URL encoded into label QR codes; empty means the\ninstance origin the page is served from.",
                     "type": "string"
                 },
-                "boldFontPath": {
-                    "type": "string"
-                },
-                "dynamicLength": {
+                "bordered": {
                     "type": "boolean"
                 },
-                "fontSize": {
+                "cardHeight": {
                     "type": "number"
                 },
-                "height": {
-                    "type": "integer"
+                "cardWidth": {
+                    "type": "number"
                 },
-                "labelServiceTimeout": {
-                    "$ref": "#/definitions/time.Duration"
+                "labelPerQuantity": {
+                    "type": "boolean"
                 },
-                "labelServiceUrl": {
+                "measure": {
                     "type": "string"
                 },
-                "margin": {
-                    "type": "integer"
-                },
-                "padding": {
-                    "type": "integer"
-                },
-                "printCommand": {
+                "monoFont": {
                     "type": "string"
                 },
-                "regularFontPath": {
-                    "type": "string"
+                "pageBottomPadding": {
+                    "type": "number"
                 },
-                "width": {
-                    "type": "integer"
+                "pageHeight": {
+                    "type": "number"
+                },
+                "pageLeftPadding": {
+                    "type": "number"
+                },
+                "pageRightPadding": {
+                    "type": "number"
+                },
+                "pageTopPadding": {
+                    "type": "number"
+                },
+                "pageWidth": {
+                    "type": "number"
+                },
+                "printLocationRow": {
+                    "type": "boolean"
+                },
+                "sansFont": {
+                    "description": "SansFont/MonoFont are Google Font family names; \"default\" keeps the\nbuilt-in font stacks.",
+                    "type": "string"
                 }
             }
         },
@@ -3921,17 +4122,11 @@ const docTemplate = `{
                 "allowLocalLogin": {
                     "type": "boolean"
                 },
-                "allowRegistration": {
-                    "type": "boolean"
-                },
                 "autoIncrementAssetId": {
                     "type": "boolean"
                 },
                 "currencyConfig": {
                     "type": "string"
-                },
-                "githubReleaseCheck": {
-                    "type": "boolean"
                 },
                 "hostname": {
                     "type": "string"
@@ -5497,6 +5692,48 @@ const docTemplate = `{
                 }
             }
         },
+        "repo.EntityBulkEdit": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "addTagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "archived": {
+                    "type": "boolean",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "ids": {
+                    "type": "array",
+                    "maxItems": 500,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parentId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "removeTagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true,
+                    "x-omitempty": true
+                }
+            }
+        },
         "repo.EntityCreate": {
             "type": "object",
             "required": [
@@ -5741,6 +5978,17 @@ const docTemplate = `{
         "repo.EntityPatch": {
             "type": "object",
             "properties": {
+                "archived": {
+                    "type": "boolean",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
                 "entityTypeId": {
                     "type": "string",
                     "x-nullable": true,
@@ -5749,13 +5997,56 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "manufacturer": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "modelNumber": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "name": {
+                    "description": "Scalar fields: nil leaves the field untouched, a pointed-to value\n(including \"\" / 0) overwrites it. Caps mirror EntityUpdate.",
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
                 "parentId": {
                     "type": "string",
                     "x-nullable": true,
                     "x-omitempty": true
                 },
+                "purchaseFrom": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "purchasePrice": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
                 "quantity": {
                     "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "serialNumber": {
+                    "type": "string",
+                    "maxLength": 255,
                     "x-nullable": true,
                     "x-omitempty": true
                 },
@@ -7261,17 +7552,6 @@ const docTemplate = `{
                 }
             }
         },
-        "services.Latest": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
         "services.UserAdminCreate": {
             "type": "object",
             "required": [
@@ -7341,6 +7621,9 @@ const docTemplate = `{
         "settings.Resolved": {
             "type": "object",
             "properties": {
+                "ai": {
+                    "$ref": "#/definitions/config.AIConf"
+                },
                 "algolia": {
                     "$ref": "#/definitions/config.AlgoliaConf"
                 },
@@ -7379,68 +7662,47 @@ const docTemplate = `{
                 "TypeTime"
             ]
         },
-        "time.Duration": {
-            "type": "integer",
-            "format": "int64",
-            "enum": [
-                -9223372036854775808,
-                9223372036854775807,
-                1,
-                1000,
-                1000000,
-                1000000000,
-                60000000000,
-                3600000000000,
-                -9223372036854775808,
-                9223372036854775807,
-                1,
-                1000,
-                1000000,
-                1000000000,
-                60000000000,
-                3600000000000,
-                -9223372036854775808,
-                9223372036854775807,
-                1,
-                1000,
-                1000000,
-                1000000000,
-                60000000000,
-                3600000000000
-            ],
-            "x-enum-varnames": [
-                "minDuration",
-                "maxDuration",
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
-                "Minute",
-                "Hour",
-                "minDuration",
-                "maxDuration",
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
-                "Minute",
-                "Hour",
-                "minDuration",
-                "maxDuration",
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
-                "Minute",
-                "Hour"
-            ]
+        "v1.AIAnalyzeResult": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ai.AnalyzedItem"
+                    }
+                }
+            }
+        },
+        "v1.AIStatus": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "v1.AISuggestRequest": {
+            "type": "object",
+            "properties": {
+                "overwrite": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "v1.AISuggestResult": {
+            "type": "object",
+            "properties": {
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ai.FieldSuggestion"
+                    }
+                }
+            }
         },
         "v1.APISummary": {
             "type": "object",
             "properties": {
-                "allowRegistration": {
-                    "type": "boolean"
-                },
                 "build": {
                     "$ref": "#/definitions/v1.Build"
                 },
@@ -7449,12 +7711,6 @@ const docTemplate = `{
                 },
                 "health": {
                     "type": "boolean"
-                },
-                "labelPrinting": {
-                    "type": "boolean"
-                },
-                "latest": {
-                    "$ref": "#/definitions/services.Latest"
                 },
                 "message": {
                     "type": "string"
@@ -7532,6 +7788,22 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.EntityBulkDeleteRequest": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "maxItems": 500,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

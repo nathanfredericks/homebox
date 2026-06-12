@@ -109,6 +109,7 @@
         { id: "templates", collectionScoped: true, actions: ["view", "create", "edit", "delete"] },
         { id: "maintenance", collectionScoped: true, actions: ["view", "create", "edit", "delete"] },
         { id: "statistics", collectionScoped: true, actions: ["view"] },
+        { id: "ai", collectionScoped: true, actions: ["view"] },
       ],
     },
     {

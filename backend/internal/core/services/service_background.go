@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -16,13 +14,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/validate"
 )
 
-type Latest struct {
-	Version string `json:"version"`
-	Date    string `json:"date"`
-}
 type BackgroundService struct {
-	repos  *repo.AllRepos
-	latest Latest
+	repos *repo.AllRepos
 	// notifierConfig is a getter so admin settings changes apply to the next
 	// notification run without a restart.
 	notifierConfig func() *config.NotifierConf
@@ -106,53 +99,4 @@ func (svc *BackgroundService) SendNotifiersToday(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (svc *BackgroundService) GetLatestGithubRelease(ctx context.Context) error {
-	url := "https://api.github.com/repos/sysadminsmedia/homebox/releases/latest"
-
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create latest version request: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "Homebox-Version-Checker")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to make latest version request: %w", err)
-	}
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Printf("error closing latest version response body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("latest version unexpected status code: %d", resp.StatusCode)
-	}
-
-	// ignoring fields that are not relevant
-	type Release struct {
-		ReleaseVersion string    `json:"tag_name"`
-		PublishedAt    time.Time `json:"published_at"`
-	}
-
-	var release Release
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return fmt.Errorf("failed to decode latest version response: %w", err)
-	}
-
-	svc.latest = Latest{
-		Version: release.ReleaseVersion,
-		Date:    release.PublishedAt.String(),
-	}
-
-	return nil
-}
-
-func (svc *BackgroundService) GetLatestVersion() Latest {
-	return svc.latest
 }

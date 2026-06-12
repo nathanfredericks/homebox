@@ -16,6 +16,8 @@ import { BackupsAPI } from "./classes/backups";
 import { RolesApi } from "./classes/roles";
 import { AdminUsersApi } from "./classes/admin-users";
 import { AdminSettingsApi } from "./classes/admin-settings";
+import { AiApi } from "./classes/ai";
+import { LabelMakerApi } from "./classes/labelmaker";
 import { ThemingApi } from "./classes/theming";
 import type { Requests } from "~~/lib/requests";
 
@@ -37,6 +39,8 @@ export class UserClient extends BaseAPI {
   roles: RolesApi;
   adminUsers: AdminUsersApi;
   adminSettings: AdminSettingsApi;
+  ai: AiApi;
+  labelmaker: LabelMakerApi;
   theming: ThemingApi;
 
   /** Backward-compat shim that delegates to the entities (items) API. */
@@ -69,6 +73,8 @@ export class UserClient extends BaseAPI {
     this.roles = new RolesApi(requests);
     this.adminUsers = new AdminUsersApi(requests);
     this.adminSettings = new AdminSettingsApi(requests);
+    this.ai = new AiApi(requests);
+    this.labelmaker = new LabelMakerApi(requests);
     this.theming = new ThemingApi(requests, attachmentToken);
 
     // Backward-compat shim: api.locations.* delegates to api.items.*

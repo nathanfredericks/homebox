@@ -17,13 +17,6 @@
                     "import_success": "Import cu succes!",
                     "please_select_file": "Te rog, selecteaza un fisier pentru a importa."
                 }
-            },
-            "outdated": {
-                "current_version": "Versiune Curentă",
-                "dismiss": "Revocă",
-                "latest_version": "Ultima Versiune",
-                "new_version_available": "Nouă versiune disponibilă",
-                "new_version_available_link": "Dă click aici pentru a vedea notele de lansare"
             }
         },
         "color_selector": {

@@ -19,13 +19,6 @@
                     "import_success": "Succès beim Importéieren !",
                     "please_select_file": "Wiel w.e.g. ee Fichier aus."
                 }
-            },
-            "outdated": {
-                "current_version": "Dës Versioun",
-                "dismiss": "Verwerfen",
-                "latest_version": "Läscht Versioun",
-                "new_version_available": "Nei Versioun do",
-                "new_version_available_link": "Klick hei fir d'Release Notes ze kucken"
             }
         },
         "color_selector": {

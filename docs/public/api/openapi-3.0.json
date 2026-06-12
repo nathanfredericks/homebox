@@ -187,6 +187,130 @@
                 }
             }
         },
+        "/v1/ai/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Runs vision analysis over uploaded photos and returns detected inventory items",
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Detect items in photos",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "images": {
+                                        "description": "Photos to analyze (repeatable, max 8)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "options": {
+                                        "description": "JSON-encoded ai.AnalyzeOptions",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "images"
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1.AIAnalyzeResult"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/entities/{id}/suggest": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Analyzes an item's photo attachments and proposes values for its catalog fields",
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Suggest field values from an item's photos",
+                "parameters": [
+                    {
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/v1.AISuggestRequest"
+                            }
+                        }
+                    },
+                    "description": "Suggestion options",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1.AISuggestResult"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/status": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Reports whether AI features are enabled on this instance",
+                "tags": [
+                    "AI"
+                ],
+                "summary": "AI integration status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1.AIStatus"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/assets/{id}": {
             "get": {
                 "security": [
@@ -345,6 +469,80 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/repo.EntityOut"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Moves, tags/untags, or archives many entities in one call",
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Bulk Edit Entities",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/repo.EntityBulkEdit"
+                            }
+                        }
+                    },
+                    "description": "Bulk edit payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1.ActionAmountResult"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/bulk/delete": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Deletes many entities (and their attachments) in one call",
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Bulk Delete Entities",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/v1.EntityBulkDeleteRequest"
+                            }
+                        }
+                    },
+                    "description": "Bulk delete payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1.ActionAmountResult"
                                 }
                             }
                         }
@@ -1727,131 +1925,25 @@
                 }
             }
         },
-        "/v1/labelmaker/asset/{id}": {
+        "/v1/labelmaker/settings": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
+                "description": "Returns the instance-wide label sheet layout used by the browser label renderer",
                 "tags": [
-                    "Items"
+                    "Labelmaker"
                 ],
-                "summary": "Get Asset label",
-                "parameters": [
-                    {
-                        "description": "Asset ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
+                "summary": "Label layout settings",
                 "responses": {
                     "200": {
-                        "description": "image/png",
+                        "description": "OK",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/labelmaker/item/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Get Item label",
-                "parameters": [
-                    {
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "image/png",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/labelmaker/location/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "tags": [
-                    "Locations"
-                ],
-                "summary": "Get Location label",
-                "parameters": [
-                    {
-                        "description": "Location ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Print this label, defaults to false",
-                        "name": "print",
-                        "in": "query",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "image/png",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
+                                    "$ref": "#/components/schemas/config.LabelMakerConf"
                                 }
                             }
                         }
@@ -4031,6 +4123,75 @@
             }
         },
         "schemas": {
+            "ai.AnalyzedItem": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "duplicate": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ai.DuplicateMatch"
+                            }
+                        ],
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "manufacturer": {
+                        "type": "string"
+                    },
+                    "modelNumber": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string"
+                    },
+                    "purchaseFrom": {
+                        "type": "string"
+                    },
+                    "purchasePrice": {
+                        "type": "number"
+                    },
+                    "quantity": {
+                        "type": "number"
+                    },
+                    "serialNumber": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ai.DuplicateMatch": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "serialNumber": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ai.FieldSuggestion": {
+                "type": "object",
+                "properties": {
+                    "current": {
+                        "type": "string"
+                    },
+                    "field": {
+                        "type": "string"
+                    },
+                    "suggested": {
+                        "type": "string"
+                    }
+                }
+            },
             "attachment.Type": {
                 "type": "string",
                 "enum": [
@@ -4066,6 +4227,27 @@
                     "RoleUser",
                     "RoleAttachments"
                 ]
+            },
+            "config.AIConf": {
+                "type": "object",
+                "properties": {
+                    "apiKey": {
+                        "type": "string"
+                    },
+                    "baseUrl": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "extraInstructions": {
+                        "description": "ExtraInstructions is appended to every AI prompt, e.g. output language\nor naming conventions.",
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    }
+                }
             },
             "config.AlgoliaConf": {
                 "type": "object",
@@ -4114,41 +4296,52 @@
             "config.LabelMakerConf": {
                 "type": "object",
                 "properties": {
-                    "additionalInformation": {
+                    "baseUrl": {
+                        "description": "BaseURL is the base URL encoded into label QR codes; empty means the\ninstance origin the page is served from.",
                         "type": "string"
                     },
-                    "boldFontPath": {
-                        "type": "string"
-                    },
-                    "dynamicLength": {
+                    "bordered": {
                         "type": "boolean"
                     },
-                    "fontSize": {
+                    "cardHeight": {
                         "type": "number"
                     },
-                    "height": {
-                        "type": "integer"
+                    "cardWidth": {
+                        "type": "number"
                     },
-                    "labelServiceTimeout": {
-                        "$ref": "#/components/schemas/time.Duration"
+                    "labelPerQuantity": {
+                        "type": "boolean"
                     },
-                    "labelServiceUrl": {
+                    "measure": {
                         "type": "string"
                     },
-                    "margin": {
-                        "type": "integer"
-                    },
-                    "padding": {
-                        "type": "integer"
-                    },
-                    "printCommand": {
+                    "monoFont": {
                         "type": "string"
                     },
-                    "regularFontPath": {
-                        "type": "string"
+                    "pageBottomPadding": {
+                        "type": "number"
                     },
-                    "width": {
-                        "type": "integer"
+                    "pageHeight": {
+                        "type": "number"
+                    },
+                    "pageLeftPadding": {
+                        "type": "number"
+                    },
+                    "pageRightPadding": {
+                        "type": "number"
+                    },
+                    "pageTopPadding": {
+                        "type": "number"
+                    },
+                    "pageWidth": {
+                        "type": "number"
+                    },
+                    "printLocationRow": {
+                        "type": "boolean"
+                    },
+                    "sansFont": {
+                        "description": "SansFont/MonoFont are Google Font family names; \"default\" keeps the\nbuilt-in font stacks.",
+                        "type": "string"
                     }
                 }
             },
@@ -4216,17 +4409,11 @@
                     "allowLocalLogin": {
                         "type": "boolean"
                     },
-                    "allowRegistration": {
-                        "type": "boolean"
-                    },
                     "autoIncrementAssetId": {
                         "type": "boolean"
                     },
                     "currencyConfig": {
                         "type": "string"
-                    },
-                    "githubReleaseCheck": {
-                        "type": "boolean"
                     },
                     "hostname": {
                         "type": "string"
@@ -5792,6 +5979,48 @@
                     }
                 }
             },
+            "repo.EntityBulkEdit": {
+                "type": "object",
+                "required": [
+                    "ids"
+                ],
+                "properties": {
+                    "addTagIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "archived": {
+                        "type": "boolean",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "ids": {
+                        "type": "array",
+                        "maxItems": 500,
+                        "minItems": 1,
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "parentId": {
+                        "type": "string",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "removeTagIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "x-omitempty": true,
+                        "nullable": true
+                    }
+                }
+            },
             "repo.EntityCreate": {
                 "type": "object",
                 "required": [
@@ -6036,6 +6265,17 @@
             "repo.EntityPatch": {
                 "type": "object",
                 "properties": {
+                    "archived": {
+                        "type": "boolean",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
                     "entityTypeId": {
                         "type": "string",
                         "x-omitempty": true,
@@ -6044,13 +6284,56 @@
                     "id": {
                         "type": "string"
                     },
+                    "manufacturer": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "modelNumber": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "name": {
+                        "description": "Scalar fields: nil leaves the field untouched, a pointed-to value\n(including \"\" / 0) overwrites it. Caps mirror EntityUpdate.",
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
                     "parentId": {
                         "type": "string",
                         "x-omitempty": true,
                         "nullable": true
                     },
+                    "purchaseFrom": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "purchasePrice": {
+                        "type": "number",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
                     "quantity": {
                         "type": "number",
+                        "x-omitempty": true,
+                        "nullable": true
+                    },
+                    "serialNumber": {
+                        "type": "string",
+                        "maxLength": 255,
                         "x-omitempty": true,
                         "nullable": true
                     },
@@ -7556,17 +7839,6 @@
                     }
                 }
             },
-            "services.Latest": {
-                "type": "object",
-                "properties": {
-                    "date": {
-                        "type": "string"
-                    },
-                    "version": {
-                        "type": "string"
-                    }
-                }
-            },
             "services.UserAdminCreate": {
                 "type": "object",
                 "required": [
@@ -7636,6 +7908,9 @@
             "settings.Resolved": {
                 "type": "object",
                 "properties": {
+                    "ai": {
+                        "$ref": "#/components/schemas/config.AIConf"
+                    },
                     "algolia": {
                         "$ref": "#/components/schemas/config.AlgoliaConf"
                     },
@@ -7674,68 +7949,47 @@
                     "TypeTime"
                 ]
             },
-            "time.Duration": {
-                "type": "integer",
-                "format": "int64",
-                "enum": [
-                    -9223372036854776000,
-                    9223372036854776000,
-                    1,
-                    1000,
-                    1000000,
-                    1000000000,
-                    60000000000,
-                    3600000000000,
-                    -9223372036854776000,
-                    9223372036854776000,
-                    1,
-                    1000,
-                    1000000,
-                    1000000000,
-                    60000000000,
-                    3600000000000,
-                    -9223372036854776000,
-                    9223372036854776000,
-                    1,
-                    1000,
-                    1000000,
-                    1000000000,
-                    60000000000,
-                    3600000000000
-                ],
-                "x-enum-varnames": [
-                    "minDuration",
-                    "maxDuration",
-                    "Nanosecond",
-                    "Microsecond",
-                    "Millisecond",
-                    "Second",
-                    "Minute",
-                    "Hour",
-                    "minDuration",
-                    "maxDuration",
-                    "Nanosecond",
-                    "Microsecond",
-                    "Millisecond",
-                    "Second",
-                    "Minute",
-                    "Hour",
-                    "minDuration",
-                    "maxDuration",
-                    "Nanosecond",
-                    "Microsecond",
-                    "Millisecond",
-                    "Second",
-                    "Minute",
-                    "Hour"
-                ]
+            "v1.AIAnalyzeResult": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ai.AnalyzedItem"
+                        }
+                    }
+                }
+            },
+            "v1.AIStatus": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "v1.AISuggestRequest": {
+                "type": "object",
+                "properties": {
+                    "overwrite": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "v1.AISuggestResult": {
+                "type": "object",
+                "properties": {
+                    "suggestions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ai.FieldSuggestion"
+                        }
+                    }
+                }
             },
             "v1.APISummary": {
                 "type": "object",
                 "properties": {
-                    "allowRegistration": {
-                        "type": "boolean"
-                    },
                     "build": {
                         "$ref": "#/components/schemas/v1.Build"
                     },
@@ -7744,12 +7998,6 @@
                     },
                     "health": {
                         "type": "boolean"
-                    },
-                    "labelPrinting": {
-                        "type": "boolean"
-                    },
-                    "latest": {
-                        "$ref": "#/components/schemas/services.Latest"
                     },
                     "message": {
                         "type": "string"
@@ -7827,6 +8075,22 @@
                 "properties": {
                     "name": {
                         "type": "string"
+                    }
+                }
+            },
+            "v1.EntityBulkDeleteRequest": {
+                "type": "object",
+                "required": [
+                    "ids"
+                ],
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "maxItems": 500,
+                        "minItems": 1,
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },

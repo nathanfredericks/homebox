@@ -3,6 +3,7 @@ package services
 
 import (
 	"github.com/sysadminsmedia/homebox/backend/internal/core/currencies"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/ai"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
@@ -19,6 +20,7 @@ type AllServices struct {
 	BackgroundService *BackgroundService
 	Exports           *ExportService
 	Currencies        *currencies.CurrencyRegistry
+	AI                *ai.Service
 }
 
 type OptionsFunc func(*options)
@@ -123,6 +125,7 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 	autoIncrementAssetID := func() bool { return options.autoIncrementAssetID }
 	notifierConfig := func() *config.NotifierConf { return options.notifierConfig }
 	getMailer := func() *mailer.Mailer { return options.mailer }
+	aiConfig := func() config.AIConf { return config.AIConf{} }
 	if options.settings != nil {
 		s := options.settings
 		autoIncrementAssetID = func() bool { return s.Get().Options.AutoIncrementAssetID }
@@ -140,6 +143,7 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 				From:     conf.From,
 			}
 		}
+		aiConfig = func() config.AIConf { return s.Get().AI }
 	}
 
 	userService := &UserService{repos: repos, mailer: getMailer}
@@ -154,7 +158,6 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 		},
 		BackgroundService: &BackgroundService{
 			repos:          repos,
-			latest:         Latest{},
 			notifierConfig: notifierConfig,
 		},
 		Exports: &ExportService{
@@ -166,5 +169,6 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 			dialect:    options.dialect,
 		},
 		Currencies: currencies.NewCurrencyService(options.currencies),
+		AI:         ai.NewService(repos, aiConfig),
 	}
 }

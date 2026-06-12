@@ -13,6 +13,18 @@
             "updated": "Group updated"
         },
         "settings": {
+            "ai": {
+                "api_key": "API key",
+                "base_url": "Base URL",
+                "base_url_help": "Any OpenAI-compatible /v1 endpoint (OpenAI, OpenRouter, Ollama, LM Studio, vLLM).",
+                "description": "Vision model used for AI item capture and field suggestions.",
+                "enabled": "Enable AI features",
+                "extra_instructions": "Extra instructions",
+                "extra_instructions_help": "Appended to every AI prompt, e.g. output language or naming conventions.",
+                "model": "Model",
+                "model_help": "Must support image input and JSON output.",
+                "title": "AI"
+            },
             "algolia": {
                 "admin_api_key": "Admin API key",
                 "admin_api_key_help": "Needs write access to the index and its temporary copies (used by atomic reindexing).",
@@ -40,20 +52,25 @@
                 "token_barcodespider": "Barcodespider API token"
             },
             "labelmaker": {
-                "additional_information": "Additional information",
-                "bold_font_path": "Bold font path",
-                "description": "Dimensions and rendering for printed labels.",
-                "dynamic_length": "Dynamic label length",
-                "font_size": "Font size",
-                "height": "Height",
-                "label_service_timeout": "Label service timeout (seconds)",
-                "label_service_url": "Label service URL",
-                "margin": "Margin",
-                "padding": "Padding",
-                "print_command": "Print command",
-                "regular_font_path": "Regular font path",
-                "title": "Label maker",
-                "width": "Width"
+                "base_url": "QR code base URL",
+                "base_url_help": "Base URL encoded into label QR codes. Empty uses this instance's address.",
+                "bordered": "Bordered labels",
+                "card_height": "Label height",
+                "card_width": "Label width",
+                "description": "Sheet layout used when printing labels, for every user of this instance.",
+                "label_per_quantity": "One label per quantity by default",
+                "measure": "Measurement unit",
+                "measure_help": "CSS unit for all dimensions, e.g. in or mm.",
+                "mono_font": "Monospace font",
+                "page_bottom_padding": "Page bottom padding",
+                "page_height": "Page height",
+                "page_left_padding": "Page left padding",
+                "page_right_padding": "Page right padding",
+                "page_top_padding": "Page top padding",
+                "page_width": "Page width",
+                "print_location_row": "Print location row",
+                "sans_font": "Label font",
+                "title": "Label maker"
             },
             "load_failed": "Failed to load site settings.",
             "mailer": {
@@ -78,10 +95,8 @@
             },
             "options": {
                 "allow_local_login": "Allow email/password login",
-                "allow_registration": "Allow user registration",
                 "auto_increment_asset_id": "Auto-increment asset IDs",
-                "description": "Registration, login, and instance behavior.",
-                "github_release_check": "Check GitHub for new releases",
+                "description": "Login and instance behavior.",
                 "hostname": "Public hostname",
                 "hostname_help": "Externally reachable base URL of this instance, used in emails and generated links.",
                 "title": "General"
@@ -185,6 +200,60 @@
             "you": "you"
         }
     },
+    "ai": {
+        "capture": {
+            "add_photos": "Add photos",
+            "analyze": "Detect items",
+            "analyze_failed": "AI analysis failed",
+            "analyzing": "Analyzing…",
+            "attach_photos": "Photos to attach",
+            "back": "Back",
+            "correction_label": "Not quite right? Tell the AI what to fix",
+            "correction_placeholder": "e.g. The drill and the case are one item",
+            "create_failed": "Failed to create",
+            "create_items": "Create {count} items",
+            "description": "Photograph a shelf, drawer or room and let AI catalog the items for you.",
+            "done_summary": "{count} items created.",
+            "duplicate_of": "Possible duplicate of {name}",
+            "excluded": "Skipped",
+            "included": "Create",
+            "next": "Next",
+            "nothing_detected": "No items detected in these photos.",
+            "photo_hint": "Take up to {max} photos. Clear, well-lit photos of labels and serial numbers give the best results.",
+            "review_hint": "{count} items detected. Review and edit before creating them in {location}.",
+            "scan_more": "Scan more items",
+            "single_item": "All photos show a single item",
+            "target_location": "Items will be created in {location}",
+            "title": "AI Capture",
+            "view_item": "View item"
+        },
+        "fill": {
+            "accept_all": "Accept all",
+            "applied": "Item updated",
+            "apply": "Apply {count} changes",
+            "apply_failed": "Failed to update item",
+            "button": "AI fill from photos",
+            "current": "Current",
+            "description": "Suggestions are generated from the item's photos. Pick which fields to apply.",
+            "failed": "Failed to get suggestions",
+            "no_photos": "This item has no photos to analyze.",
+            "no_suggestions": "No suggestions — the photos didn't reveal anything new.",
+            "overwrite": "Suggest replacements for filled fields too",
+            "suggested": "Suggested",
+            "title": "AI field suggestions"
+        },
+        "review": {
+            "approve": "Apply suggestions",
+            "description": "Run AI suggestions over every item in a location and approve them one by one.",
+            "done": "Review finished — {applied} items updated, {skipped} skipped.",
+            "items_with_photos": "{count} items with photos to review",
+            "no_items": "No items with photos in this location.",
+            "progress": "Item {current} of {total}",
+            "skip": "Skip",
+            "start": "Start review",
+            "title": "AI Review"
+        }
+    },
     "collection": {
         "access": {
             "all_sections": "Full access",
@@ -256,13 +325,6 @@
                     "please_select_file": "Please select a file to import."
                 }
             },
-            "outdated": {
-                "current_version": "Current Version",
-                "dismiss": "Dismiss",
-                "latest_version": "Latest Version",
-                "new_version_available": "New Version Available",
-                "new_version_available_link": "Click here to view the release notes"
-            }
         },
         "collection": {
             "create_modal": {
@@ -361,12 +423,9 @@
                 "download": "Download Label",
                 "label_per_quantity": "Print one label per quantity ({quantity})",
                 "print": "Print label",
-                "server_print": "Print on Server",
                 "titles": "Labels",
                 "toast": {
-                    "load_status_failed": "Failed to load status",
-                    "print_failed": "Failed to print label",
-                    "print_success": "Label printed"
+                    "print_failed": "Failed to print label"
                 }
             },
             "page_qr_code": {
@@ -454,10 +513,14 @@
                 "table": {
                     "dropdown": {
                         "actions": "Actions",
+                        "archive": "Archive",
+                        "archive_success": "Items archived",
                         "change_location": "Change Location",
                         "change_location_success": "Location Changed",
                         "change_tags": "Change Tags",
                         "change_tags_success": "Tags Changed",
+                        "unarchive": "Unarchive",
+                        "unarchive_success": "Items unarchived",
                         "create_maintenance_item": "Create Maintenance Entry for Item",
                         "create_maintenance_selected": "Create Maintenance Entry for Selected Items",
                         "create_maintenance_success": "Maintenance Entrys Created",
@@ -929,6 +992,7 @@
         "total_entries": "Total Entries"
     },
     "menu": {
+        "ai_capture": "AI Capture",
         "create_item": "Item / Asset",
         "create_location": "Location",
         "create_tag": "Tag",
@@ -964,6 +1028,7 @@
         "scope": "Scope",
         "section": "Section",
         "sections": {
+            "ai": "AI Capture",
             "collection_settings": "Collection Settings",
             "collections": "Collections",
             "entity_types": "Entity Types",
@@ -1049,27 +1114,13 @@
         "label_generator": {
             "asset_end": "Asset End",
             "asset_start": "Asset Start",
-            "base_url": "Base URL",
-            "bordered_labels": "Bordered Labels",
-            "font_default": "Default",
+            "edit_layout": "Edit label layout in site settings",
             "generate_page": "Generate Page",
             "input_placeholder": "Type here",
             "instruction_1": "The {appName} Label Generator is a tool to help you print labels for your {appName} inventory. These are intended to\n be print-ahead labels so you can print many labels and have them ready to apply",
             "instruction_2": "As such, these labels work by printing a URL QR Code and AssetID information on a label. If you've disabled\n AssetID's in your {appName} settings, you can still use this tool, but the AssetID's won't reference any item",
-            "label_height": "Label Height",
             "label_per_quantity": "One label per quantity",
-            "label_width": "Label Width",
-            "measure_type": "Measure Type",
-            "monospace_font": "Monospace Font",
-            "page_bottom_padding": "Page Bottom Padding",
-            "page_height": "Page Height",
-            "page_left_padding": "Page Left Padding",
-            "page_right_padding": "Page Right Padding",
-            "page_top_padding": "Page Top Padding",
-            "page_width": "Page Width",
-            "print_location_row": "Print Location Row",
             "qr_code_example": "QR Code Example",
-            "sans_serif_font": "Sans-serif Font",
             "skip_first_labels": "Skip First Labels",
             "tip_1": "The defaults here are setup for the\n '<a href=\"https://www.avery.com/templates/5260\">'Avery 5260 label sheets'</a>'. If you're using a different sheet,\n you'll need to adjust the settings to match your sheet.",
             "tip_2": "If you're customizing your sheet the dimensions are in inches. When building the 5260 sheet, I found that the\n dimensions used in their template, did not match what was needed to print within the boxes.\n '<b>'Be prepared for some trial and error.'</b>'",

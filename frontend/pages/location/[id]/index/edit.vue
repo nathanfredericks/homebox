@@ -16,7 +16,6 @@
   import { Checkbox } from "@/components/ui/checkbox";
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-  import { Switch } from "@/components/ui/switch";
   import { Label } from "@/components/ui/label";
   import { DialogID } from "~/components/ui/dialog-provider/utils";
   import FormTextField from "~/components/Form/TextField.vue";
@@ -361,24 +360,13 @@
 
     <section class="relative">
       <div
-        class="sticky z-10 my-4 flex items-center justify-between gap-2"
+        class="sticky z-10 my-4 flex items-center justify-end gap-2"
         :class="{
           'top-[calc(var(--header-height-mobile)+0.25rem)] sm:top-[calc(var(--header-height)+0.25rem)]':
             !preferences.displayLegacyHeader,
           'top-1': preferences.displayLegacyHeader,
         }"
       >
-        <TooltipProvider :delay-duration="0">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Label class="flex cursor-pointer items-center gap-2 backdrop-blur-sm">
-                <Switch v-model="preferences.editorAdvancedView" />
-                {{ $t("items.advanced") }}
-              </Label>
-            </TooltipTrigger>
-            <TooltipContent>{{ $t("items.show_advanced_view_options") }}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
         <Button size="sm" :disabled="saving" @click="saveLocation(true)">
           <MdiLoading v-if="saving" class="animate-spin" />
           <MdiContentSaveOutline v-else />

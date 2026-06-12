@@ -4,8 +4,9 @@
   import { Label } from "@/components/ui/label";
   import { Switch } from "@/components/ui/switch";
   import { Textarea } from "@/components/ui/textarea";
+  import FormGoogleFontSelect from "~/components/Form/GoogleFontSelect.vue";
 
-  export type FieldType = "boolean" | "number" | "text" | "secret" | "list" | "durationSeconds";
+  export type FieldType = "boolean" | "number" | "text" | "secret" | "list" | "durationSeconds" | "googleFont";
 
   export type FieldDef = {
     /** JSON key within the settings section payload. */
@@ -72,6 +73,11 @@
     },
   });
 
+  const fontValue = computed({
+    get: () => (props.modelValue == null ? "default" : String(props.modelValue)),
+    set: (v: string) => emit("update:modelValue", v),
+  });
+
   const readonlyDisplay = computed(() => {
     const mv = props.modelValue;
     if (props.def.type === "boolean") return mv === true ? "✓" : "✗";
@@ -91,6 +97,11 @@
   <div v-else-if="def.type === 'boolean'" class="flex items-center gap-3">
     <Switch :id="fieldId" v-model="boolValue" />
     <Label :for="fieldId">{{ def.label }}</Label>
+  </div>
+
+  <div v-else-if="def.type === 'googleFont'" class="flex flex-col gap-1.5">
+    <FormGoogleFontSelect v-model="fontValue" :label="def.label" />
+    <p v-if="def.help" class="px-1 text-xs text-muted-foreground">{{ def.help }}</p>
   </div>
 
   <div v-else class="flex flex-col gap-1.5">

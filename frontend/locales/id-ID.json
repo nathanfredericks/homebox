@@ -15,13 +15,6 @@
                     "import_success": "Import berhasil!",
                     "please_select_file": "Silakan pilih file untuk diimpor."
                 }
-            },
-            "outdated": {
-                "current_version": "Versi Terkini",
-                "dismiss": "Tutup",
-                "latest_version": "Versi Terbaru",
-                "new_version_available": "Tersedia versi terbaru",
-                "new_version_available_link": "Klik di sini untuk melihat informasi rilis"
             }
         },
         "color_selector": {

@@ -15,13 +15,6 @@
                     "import_success": "Import fullført!",
                     "please_select_file": "Vennligst velg en fil for import."
                 }
-            },
-            "outdated": {
-                "current_version": "Nåværende versjon",
-                "dismiss": "Avvis",
-                "latest_version": "Siste versjon",
-                "new_version_available": "Ny versjon tilgjengelig",
-                "new_version_available_link": "Klikk her for å se utgivelsesnotatene"
             }
         },
         "color_selector": {

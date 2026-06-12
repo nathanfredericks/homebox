@@ -57,13 +57,6 @@
                     "import_success": "Importació satisfactòria!",
                     "please_select_file": "Si us plau, selecciona un arxiu per importar."
                 }
-            },
-            "outdated": {
-                "current_version": "Versió actual",
-                "dismiss": "Descartar",
-                "latest_version": "Última versió",
-                "new_version_available": "Nova versió disponible",
-                "new_version_available_link": "Fes clic aquí per veure les notes de la versió"
             }
         },
         "collection": {

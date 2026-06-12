@@ -164,6 +164,26 @@ func TestGrantsRoundTrip(t *testing.T) {
 	}
 }
 
+func TestAISectionIsCollectionScoped(t *testing.T) {
+	if !SectionAI.IsValid() {
+		t.Fatal("ai section should be valid")
+	}
+	if !CollectionScoped(SectionAI) {
+		t.Fatal("ai section should be collection-scoped")
+	}
+
+	colA := uuid.New()
+	s := NewSet(false, []Grant{
+		{Section: SectionAI, CollectionID: ptr(colA), Actions: ActionView},
+	})
+	if !s.Can(SectionAI, ActionView, colA) {
+		t.Fatal("expected ai:view on collection A")
+	}
+	if s.Can(SectionAI, ActionView, uuid.New()) {
+		t.Fatal("other collections should be invisible")
+	}
+}
+
 func TestSectionForEntity(t *testing.T) {
 	if SectionForEntity(true) != SectionLocations {
 		t.Fatal("location entity should map to locations")

@@ -45,6 +45,7 @@
   import DetailsSection from "~/components/global/DetailsSection/DetailsSection.vue";
   import ItemAttachmentsList from "~/components/Item/AttachmentsList.vue";
   import ItemViewSelectable from "~/components/Item/View/Selectable.vue";
+  import AIFillDialog from "~/components/AI/FillDialog.vue";
 
   const { t } = useI18n();
 
@@ -664,6 +665,7 @@
                 :location="item.parent?.name"
                 :quantity="item.quantity"
               />
+              <AIFillDialog :item="item" @applied="refresh" />
               <Button
                 v-if="can('items', 'create')"
                 class="w-9 md:w-auto"

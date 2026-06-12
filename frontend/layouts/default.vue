@@ -9,7 +9,6 @@
     not hydrate cleanly, so they are client-only. -->
     <ClientOnly>
       <ModalConfirm />
-      <OutdatedModal v-if="status" :status="status" />
       <ItemCreateModal />
       <TagCreateModal />
       <LocationCreateModal />
@@ -227,6 +226,7 @@
   import MdiAccount from "~icons/mdi/account";
   import MdiCog from "~icons/mdi/cog";
   import MdiWrench from "~icons/mdi/wrench";
+  import MdiCreation from "~icons/mdi/creation";
   import MdiPlus from "~icons/mdi/plus";
   import MdiLogout from "~icons/mdi/logout";
   import MdiFileDocumentMultiple from "~icons/mdi/file-document-multiple";
@@ -264,7 +264,6 @@
   import { toast } from "@/components/ui/sonner";
   import { DialogID, type NoParamDialogIDs, type OptionalDialogIDs } from "~/components/ui/dialog-provider/utils";
   import ModalConfirm from "~/components/ModalConfirm.vue";
-  import OutdatedModal from "~/components/App/OutdatedModal.vue";
   import ItemCreateModal from "~/components/Item/CreateModal.vue";
 
   import TagCreateModal from "~/components/Tag/CreateModal.vue";
@@ -291,13 +290,6 @@
   const sidebarState = useCookie("sidebar:state", {
     readonly: true,
     decode: value => value !== "false",
-  });
-
-  const pubApi = usePublicApi();
-  const { data: status } = await useAsyncData("layout-status", async () => {
-    const { data } = await pubApi.status();
-
-    return data;
   });
 
   const search = ref("");
@@ -341,6 +333,7 @@
   };
 
   const { can, canAny, canAdminArea } = usePermissions();
+  const { aiEnabled } = useAi();
 
   // Anything the user cannot do is removed outright — hidden features do not
   // exist for them.
@@ -452,6 +445,14 @@
         name: computed(() => t("menu.maintenance")),
         to: "/maintenance",
         visible: canAny("maintenance", "view"),
+      },
+      {
+        icon: MdiCreation,
+        id: 9,
+        active: computed(() => route.path.startsWith("/ai")),
+        name: computed(() => t("menu.ai_capture")),
+        to: "/ai",
+        visible: canAny("ai", "view") && aiEnabled.value,
       },
       {
         icon: MdiAccount,

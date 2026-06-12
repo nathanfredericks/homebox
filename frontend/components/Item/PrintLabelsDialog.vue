@@ -33,8 +33,10 @@
 
   const { t } = useI18n();
   const { registerOpenDialogCallback } = useDialog();
+  const { can } = usePermissions();
 
-  const { settings, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } = useLabelSettings();
+  const { layout, job, labelPerQuantity, sansFontFamily, monoFontFamily, ensureFontsLoaded, resolvedBaseURL } =
+    useLabelSettings();
 
   const items = ref<EntitySummary[]>([]);
   const printing = ref(false);
@@ -58,23 +60,21 @@
     };
   }
 
-  const labels = computed<BulkLabel[]>(() =>
-    expandByQuantity(items.value.map(toLabelData), settings.value.labelPerQuantity)
-  );
+  const labels = computed<BulkLabel[]>(() => expandByQuantity(items.value.map(toLabelData), labelPerQuantity.value));
 
   const grid = computed(() =>
     calculateGridData({
-      measure: settings.value.measure,
+      measure: layout.value.measure,
       page: {
-        height: settings.value.pageHeight,
-        width: settings.value.pageWidth,
-        pageTopPadding: settings.value.pageTopPadding,
-        pageBottomPadding: settings.value.pageBottomPadding,
-        pageLeftPadding: settings.value.pageLeftPadding,
-        pageRightPadding: settings.value.pageRightPadding,
+        height: layout.value.pageHeight,
+        width: layout.value.pageWidth,
+        pageTopPadding: layout.value.pageTopPadding,
+        pageBottomPadding: layout.value.pageBottomPadding,
+        pageLeftPadding: layout.value.pageLeftPadding,
+        pageRightPadding: layout.value.pageRightPadding,
       },
-      cardHeight: settings.value.cardHeight,
-      cardWidth: settings.value.cardWidth,
+      cardHeight: layout.value.cardHeight,
+      cardWidth: layout.value.cardWidth,
     })
   );
 
@@ -82,7 +82,7 @@
     if (!grid.value) {
       return [];
     }
-    return chunkIntoPages(labels.value, grid.value, clampSkipLabels(Number(settings.value.skipLabels), grid.value));
+    return chunkIntoPages(labels.value, grid.value, clampSkipLabels(Number(job.value.skipLabels), grid.value));
   });
 
   // sequential offscreen rasterization; one render per unique label url
@@ -157,11 +157,11 @@
             :asset-id="labels[0]!.assetID"
             :location="labels[0]!.location"
             :qr-url="labels[0]!.url"
-            :width="settings.cardWidth"
-            :height="settings.cardHeight"
-            :measure="settings.measure"
-            :bordered="settings.bordered"
-            :show-location="settings.printLocationRow"
+            :width="layout.cardWidth"
+            :height="layout.cardHeight"
+            :measure="layout.measure"
+            :bordered="layout.bordered"
+            :show-location="layout.printLocationRow"
             :sans-font-family="sansFontFamily"
             :mono-font-family="monoFontFamily"
           />
@@ -176,11 +176,11 @@
             :asset-id="currentLabel.assetID"
             :location="currentLabel.location"
             :qr-url="currentLabel.url"
-            :width="settings.cardWidth"
-            :height="settings.cardHeight"
-            :measure="settings.measure"
-            :bordered="settings.bordered"
-            :show-location="settings.printLocationRow"
+            :width="layout.cardWidth"
+            :height="layout.cardHeight"
+            :measure="layout.measure"
+            :bordered="layout.bordered"
+            :show-location="layout.printLocationRow"
             :sans-font-family="sansFontFamily"
             :mono-font-family="monoFontFamily"
           />
@@ -194,7 +194,7 @@
           </Label>
           <Input
             id="printLabelsSkip"
-            v-model="settings.skipLabels"
+            v-model="job.skipLabels"
             type="number"
             :min="0"
             :max="grid ? Math.max(0, grid.rows * grid.cols - 1) : undefined"
@@ -202,7 +202,7 @@
           />
         </div>
         <div class="flex items-center gap-2">
-          <Checkbox id="printLabelsPerQuantity" v-model="settings.labelPerQuantity" />
+          <Checkbox id="printLabelsPerQuantity" v-model="labelPerQuantity" />
           <Label class="cursor-pointer" for="printLabelsPerQuantity">
             {{ $t("reports.label_generator.label_per_quantity") }}
           </Label>
@@ -216,7 +216,11 @@
             })
           }}
         </p>
-        <NuxtLink to="/collection/labels" class="text-sm text-primary underline-offset-4 hover:underline">
+        <NuxtLink
+          v-if="can('site_settings', 'edit')"
+          to="/admin/settings"
+          class="text-sm text-primary underline-offset-4 hover:underline"
+        >
           {{ $t("components.global.label_maker.configure_settings") }}
         </NuxtLink>
       </div>

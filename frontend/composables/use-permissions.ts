@@ -9,6 +9,7 @@ export type PermSection =
   | "templates"
   | "maintenance"
   | "statistics"
+  | "ai"
   | "collection_settings"
   | "entity_types"
   | "notifiers"

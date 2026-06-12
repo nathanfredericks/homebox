@@ -15,13 +15,6 @@
                     "import_success": "Uvoz uspešen!",
                     "please_select_file": "Izberite datoteko za uvoz."
                 }
-            },
-            "outdated": {
-                "current_version": "Trenutna različica",
-                "dismiss": "Opusti",
-                "latest_version": "Najnovejša različica",
-                "new_version_available": "Nova različica je na voljo",
-                "new_version_available_link": "Kliknite tukaj za ogled opomb ob izdaji"
             }
         },
         "color_selector": {

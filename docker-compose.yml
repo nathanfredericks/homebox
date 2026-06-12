@@ -18,7 +18,6 @@ services:
       - HBOX_OPTIONS_TRUST_PROXY=true
       # Dev-only pepper; generate your own for production (openssl rand -base64 48)
       - HBOX_AUTH_API_KEY_PEPPER=dev-only-pepper-not-for-production-use-32b+
-      - HBOX_OPTIONS_ALLOW_REGISTRATION=true
     volumes:
       - homebox-data:/data
 

@@ -12,7 +12,6 @@
     getQRCodeUrl,
   } from "~~/lib/labels";
   import AssetLabel from "@/components/Label/AssetLabel.vue";
-  import FormGoogleFontSelect from "~/components/Form/GoogleFontSelect.vue";
   import { toast } from "@/components/ui/sonner";
   import { Separator } from "@/components/ui/separator";
   import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@
 
   const { t } = useI18n();
   const { appName } = useBranding();
+  const { can } = usePermissions();
 
   definePageMeta({
     middleware: ["auth"],
@@ -36,37 +36,19 @@
 
   const api = useUserApi();
 
-  const { settings, sansFontFamily, monoFontFamily, resolvedBaseURL } = useLabelSettings();
+  const { layout, job, labelPerQuantity, sansFontFamily, monoFontFamily, resolvedBaseURL } = useLabelSettings();
 
   const labelBlankLine = "_______________";
 
-  const baseURLModel = computed({
-    get: () => resolvedBaseURL.value,
-    set: (value: string) => {
-      settings.value.baseURL = value;
-    },
-  });
-
   interface InputDef {
     label: string;
-    ref:
-      | "assetRange"
-      | "assetRangeMax"
-      | "skipLabels"
-      | "measure"
-      | "cardHeight"
-      | "cardWidth"
-      | "pageWidth"
-      | "pageHeight"
-      | "pageTopPadding"
-      | "pageBottomPadding"
-      | "pageLeftPadding"
-      | "pageRightPadding";
-    type?: "number" | "text";
+    ref: "assetRange" | "assetRangeMax" | "skipLabels";
     min?: number;
     step?: number;
   }
 
+  // The sheet layout itself (dimensions, fonts, style) is instance-wide and
+  // managed in Administration → Settings; only print-job inputs live here.
   const propertyInputs = computed<InputDef[]>(() => {
     return [
       {
@@ -82,43 +64,6 @@
         ref: "skipLabels",
         min: 0,
         step: 1,
-      },
-      {
-        label: t("reports.label_generator.measure_type"),
-        ref: "measure",
-        type: "text",
-      },
-      {
-        label: t("reports.label_generator.label_height"),
-        ref: "cardHeight",
-      },
-      {
-        label: t("reports.label_generator.label_width"),
-        ref: "cardWidth",
-      },
-      {
-        label: t("reports.label_generator.page_width"),
-        ref: "pageWidth",
-      },
-      {
-        label: t("reports.label_generator.page_height"),
-        ref: "pageHeight",
-      },
-      {
-        label: t("reports.label_generator.page_top_padding"),
-        ref: "pageTopPadding",
-      },
-      {
-        label: t("reports.label_generator.page_bottom_padding"),
-        ref: "pageBottomPadding",
-      },
-      {
-        label: t("reports.label_generator.page_left_padding"),
-        ref: "pageLeftPadding",
-      },
-      {
-        label: t("reports.label_generator.page_right_padding"),
-        ref: "pageRightPadding",
       },
     ];
   });
@@ -154,22 +99,22 @@
   });
 
   const items = computed<GeneratorItem[]>(() => {
-    if (settings.value.assetRange > settings.value.assetRangeMax) {
+    if (job.value.assetRange > job.value.assetRangeMax) {
       return [];
     }
 
-    const diff = settings.value.assetRangeMax - settings.value.assetRange;
+    const diff = job.value.assetRangeMax - job.value.assetRange;
 
     if (diff > 999) {
       return [];
     }
 
     const items: GeneratorItem[] = [];
-    for (let i = settings.value.assetRange - 1; i < settings.value.assetRangeMax - 1; i++) {
+    for (let i = job.value.assetRange - 1; i < job.value.assetRangeMax - 1; i++) {
       const item = allFields?.value?.items?.[i];
       items.push(getItem(i, (item as Parameters<typeof getItem>[1]) ?? null));
     }
-    return expandByQuantity(items, settings.value.labelPerQuantity);
+    return expandByQuantity(items, labelPerQuantity.value);
   });
 
   const pages = ref<LabelPage[]>([]);
@@ -197,17 +142,17 @@
   function calcPages() {
     // Set Out Dimensions
     const grid = calculateGridData({
-      measure: settings.value.measure,
+      measure: layout.value.measure,
       page: {
-        height: settings.value.pageHeight,
-        width: settings.value.pageWidth,
-        pageTopPadding: settings.value.pageTopPadding,
-        pageBottomPadding: settings.value.pageBottomPadding,
-        pageLeftPadding: settings.value.pageLeftPadding,
-        pageRightPadding: settings.value.pageRightPadding,
+        height: layout.value.pageHeight,
+        width: layout.value.pageWidth,
+        pageTopPadding: layout.value.pageTopPadding,
+        pageBottomPadding: layout.value.pageBottomPadding,
+        pageLeftPadding: layout.value.pageLeftPadding,
+        pageRightPadding: layout.value.pageRightPadding,
       },
-      cardHeight: settings.value.cardHeight,
-      cardWidth: settings.value.cardWidth,
+      cardHeight: layout.value.cardHeight,
+      cardWidth: layout.value.cardWidth,
     });
 
     if (grid === null) {
@@ -217,9 +162,9 @@
 
     out.value = grid;
 
-    const skipLabels = clampSkipLabels(Number(settings.value.skipLabels), grid);
-    if (Number(settings.value.skipLabels) !== skipLabels) {
-      settings.value.skipLabels = skipLabels;
+    const skipLabels = clampSkipLabels(Number(job.value.skipLabels), grid);
+    if (Number(job.value.skipLabels) !== skipLabels) {
+      job.value.skipLabels = skipLabels;
     }
 
     pages.value = chunkIntoPages(items.value, grid, skipLabels);
@@ -228,6 +173,9 @@
   onMounted(() => {
     calcPages();
   });
+
+  // Re-layout once the instance settings arrive (they load asynchronously).
+  watch(layout, () => calcPages());
 </script>
 
 <template>
@@ -260,57 +208,19 @@
             </Label>
             <Input
               :id="`input-${prop.ref}`"
-              v-model="settings[prop.ref]"
-              :type="prop.type ? prop.type : 'number'"
+              v-model="job[prop.ref]"
+              type="number"
               :min="prop.min"
               :max="prop.ref === 'skipLabels' ? Math.max(0, out.rows * out.cols - 1) : undefined"
-              :step="prop.type === 'text' ? undefined : (prop.step ?? 0.01)"
+              :step="prop.step ?? 1"
               :placeholder="$t('reports.label_generator.input_placeholder')"
-              class="w-full max-w-xs"
-            />
-          </div>
-          <div class="flex w-full max-w-xs flex-col">
-            <Label for="input-baseURL">
-              {{ $t("reports.label_generator.base_url") }}
-            </Label>
-            <Input
-              id="input-baseURL"
-              v-model="baseURLModel"
-              type="text"
-              :placeholder="$t('reports.label_generator.input_placeholder')"
-              class="w-full max-w-xs"
-            />
-          </div>
-          <div class="flex w-full max-w-xs flex-col">
-            <FormGoogleFontSelect
-              v-model="settings.sansFont"
-              :label="$t('reports.label_generator.sans_serif_font')"
-              class="w-full max-w-xs"
-            />
-          </div>
-          <div class="flex w-full max-w-xs flex-col">
-            <FormGoogleFontSelect
-              v-model="settings.monoFont"
-              :label="$t('reports.label_generator.monospace_font')"
               class="w-full max-w-xs"
             />
           </div>
         </div>
         <div class="max-w-xs">
           <div class="flex items-center gap-2 py-4">
-            <Checkbox id="borderedLabels" v-model="settings.bordered" />
-            <Label class="cursor-pointer" for="borderedLabels">
-              {{ $t("reports.label_generator.bordered_labels") }}
-            </Label>
-          </div>
-          <div class="flex items-center gap-2 py-4">
-            <Checkbox id="printLocationRow" v-model="settings.printLocationRow" />
-            <Label class="cursor-pointer" for="printLocationRow">
-              {{ $t("reports.label_generator.print_location_row") }}
-            </Label>
-          </div>
-          <div class="flex items-center gap-2 py-4">
-            <Checkbox id="labelPerQuantity" v-model="settings.labelPerQuantity" />
+            <Checkbox id="labelPerQuantity" v-model="labelPerQuantity" />
             <Label class="cursor-pointer" for="labelPerQuantity">
               {{ $t("reports.label_generator.label_per_quantity") }}
             </Label>
@@ -321,6 +231,13 @@
           <p class="text-sm text-muted-foreground">
             {{ $t("reports.label_generator.qr_code_example") }} {{ resolvedBaseURL }}/a/{asset_id}
           </p>
+          <NuxtLink
+            v-if="can('site_settings', 'edit')"
+            to="/admin/settings"
+            class="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            {{ $t("reports.label_generator.edit_layout") }}
+          </NuxtLink>
           <Button size="lg" class="mt-4 w-full" @click="calcPages">
             {{ $t("reports.label_generator.generate_page") }}
           </Button>
@@ -364,8 +281,8 @@
             :width="out.card.width"
             :height="out.card.height"
             :measure="out.measure"
-            :bordered="settings.bordered"
-            :show-location="settings.printLocationRow"
+            :bordered="layout.bordered"
+            :show-location="layout.printLocationRow"
             :sans-font-family="sansFontFamily"
             :mono-font-family="monoFontFamily"
           />

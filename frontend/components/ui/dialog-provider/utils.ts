@@ -41,6 +41,7 @@ export enum DialogID {
   AdminUserCreate = "admin-user-create",
   AdminUserEdit = "admin-user-edit",
   AdminGroupCreate = "admin-group-create",
+  AiFill = "ai-fill",
 }
 
 /**

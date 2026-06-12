@@ -58,13 +58,6 @@
                     "import_success": "Імпортовано успішно!",
                     "please_select_file": "Будь ласка, виберіть файл для імпорту."
                 }
-            },
-            "outdated": {
-                "current_version": "Поточна версія",
-                "dismiss": "Відхилити",
-                "latest_version": "Остання версія",
-                "new_version_available": "Доступна нова версія",
-                "new_version_available_link": "Натисніть тут, щоб переглянути примітки до випуску"
             }
         },
         "collection": {

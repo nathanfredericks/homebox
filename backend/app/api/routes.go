@@ -55,7 +55,6 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		a.conf,
 		v1.WithMaxUploadSize(a.conf.Web.MaxUploadSize),
 		v1.WithMaxImportSize(a.conf.Web.MaxImportSize),
-		v1.WithRegistration(a.conf.Options.AllowRegistration),
 		v1.WithDemoStatus(a.conf.Demo), // Disable Password Change in Demo Mode
 		v1.WithURL(fmt.Sprintf("%s:%s", a.conf.Web.Host, a.conf.Web.Port)),
 		v1.WithSettings(a.settings),
@@ -188,6 +187,12 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Post("/actions/ensure-asset-ids", chain.ToHandlerFunc(v1Ctrl.HandleEnsureAssetID(), with(userMW, a.mwPermission(permissions.SectionTools, permissions.ActionEdit), a.mwPermission(permissions.SectionItems, permissions.ActionEdit))...))
 		r.Post("/actions/ensure-import-refs", chain.ToHandlerFunc(v1Ctrl.HandleEnsureImportRefs(), with(userMW, a.mwPermission(permissions.SectionTools, permissions.ActionEdit), a.mwPermission(permissions.SectionItems, permissions.ActionEdit))...))
 
+		// AI endpoints (capture analysis is its own surface; suggestions for an
+		// existing item ride on the Items edit grant)
+		r.Get("/ai/status", chain.ToHandlerFunc(v1Ctrl.HandleAIStatus(), userMW...))
+		r.Post("/ai/analyze", chain.ToHandlerFunc(v1Ctrl.HandleAIAnalyze(), with(userMW, a.mwPermission(permissions.SectionAI, permissions.ActionView))...))
+		r.Post("/ai/entities/{id}/suggest", chain.ToHandlerFunc(v1Ctrl.HandleAISuggest(), with(userMW, a.mwPermission(permissions.SectionItems, permissions.ActionEdit))...))
+
 		// Tags endpoints
 		r.Get("/tags", chain.ToHandlerFunc(v1Ctrl.HandleTagsGetAll(), with(userMW, a.mwPermission(permissions.SectionTags, permissions.ActionView))...))
 		r.Post("/tags", chain.ToHandlerFunc(v1Ctrl.HandleTagsCreate(), with(userMW, a.mwPermission(permissions.SectionTags, permissions.ActionCreate))...))
@@ -211,6 +216,8 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Get("/entities/fields", chain.ToHandlerFunc(v1Ctrl.HandleGetAllCustomFieldNames(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
 		r.Get("/entities/fields/values", chain.ToHandlerFunc(v1Ctrl.HandleGetAllCustomFieldValues(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
 		r.Get("/entities/tree", chain.ToHandlerFunc(v1Ctrl.HandleLocationTreeQuery(), with(userMW, a.mwPermission(permissions.SectionLocations, permissions.ActionView))...))
+		r.Post("/entities/bulk", chain.ToHandlerFunc(v1Ctrl.HandleEntitiesBulkEdit(), with(userMW, a.mwPermission(permissions.SectionItems, permissions.ActionEdit))...))
+		r.Post("/entities/bulk/delete", chain.ToHandlerFunc(v1Ctrl.HandleEntitiesBulkDelete(), with(userMW, a.mwPermission(permissions.SectionItems, permissions.ActionDelete))...))
 
 		r.Get("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityGet(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
 		r.Get("/entities/{id}/path", chain.ToHandlerFunc(v1Ctrl.HandleEntityFullPath(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
@@ -272,11 +279,9 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 			chain.ToHandlerFunc(v1Ctrl.HandleEntityAttachmentGet(), with(assetMW, a.mwPermissionAny(entitySections, permissions.ActionView))...),
 		)
 
-		// Labelmaker
-		r.Get("/labelmaker/entity/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetItemLabel(), with(userMW, a.mwPermissionAny(entitySections, permissions.ActionView))...))
-		r.Get("/labelmaker/location/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetLocationLabel(), with(userMW, a.mwPermission(permissions.SectionLocations, permissions.ActionView))...))
-		r.Get("/labelmaker/item/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetItemLabel(), with(userMW, a.mwPermission(permissions.SectionItems, permissions.ActionView))...))
-		r.Get("/labelmaker/asset/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetAssetLabel(), with(userMW, a.mwPermission(permissions.SectionItems, permissions.ActionView))...))
+		// Label layout settings (instance-wide, readable by any authed user so
+		// the browser-side label renderer can lay out sheets)
+		r.Get("/labelmaker/settings", chain.ToHandlerFunc(v1Ctrl.HandleLabelMakerSettings(), userMW...))
 
 		// Reporting Services (Tools tab)
 		r.Get("/reporting/bill-of-materials", chain.ToHandlerFunc(v1Ctrl.HandleBillOfMaterialsExport(), with(userMW, a.mwPermission(permissions.SectionTools, permissions.ActionView))...))

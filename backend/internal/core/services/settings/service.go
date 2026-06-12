@@ -70,6 +70,7 @@ func New(ctx context.Context, r *repo.SiteSettingsRepository, cfg *config.Config
 		LabelMaker: defaults.LabelMaker,
 		Notifier:   defaults.Notifier,
 		Algolia:    defaults.Algolia,
+		AI:         defaults.AI,
 	}
 	base.Options.CurrencyConfig = cfg.Options.CurrencyConfig
 	base.Options.AllowAnalytics = cfg.Options.AllowAnalytics

@@ -38,7 +38,7 @@ func newTestService(t *testing.T, cfg *config.Config) *Service {
 func baseConfig() *config.Config {
 	return &config.Config{
 		Thumbnail: config.Thumbnail{Enabled: false, Width: 300, Height: 300},
-		Options:   config.Options{AllowRegistration: false, TrustProxy: false, AllowAnalytics: true, CurrencyConfig: "/tmp/currencies.json"},
+		Options:   config.Options{TrustProxy: false, AllowAnalytics: true, CurrencyConfig: "/tmp/currencies.json"},
 		Algolia:   config.AlgoliaConf{IndexName: "env-index", AdminAPIKey: "env-secret"},
 	}
 }
@@ -179,15 +179,15 @@ func TestEnvOnlyFieldsAreStripped(t *testing.T) {
 	svc := newTestService(t, baseConfig())
 	ctx := context.Background()
 
-	if err := svc.UpdateSection(ctx, SectionOptions, json.RawMessage(`{"trustProxy":true,"allowRegistration":true}`)); err != nil {
+	if err := svc.UpdateSection(ctx, SectionOptions, json.RawMessage(`{"trustProxy":true,"autoIncrementAssetId":false}`)); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 	got := svc.Get().Options
 	if got.TrustProxy {
 		t.Error("trustProxy is env-only and must not be overridable from the database")
 	}
-	if !got.AllowRegistration {
-		t.Error("allowRegistration should have been overridden to true")
+	if got.AutoIncrementAssetID {
+		t.Error("autoIncrementAssetId should have been overridden to false")
 	}
 }
 
@@ -238,6 +238,42 @@ func TestOverridesSurviveServiceRestart(t *testing.T) {
 	}
 	if got := svc2.Get().Thumbnail.Width; got != 700 {
 		t.Errorf("width after restart: got %d, want 700 (database wins over defaults)", got)
+	}
+}
+
+func TestAISecretSentinelRoundTrip(t *testing.T) {
+	svc := newTestService(t, baseConfig())
+	ctx := context.Background()
+
+	if err := svc.UpdateSection(ctx, SectionAI, json.RawMessage(`{"apiKey":"sk-test","enabled":true,"model":"gpt-4o-mini"}`)); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+	if got := svc.Get().AI.APIKey; got != "sk-test" {
+		t.Fatalf("apiKey: got %q, want sk-test", got)
+	}
+
+	// Echoing the sentinel back keeps the stored key while other fields update.
+	if err := svc.UpdateSection(ctx, SectionAI, json.RawMessage(`{"apiKey":"[REDACTED]","model":"gpt-4o"}`)); err != nil {
+		t.Fatalf("update with sentinel: %v", err)
+	}
+	got := svc.Get().AI
+	if got.APIKey != "sk-test" {
+		t.Errorf("apiKey: got %q, want preserved sk-test", got.APIKey)
+	}
+	if got.Model != "gpt-4o" {
+		t.Errorf("model: got %q, want gpt-4o", got.Model)
+	}
+
+	out, err := json.Marshal(svc.Get())
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var doc map[string]map[string]any
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if got := doc["ai"]["apiKey"]; got != RedactedSentinel {
+		t.Errorf("marshaled apiKey: got %v, want sentinel", got)
 	}
 }
 

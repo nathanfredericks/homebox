@@ -1,5 +1,7 @@
 import { BaseAPI, route } from "../base";
 import type {
+  ActionAmountResult,
+  EntityBulkEdit,
   EntityCreate,
   EntityListResult,
   EntityOut,
@@ -171,6 +173,22 @@ export class ItemsApi extends BaseAPI {
       },
     });
     return payload;
+  }
+
+  /** Move, tag/untag, or archive many entities in one call. */
+  bulkEdit(payload: EntityBulkEdit) {
+    return this.http.post<EntityBulkEdit, ActionAmountResult>({
+      url: route("/entities/bulk"),
+      body: payload,
+    });
+  }
+
+  /** Delete many entities (and their attachments) in one call. */
+  bulkDelete(ids: string[]) {
+    return this.http.post<{ ids: string[] }, ActionAmountResult>({
+      url: route("/entities/bulk/delete"),
+      body: { ids },
+    });
   }
 
   import(file: File | Blob) {

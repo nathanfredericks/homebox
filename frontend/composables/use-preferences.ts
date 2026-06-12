@@ -11,29 +11,12 @@ export type DuplicateSettings = {
   copyPrefixOverride: string | null;
 };
 
+// Per-print-job inputs only: the sheet layout itself (dimensions, fonts,
+// style) is instance-wide admin configuration served by /labelmaker/settings.
 export type LabelMakerPreferences = {
-  baseURL: string | null;
   assetRange: number;
   assetRangeMax: number;
   skipLabels: number;
-  measure: string;
-  gapY: number;
-  columns: number;
-  cardHeight: number;
-  cardWidth: number;
-  pageWidth: number;
-  pageHeight: number;
-  pageTopPadding: number;
-  pageBottomPadding: number;
-  pageLeftPadding: number;
-  pageRightPadding: number;
-  // "default" for the system stack, otherwise a Google Font family name
-  // (legacy values "open-sans"/"geist-mono" are mapped in use-label-settings).
-  sansFont: string;
-  monoFont: string;
-  bordered: boolean;
-  printLocationRow: boolean;
-  labelPerQuantity: boolean;
 };
 
 export type LocationViewPreferences = {
@@ -81,26 +64,9 @@ const DEFAULT_PREFERENCES: LocationViewPreferences = {
     enabled: true,
   },
   labelmaker: {
-    baseURL: null,
     assetRange: 1,
     assetRangeMax: 91,
     skipLabels: 0,
-    measure: "in",
-    gapY: 0.25,
-    columns: 3,
-    cardHeight: 1,
-    cardWidth: 2.63,
-    pageWidth: 8.5,
-    pageHeight: 11,
-    pageTopPadding: 0.52,
-    pageBottomPadding: 0.42,
-    pageLeftPadding: 0.25,
-    pageRightPadding: 0.1,
-    sansFont: "default",
-    monoFont: "default",
-    bordered: false,
-    printLocationRow: true,
-    labelPerQuantity: false,
   },
 };
 let syncConfig: PreferenceSyncConfig = {

@@ -30,10 +30,6 @@
         "app": {
             "create_modal": {
                 "createAndAddAnother": "Pritisnite {shiftKey} + {enterKey} da dodaje još jedan."
-            },
-            "outdated": {
-                "new_version_available": "Nova verzija je dostupna",
-                "new_version_available_link": "Kliknite ovde da vidite beleške o novoj verziji"
             }
         },
         "collection": {

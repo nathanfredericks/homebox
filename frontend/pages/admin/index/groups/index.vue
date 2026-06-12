@@ -2,7 +2,6 @@
   import { useI18n } from "vue-i18n";
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
   import { Button } from "@/components/ui/button";
-  import { Badge } from "@/components/ui/badge";
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
   import { toast } from "@/components/ui/sonner";
   import { DialogID } from "@/components/ui/dialog-provider/utils";
@@ -83,12 +82,7 @@
         </TableHeader>
         <TableBody>
           <TableRow v-for="group in groups" :key="group.id">
-            <TableCell>
-              <div class="flex items-center gap-2">
-                {{ group.name }}
-                <Badge v-if="group.isSuperAdmin" variant="default">{{ $t("admin.groups.super_admin") }}</Badge>
-              </div>
-            </TableCell>
+            <TableCell>{{ group.name }}</TableCell>
             <TableCell class="text-muted-foreground">{{ group.description }}</TableCell>
             <TableCell class="text-center">{{ group.userCount }}</TableCell>
             <TableCell>

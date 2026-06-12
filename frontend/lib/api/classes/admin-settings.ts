@@ -1,7 +1,15 @@
 import { BaseAPI, route } from "../base";
 import type { AdminSettingsOut } from "../types/data-contracts";
 
-export type SettingsSection = "options" | "thumbnail" | "mailer" | "barcode" | "labelmaker" | "notifier" | "algolia";
+export type SettingsSection =
+  | "options"
+  | "thumbnail"
+  | "mailer"
+  | "barcode"
+  | "labelmaker"
+  | "notifier"
+  | "algolia"
+  | "ai";
 
 /**
  * Site-wide settings (Administration → Settings). Values layer database

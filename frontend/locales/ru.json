@@ -57,13 +57,6 @@
                     "import_success": "Импорт выполнен успешно!",
                     "please_select_file": "Выберите файл для импорта."
                 }
-            },
-            "outdated": {
-                "current_version": "Текущая версия",
-                "dismiss": "Отклонить",
-                "latest_version": "Последняя версия",
-                "new_version_available": "Доступна новая версия",
-                "new_version_available_link": "Показать комментарии к версии"
             }
         },
         "collection": {

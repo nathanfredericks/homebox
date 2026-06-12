@@ -131,16 +131,25 @@
       return;
     }
 
-    // Process deletions sequentially to avoid database locking issues with concurrent write transactions
-    for (const id of ids) {
-      try {
-        await api.items.delete(id);
-      } catch (err) {
-        toast.error(t("components.item.view.table.dropdown.error_deleting"));
-        console.error(err);
-      }
+    const { error } = await api.items.bulkDelete(ids);
+    if (error) {
+      toast.error(t("components.item.view.table.dropdown.error_deleting"));
     }
 
+    resetSelection();
+  };
+
+  const setArchived = async (ids: string[], archived: boolean) => {
+    const { error } = await api.items.bulkEdit({ ids, archived });
+    if (error) {
+      toast.error(t("components.item.view.change_details.failed_to_update_item"));
+      return;
+    }
+    toast.success(
+      archived
+        ? t("components.item.view.table.dropdown.archive_success")
+        : t("components.item.view.table.dropdown.unarchive_success")
+    );
     resetSelection();
   };
 
@@ -274,6 +283,19 @@
             ? t("components.item.view.table.dropdown.duplicate_selected")
             : t("components.item.view.table.dropdown.duplicate_item")
         }}
+      </DropdownMenuItem>
+      <!-- archive / unarchive -->
+      <DropdownMenuItem
+        v-if="can('items', 'edit')"
+        @click="setArchived(multi ? multi.items.map(row => row.original.id) : [item!.id], true)"
+      >
+        {{ t("components.item.view.table.dropdown.archive") }}
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        v-if="can('items', 'edit')"
+        @click="setArchived(multi ? multi.items.map(row => row.original.id) : [item!.id], false)"
+      >
+        {{ t("components.item.view.table.dropdown.unarchive") }}
       </DropdownMenuItem>
       <!-- delete -->
       <DropdownMenuItem

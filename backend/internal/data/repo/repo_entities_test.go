@@ -576,3 +576,160 @@ func TestEntityRepository_DeleteByGroupWithAttachments(t *testing.T) {
 	require.Error(t, err)
 }
 
+func strptr(s string) *string   { return &s }
+func f64ptr(f float64) *float64 { return &f }
+func boolptr(b bool) *bool      { return &b }
+
+func TestEntityRepository_Patch_ScalarFields(t *testing.T) {
+	e := useEntities(t, 1)[0]
+	ctx := context.Background()
+
+	err := tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID:            e.ID,
+		Name:          strptr("Patched Name"),
+		Description:   strptr("patched description"),
+		SerialNumber:  strptr("SN-PATCH"),
+		ModelNumber:   strptr("MODEL-1"),
+		Manufacturer:  strptr("ACME"),
+		Notes:         strptr("patched notes"),
+		PurchaseFrom:  strptr("Hardware Store"),
+		PurchasePrice: f64ptr(42.5),
+	})
+	require.NoError(t, err)
+
+	got, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Patched Name", got.Name)
+	assert.Equal(t, "patched description", got.Description)
+	assert.Equal(t, "SN-PATCH", got.SerialNumber)
+	assert.Equal(t, "MODEL-1", got.ModelNumber)
+	assert.Equal(t, "ACME", got.Manufacturer)
+	assert.Equal(t, "patched notes", got.Notes)
+	assert.Equal(t, "Hardware Store", got.PurchaseFrom)
+	assert.InDelta(t, 42.5, got.PurchasePrice, 0.001)
+
+	// Nil fields must leave existing values untouched.
+	err = tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID:    e.ID,
+		Notes: strptr(""),
+	})
+	require.NoError(t, err)
+
+	got, err = tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Patched Name", got.Name, "untouched field must keep its value")
+	assert.Empty(t, got.Notes, "pointed-to empty string must clear the field")
+}
+
+func TestEntityRepository_GetBySerialNumber(t *testing.T) {
+	e := useEntities(t, 1)[0]
+	ctx := context.Background()
+
+	require.NoError(t, tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID:           e.ID,
+		SerialNumber: strptr("Dup-Serial-1"),
+	}))
+
+	matches, err := tRepos.Entities.GetBySerialNumber(ctx, tGroup.ID, "dup-serial-1")
+	require.NoError(t, err)
+	require.Len(t, matches, 1)
+	assert.Equal(t, e.ID, matches[0].ID)
+
+	// Archived entities are excluded.
+	require.NoError(t, tRepos.Entities.Patch(ctx, tGroup.ID, e.ID, EntityPatch{
+		ID:       e.ID,
+		Archived: boolptr(true),
+	}))
+	matches, err = tRepos.Entities.GetBySerialNumber(ctx, tGroup.ID, "dup-serial-1")
+	require.NoError(t, err)
+	assert.Empty(t, matches)
+}
+
+func TestEntityRepository_BulkEdit(t *testing.T) {
+	entities := useEntities(t, 3)
+	tags := useTags(t, 2)
+	ctx := context.Background()
+
+	containerET := useContainerEntityType(t)
+	cf := containerFactory()
+	cf.EntityTypeID = containerET.ID
+	newParent, err := tRepos.Entities.Create(ctx, tGroup.ID, cf)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = tRepos.Entities.Delete(ctx, newParent.ID) })
+
+	ids := []uuid.UUID{entities[0].ID, entities[1].ID}
+	completed, err := tRepos.Entities.BulkEdit(ctx, tGroup.ID, EntityBulkEdit{
+		IDs:       ids,
+		ParentID:  newParent.ID,
+		AddTagIDs: []uuid.UUID{tags[0].ID, tags[1].ID},
+		Archived:  boolptr(true),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 2, completed)
+
+	for _, id := range ids {
+		got, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, id)
+		require.NoError(t, err)
+		require.NotNil(t, got.Parent)
+		assert.Equal(t, newParent.ID, got.Parent.ID)
+		assert.True(t, got.Archived)
+		assert.Len(t, got.Tags, 2)
+	}
+
+	// Third entity untouched.
+	got, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, entities[2].ID)
+	require.NoError(t, err)
+	assert.False(t, got.Archived)
+	assert.Empty(t, got.Tags)
+
+	// Remove one tag and unarchive.
+	_, err = tRepos.Entities.BulkEdit(ctx, tGroup.ID, EntityBulkEdit{
+		IDs:          ids,
+		RemoveTagIDs: []uuid.UUID{tags[0].ID},
+		Archived:     boolptr(false),
+	})
+	require.NoError(t, err)
+	got, err = tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, ids[0])
+	require.NoError(t, err)
+	assert.False(t, got.Archived)
+	require.Len(t, got.Tags, 1)
+	assert.Equal(t, tags[1].ID, got.Tags[0].ID)
+}
+
+func TestEntityRepository_BulkEdit_RejectsCrossGroup(t *testing.T) {
+	entities := useEntities(t, 1)
+	ctx := context.Background()
+
+	otherGroup, err := tRepos.Groups.GroupCreate(ctx, "bulk-other-group")
+	require.NoError(t, err)
+	otherET, err := tRepos.EntityTypes.GetDefault(ctx, otherGroup.ID, false)
+	require.NoError(t, err)
+	foreign, err := tRepos.Entities.Create(ctx, otherGroup.ID, EntityCreate{Name: "foreign", EntityTypeID: otherET.ID})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = tRepos.Entities.Delete(ctx, foreign.ID) })
+
+	_, err = tRepos.Entities.BulkEdit(ctx, tGroup.ID, EntityBulkEdit{
+		IDs:      []uuid.UUID{entities[0].ID, foreign.ID},
+		Archived: boolptr(true),
+	})
+	require.Error(t, err, "batch containing a foreign entity must fail")
+
+	// Nothing applied to the in-group entity.
+	got, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, entities[0].ID)
+	require.NoError(t, err)
+	assert.False(t, got.Archived)
+}
+
+func TestEntityRepository_BulkDelete(t *testing.T) {
+	entities := useEntities(t, 2)
+	ctx := context.Background()
+
+	completed, err := tRepos.Entities.BulkDelete(ctx, tGroup.ID, []uuid.UUID{entities[0].ID, entities[1].ID})
+	require.NoError(t, err)
+	assert.Equal(t, 2, completed)
+
+	for _, e := range entities {
+		_, err := tRepos.Entities.GetOneByGroup(ctx, tGroup.ID, e.ID)
+		require.Error(t, err)
+	}
+}

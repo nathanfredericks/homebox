@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -156,6 +157,18 @@ type (
 		ParentID     uuid.UUID   `json:"parentId"           extensions:"x-nullable,x-omitempty"`
 		EntityTypeID uuid.UUID   `json:"entityTypeId"       extensions:"x-nullable,x-omitempty"`
 		TagIDs       []uuid.UUID `json:"tagIds"             extensions:"x-nullable,x-omitempty"`
+
+		// Scalar fields: nil leaves the field untouched, a pointed-to value
+		// (including "" / 0) overwrites it. Caps mirror EntityUpdate.
+		Name          *string  `json:"name,omitempty"          validate:"omitempty,min=1,max=255" extensions:"x-nullable,x-omitempty"`
+		Description   *string  `json:"description,omitempty"   validate:"omitempty,max=1000"      extensions:"x-nullable,x-omitempty"`
+		SerialNumber  *string  `json:"serialNumber,omitempty"  validate:"omitempty,max=255"       extensions:"x-nullable,x-omitempty"`
+		ModelNumber   *string  `json:"modelNumber,omitempty"   validate:"omitempty,max=255"       extensions:"x-nullable,x-omitempty"`
+		Manufacturer  *string  `json:"manufacturer,omitempty"  validate:"omitempty,max=255"       extensions:"x-nullable,x-omitempty"`
+		Notes         *string  `json:"notes,omitempty"         validate:"omitempty,max=1000"      extensions:"x-nullable,x-omitempty"`
+		PurchaseFrom  *string  `json:"purchaseFrom,omitempty"  validate:"omitempty,max=255"       extensions:"x-nullable,x-omitempty"`
+		PurchasePrice *float64 `json:"purchasePrice,omitempty" extensions:"x-nullable,x-omitempty"`
+		Archived      *bool    `json:"archived,omitempty"      extensions:"x-nullable,x-omitempty"`
 	}
 
 	EntitySummary struct {
@@ -949,6 +962,25 @@ func (r *EntityRepository) GetAll(ctx context.Context, gid uuid.UUID) ([]EntityO
 		return out, err
 	}
 	span.SetAttributes(attribute.Int("entities.count", len(out)))
+	return out, nil
+}
+
+// GetBySerialNumber returns non-archived entities whose serial number matches
+// exactly (case-insensitive), used for duplicate detection during AI capture.
+func (r *EntityRepository) GetBySerialNumber(ctx context.Context, gid uuid.UUID, serial string) ([]EntitySummary, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.GetBySerialNumber",
+		trace.WithAttributes(attribute.String("group.id", gid.String())))
+	defer span.End()
+
+	out, err := mapEntitiesSummaryErr(r.db.Entity.Query().Where(
+		entity.HasGroupWith(group.ID(gid)),
+		entity.SerialNumberEqualFold(serial),
+		entity.Archived(false),
+	).All(ctx))
+	if err != nil {
+		recordSpanError(span, err)
+		return out, err
+	}
 	return out, nil
 }
 
@@ -1827,6 +1859,16 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 		q.SetEntityTypeID(data.EntityTypeID)
 	}
 
+	q.SetNillableName(data.Name).
+		SetNillableDescription(data.Description).
+		SetNillableSerialNumber(data.SerialNumber).
+		SetNillableModelNumber(data.ModelNumber).
+		SetNillableManufacturer(data.Manufacturer).
+		SetNillableNotes(data.Notes).
+		SetNillablePurchaseFrom(data.PurchaseFrom).
+		SetNillablePurchasePrice(data.PurchasePrice).
+		SetNillableArchived(data.Archived)
+
 	_, execSpan := entityTracer().Start(ctx, "repo.EntityRepository.Patch.exec")
 	err = q.Exec(ctx)
 	if err != nil {
@@ -1863,6 +1905,127 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 
 	r.publishMutationEvent(gid)
 	return nil
+}
+
+// EntityBulkEdit describes one bulk operation over a set of entities. Zero
+// values leave the corresponding aspect untouched.
+type EntityBulkEdit struct {
+	IDs          []uuid.UUID `json:"ids"          validate:"required,min=1,max=500"`
+	ParentID     uuid.UUID   `json:"parentId"     extensions:"x-nullable,x-omitempty"`
+	AddTagIDs    []uuid.UUID `json:"addTagIds"    extensions:"x-nullable,x-omitempty"`
+	RemoveTagIDs []uuid.UUID `json:"removeTagIds" extensions:"x-nullable,x-omitempty"`
+	Archived     *bool       `json:"archived"     extensions:"x-nullable,x-omitempty"`
+}
+
+// BulkEdit applies one edit to many entities in a single transaction: move to
+// a parent location, add/remove tags, and/or set the archived flag. Every ID
+// must belong to the group or the whole call fails.
+func (r *EntityRepository) BulkEdit(ctx context.Context, gid uuid.UUID, data EntityBulkEdit) (int, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.BulkEdit",
+		trace.WithAttributes(
+			attribute.String("group.id", gid.String()),
+			attribute.Int("entities.count", len(data.IDs)),
+		))
+	defer span.End()
+
+	if err := assertEntityInGroup(ctx, r.db.Entity, gid, data.ParentID); err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+	if err := assertTagsInGroup(ctx, r.db.Tag, gid, data.AddTagIDs); err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+	if err := assertTagsInGroup(ctx, r.db.Tag, gid, data.RemoveTagIDs); err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+
+	// Reject the whole batch when any ID is outside the group (or missing) so
+	// a partial cross-group payload can't silently half-apply.
+	count, err := r.db.Entity.Query().
+		Where(entity.IDIn(data.IDs...), entity.HasGroupWith(group.ID(gid))).
+		Count(ctx)
+	if err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+	if count != len(data.IDs) {
+		err := errors.New("one or more entities do not belong to this collection")
+		recordSpanError(span, err)
+		return 0, err
+	}
+
+	tx, err := r.db.Tx(ctx)
+	if err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			if err := tx.Rollback(); err != nil {
+				log.Warn().Err(err).Msg("failed to rollback transaction during bulk edit")
+			}
+		}
+	}()
+
+	q := tx.Entity.Update().Where(entity.IDIn(data.IDs...), entity.HasGroupWith(group.ID(gid)))
+	if data.ParentID != uuid.Nil {
+		q.SetParentID(data.ParentID)
+	}
+	if len(data.AddTagIDs) > 0 {
+		q.AddTagIDs(data.AddTagIDs...)
+	}
+	if len(data.RemoveTagIDs) > 0 {
+		q.RemoveTagIDs(data.RemoveTagIDs...)
+	}
+	q.SetNillableArchived(data.Archived)
+
+	if err := q.Exec(ctx); err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+
+	if data.ParentID != uuid.Nil {
+		for _, id := range data.IDs {
+			if err := patchSyncChildLocations(ctx, tx, gid, id, data.ParentID); err != nil {
+				recordSpanError(span, err)
+				return 0, err
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		recordSpanError(span, err)
+		return 0, err
+	}
+	committed = true
+
+	r.publishMutationEvent(gid)
+	return len(data.IDs), nil
+}
+
+// BulkDelete removes the entities one at a time through DeleteByGroup so each
+// delete reuses the attachment cleanup. Deletes are not transactional across
+// the batch: a failure reports how many completed before it.
+func (r *EntityRepository) BulkDelete(ctx context.Context, gid uuid.UUID, ids []uuid.UUID) (int, error) {
+	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.BulkDelete",
+		trace.WithAttributes(
+			attribute.String("group.id", gid.String()),
+			attribute.Int("entities.count", len(ids)),
+		))
+	defer span.End()
+
+	completed := 0
+	for _, id := range ids {
+		if err := r.DeleteByGroup(ctx, gid, id); err != nil {
+			recordSpanError(span, err)
+			return completed, err
+		}
+		completed++
+	}
+	return completed, nil
 }
 
 func (r *EntityRepository) GetAllCustomFieldValues(ctx context.Context, gid uuid.UUID, name string) ([]string, error) {

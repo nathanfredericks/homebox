@@ -21,6 +21,7 @@ type Resolved struct {
 	LabelMaker config.LabelMakerConf `json:"labelmaker"`
 	Notifier   config.NotifierConf   `json:"notifier"`
 	Algolia    config.AlgoliaConf    `json:"algolia"`
+	AI         config.AIConf         `json:"ai"`
 }
 
 // Section names double as database row keys and API path segments.
@@ -32,6 +33,7 @@ const (
 	SectionLabelMaker = "labelmaker"
 	SectionNotifier   = "notifier"
 	SectionAlgolia    = "algolia"
+	SectionAI         = "ai"
 )
 
 // SectionNames lists every valid section in UI display order.
@@ -43,6 +45,7 @@ var SectionNames = []string{
 	SectionLabelMaker,
 	SectionNotifier,
 	SectionAlgolia,
+	SectionAI,
 }
 
 // sectionPtr returns the pointer to the named section within r, used both to
@@ -63,6 +66,8 @@ func sectionPtr(r *Resolved, name string) any {
 		return &r.Notifier
 	case SectionAlgolia:
 		return &r.Algolia
+	case SectionAI:
+		return &r.AI
 	default:
 		return nil
 	}
@@ -75,6 +80,7 @@ var sectionSecrets = map[string][]string{
 	SectionBarcode: {"tokenBarcodespider"},
 	SectionMailer:  {"password"},
 	SectionAlgolia: {"adminApiKey"},
+	SectionAI:      {"apiKey"},
 }
 
 // currentSecret returns the currently effective value for a section's secret
@@ -87,6 +93,8 @@ func currentSecret(r *Resolved, section, jsonKey string) string {
 		return r.Mailer.Password
 	case SectionAlgolia + "/adminApiKey":
 		return r.Algolia.AdminAPIKey
+	case SectionAI + "/apiKey":
+		return r.AI.APIKey
 	default:
 		return ""
 	}

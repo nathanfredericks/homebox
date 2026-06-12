@@ -55,13 +55,6 @@
                     "import_success": "Sikeres importálás!",
                     "please_select_file": "Kérlek válassz egy fájlt az importáláshoz."
                 }
-            },
-            "outdated": {
-                "current_version": "Jelenlegi verzió",
-                "dismiss": "Elvetés",
-                "latest_version": "Legújabb verzió",
-                "new_version_available": "Új verzió érhető el",
-                "new_version_available_link": "Kattints ide az újdonságok megtekintéséhez"
             }
         },
         "collection": {

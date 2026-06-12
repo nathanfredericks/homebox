@@ -54,13 +54,6 @@
                     "import_success": "インポートに成功しました",
                     "please_select_file": "ファイルを選択してください"
                 }
-            },
-            "outdated": {
-                "current_version": "現在のバージョン",
-                "dismiss": "却下",
-                "latest_version": "最新バージョン",
-                "new_version_available": "利用可能な更新があります",
-                "new_version_available_link": "クリックしてリリースノートを表示"
             }
         },
         "collection": {

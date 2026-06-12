@@ -15,13 +15,6 @@
                     "import_success": "İçe aktarma başarılı!",
                     "please_select_file": "Lütfen içe aktarılacak dosyayı seçin."
                 }
-            },
-            "outdated": {
-                "current_version": "Güncel Sürüm",
-                "dismiss": "Yok say",
-                "latest_version": "Son Sürüm",
-                "new_version_available": "Yeni sürüm mevcut",
-                "new_version_available_link": "Sürüm notlarını görüntülemek için buraya tıklayın"
             }
         },
         "color_selector": {

@@ -22,6 +22,7 @@ const (
 	SectionTemplates   Section = "templates"
 	SectionMaintenance Section = "maintenance"
 	SectionStatistics  Section = "statistics"
+	SectionAI          Section = "ai"
 
 	// Collection settings surfaces (collection-scoped).
 	SectionCollectionSettings Section = "collection_settings"
@@ -45,6 +46,7 @@ var AllSections = []Section{
 	SectionTemplates,
 	SectionMaintenance,
 	SectionStatistics,
+	SectionAI,
 	SectionCollectionSettings,
 	SectionEntityTypes,
 	SectionNotifiers,

@@ -3,7 +3,7 @@
   import { Button } from "@/components/ui/button";
   import { useDialog } from "@/components/ui/dialog-provider";
   import { DialogID } from "~/components/ui/dialog-provider/utils";
-  import type { EntityPatch, EntitySummary, TagOut } from "~/lib/api/types/data-contracts";
+  import type { EntityBulkEdit, EntitySummary, TagOut } from "~/lib/api/types/data-contracts";
   import LocationSelector from "~/components/Location/Selector.vue";
   import MdiLoading from "~icons/mdi/loading";
   import { toast } from "~/components/ui/sonner";
@@ -89,37 +89,25 @@
 
     saving.value = true;
 
-    // Process items sequentially to avoid database locking issues with concurrent write transactions
-    for (const item of items.value) {
-      const patch: EntityPatch = {
-        id: item.id,
-      };
+    // One transactional call covers the whole selection.
+    const payload: EntityBulkEdit = {
+      ids: items.value.map(item => item.id),
+    };
+    if (enabled.changeLocation) {
+      payload.parentId = location!.id;
+    }
+    if (enabled.addTags && tagsToAdd.length) {
+      payload.addTagIds = tagsToAdd;
+    }
+    if (enabled.removeTags && tagsToRemove.length) {
+      payload.removeTagIds = tagsToRemove;
+    }
 
-      if (enabled.changeLocation) {
-        patch.parentId = location!.id;
-      }
-
-      let currentTags = item.tags.map(l => l.id);
-
-      if (enabled.addTags) {
-        currentTags = currentTags.concat(tagsToAdd);
-      }
-
-      if (enabled.removeTags) {
-        currentTags = currentTags.filter(l => !tagsToRemove.includes(l));
-      }
-
-      if (enabled.addTags || enabled.removeTags) {
-        patch.tagIds = Array.from(new Set(currentTags));
-      }
-
-      const { error, data } = await api.items.patch(item.id, patch);
-
-      if (error) {
-        console.error("failed to update item", item.id, data);
-        toast.error(t("components.item.view.change_details.failed_to_update_item"));
-        continue;
-      }
+    const { error } = await api.items.bulkEdit(payload);
+    if (error) {
+      toast.error(t("components.item.view.change_details.failed_to_update_item"));
+      saving.value = false;
+      return;
     }
 
     closeDialog(DialogID.ItemChangeDetails, true);

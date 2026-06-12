@@ -58,13 +58,6 @@
                     "import_success": "Import prebehol úspešne!",
                     "please_select_file": "Prosím, vyberte súbor, ktorý chcete importovať."
                 }
-            },
-            "outdated": {
-                "current_version": "Aktuálna verzia",
-                "dismiss": "Odmietnuť",
-                "latest_version": "Najnovšia verzia",
-                "new_version_available": "K dispozícii je nová verzia",
-                "new_version_available_link": "Kliknutím sem zobrazíte poznámky k verzii"
             }
         },
         "collection": {

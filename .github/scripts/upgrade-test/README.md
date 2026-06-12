@@ -144,7 +144,6 @@ pnpm exec playwright install --with-deps chromium
 docker run -d \
   --name homebox-test \
   -p 7745:7745 \
-  -e HBOX_OPTIONS_ALLOW_REGISTRATION=true \
   -v /tmp/homebox-data:/data \
   ghcr.io/sysadminsmedia/homebox:latest
 
@@ -166,7 +165,6 @@ docker build -t homebox:test .
 docker run -d \
   --name homebox-test \
   -p 7745:7745 \
-  -e HBOX_OPTIONS_ALLOW_REGISTRATION=true \
   -v /tmp/homebox-data:/data \
   homebox:test
 

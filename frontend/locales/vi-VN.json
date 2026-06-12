@@ -15,13 +15,6 @@
                     "import_success": "Nhập thành công!",
                     "please_select_file": "Xin hãy chọn tệp cần nhập."
                 }
-            },
-            "outdated": {
-                "current_version": "Phiên bản hiện tại",
-                "dismiss": "Bác bỏ",
-                "latest_version": "Phiên bản mới nhất",
-                "new_version_available": "Đã có phiên bản mới",
-                "new_version_available_link": "Nhấn vào đây để xem ghi chú về các phiên bản được phát hành"
             }
         },
         "color_selector": {

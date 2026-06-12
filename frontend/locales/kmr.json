@@ -58,13 +58,6 @@
                     "import_success": "Importkirin serketî bû!",
                     "please_select_file": "Ji kerema xwe pelekî ji bo importkirinê hilbijêre."
                 }
-            },
-            "outdated": {
-                "current_version": "Guhertoya heyî",
-                "dismiss": "Bigire",
-                "latest_version": "Guhertoya herî dawî",
-                "new_version_available": "Guhertoyeke nû heye",
-                "new_version_available_link": "Ji bo dîtina notên weşanê li vir bitikîne"
             }
         },
         "collection": {

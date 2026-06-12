@@ -58,13 +58,6 @@
                     "import_success": "Importen lyckades!",
                     "please_select_file": "Välj en fil för import."
                 }
-            },
-            "outdated": {
-                "current_version": "Nuvarande version",
-                "dismiss": "Avvisa",
-                "latest_version": "Senaste version",
-                "new_version_available": "Ny Version Tillgänglig",
-                "new_version_available_link": "Klicka här för att visa versionsanteckningarna"
             }
         },
         "collection": {

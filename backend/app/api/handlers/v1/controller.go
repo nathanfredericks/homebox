@@ -57,12 +57,6 @@ func WithDemoStatus(demoStatus bool) func(*V1Controller) {
 	}
 }
 
-func WithRegistration(allowRegistration bool) func(*V1Controller) {
-	return func(ctrl *V1Controller) {
-		ctrl.allowRegistration = allowRegistration
-	}
-}
-
 func WithSecureCookies(secure bool) func(*V1Controller) {
 	return func(ctrl *V1Controller) {
 		ctrl.cookieSecure = secure
@@ -99,9 +93,8 @@ type V1Controller struct {
 	svc               *services.AllServices
 	maxUploadSize     int64
 	maxImportSize     int64
-	isDemo            bool
-	allowRegistration bool
-	setupComplete     atomic.Bool
+	isDemo        bool
+	setupComplete atomic.Bool
 	bus               *eventbus.EventBus
 	url               string
 	config            *config.Config
@@ -137,6 +130,7 @@ func (ctrl *V1Controller) runtime() settings.Resolved {
 		LabelMaker: ctrl.config.LabelMaker,
 		Notifier:   ctrl.config.Notifier,
 		Algolia:    ctrl.config.Algolia,
+		AI:         ctrl.config.AI,
 	}
 }
 
@@ -150,21 +144,18 @@ type (
 	}
 
 	APISummary struct {
-		Healthy           bool            `json:"health"`
-		Versions          []string        `json:"versions"`
-		Title             string          `json:"title"`
-		Message           string          `json:"message"`
-		Build             Build           `json:"build"`
-		Latest            services.Latest `json:"latest"`
-		Demo              bool            `json:"demo"`
-		AllowRegistration bool            `json:"allowRegistration"`
+		Healthy bool     `json:"health"`
+		Versions []string `json:"versions"`
+		Title   string   `json:"title"`
+		Message string   `json:"message"`
+		Build   Build    `json:"build"`
+		Demo    bool     `json:"demo"`
 		// Setup is true while no user exists; the frontend shows the
 		// first-time setup flow instead of the login form.
-		Setup         bool            `json:"setup"`
-		LabelPrinting bool            `json:"labelPrinting"`
-		OIDC          OIDCStatus      `json:"oidc"`
-		Telemetry     TelemetryStatus `json:"telemetry"`
-		Theming       ThemingStatus   `json:"theming"`
+		Setup     bool            `json:"setup"`
+		OIDC      OIDCStatus      `json:"oidc"`
+		Telemetry TelemetryStatus `json:"telemetry"`
+		Theming   ThemingStatus   `json:"theming"`
 	}
 
 	// ThemingStatus describes the site-wide active theme so pre-auth pages
@@ -198,11 +189,10 @@ type (
 
 func NewControllerV1(svc *services.AllServices, repos *repo.AllRepos, bus *eventbus.EventBus, config *config.Config, options ...func(*V1Controller)) *V1Controller {
 	ctrl := &V1Controller{
-		repo:              repos,
-		svc:               svc,
-		allowRegistration: true,
-		bus:               bus,
-		config:            config,
+		repo:   repos,
+		svc:    svc,
+		bus:    bus,
+		config: config,
 	}
 
 	for _, opt := range options {
@@ -257,15 +247,12 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 
 		rt := ctrl.runtime()
 		return server.JSON(w, http.StatusOK, APISummary{
-			Healthy:           ready(),
-			Title:             title,
-			Message:           "Track, Manage, and Organize your Things",
-			Build:             build,
-			Latest:            ctrl.svc.BackgroundService.GetLatestVersion(),
-			Demo:              ctrl.isDemo,
-			AllowRegistration: false,
-			Setup:             setup,
-			LabelPrinting:     rt.LabelMaker.PrintCommand != nil,
+			Healthy: ready(),
+			Title:   title,
+			Message: "Track, Manage, and Organize your Things",
+			Build:   build,
+			Demo:    ctrl.isDemo,
+			Setup:   setup,
 			OIDC: OIDCStatus{
 				Enabled:      ctrl.config.OIDC.Enabled,
 				ButtonText:   ctrl.config.OIDC.ButtonText,

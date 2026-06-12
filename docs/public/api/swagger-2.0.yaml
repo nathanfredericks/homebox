@@ -1,5 +1,49 @@
 basePath: /api
 definitions:
+  ai.AnalyzedItem:
+    properties:
+      description:
+        type: string
+      duplicate:
+        allOf:
+        - $ref: '#/definitions/ai.DuplicateMatch'
+        x-nullable: true
+        x-omitempty: true
+      manufacturer:
+        type: string
+      modelNumber:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      purchaseFrom:
+        type: string
+      purchasePrice:
+        type: number
+      quantity:
+        type: number
+      serialNumber:
+        type: string
+    type: object
+  ai.DuplicateMatch:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      serialNumber:
+        type: string
+    type: object
+  ai.FieldSuggestion:
+    properties:
+      current:
+        type: string
+      field:
+        type: string
+      suggested:
+        type: string
+    type: object
   attachment.Type:
     enum:
     - attachment
@@ -30,6 +74,22 @@ definitions:
     - RoleAdmin
     - RoleUser
     - RoleAttachments
+  config.AIConf:
+    properties:
+      apiKey:
+        type: string
+      baseUrl:
+        type: string
+      enabled:
+        type: boolean
+      extraInstructions:
+        description: |-
+          ExtraInstructions is appended to every AI prompt, e.g. output language
+          or naming conventions.
+        type: string
+      model:
+        type: string
+    type: object
   config.AlgoliaConf:
     properties:
       adminApiKey:
@@ -70,30 +130,42 @@ definitions:
     type: object
   config.LabelMakerConf:
     properties:
-      additionalInformation:
+      baseUrl:
+        description: |-
+          BaseURL is the base URL encoded into label QR codes; empty means the
+          instance origin the page is served from.
         type: string
-      boldFontPath:
-        type: string
-      dynamicLength:
+      bordered:
         type: boolean
-      fontSize:
+      cardHeight:
         type: number
-      height:
-        type: integer
-      labelServiceTimeout:
-        $ref: '#/definitions/time.Duration'
-      labelServiceUrl:
+      cardWidth:
+        type: number
+      labelPerQuantity:
+        type: boolean
+      measure:
         type: string
-      margin:
-        type: integer
-      padding:
-        type: integer
-      printCommand:
+      monoFont:
         type: string
-      regularFontPath:
+      pageBottomPadding:
+        type: number
+      pageHeight:
+        type: number
+      pageLeftPadding:
+        type: number
+      pageRightPadding:
+        type: number
+      pageTopPadding:
+        type: number
+      pageWidth:
+        type: number
+      printLocationRow:
+        type: boolean
+      sansFont:
+        description: |-
+          SansFont/MonoFont are Google Font family names; "default" keeps the
+          built-in font stacks.
         type: string
-      width:
-        type: integer
     type: object
   config.MailerConf:
     properties:
@@ -147,14 +219,10 @@ definitions:
         type: boolean
       allowLocalLogin:
         type: boolean
-      allowRegistration:
-        type: boolean
       autoIncrementAssetId:
         type: boolean
       currencyConfig:
         type: string
-      githubReleaseCheck:
-        type: boolean
       hostname:
         type: string
       trustProxy:
@@ -1232,6 +1300,37 @@ definitions:
       copyPrefix:
         type: string
     type: object
+  repo.EntityBulkEdit:
+    properties:
+      addTagIds:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+        x-omitempty: true
+      archived:
+        type: boolean
+        x-nullable: true
+        x-omitempty: true
+      ids:
+        items:
+          type: string
+        maxItems: 500
+        minItems: 1
+        type: array
+      parentId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      removeTagIds:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+        x-omitempty: true
+    required:
+    - ids
+    type: object
   repo.EntityCreate:
     properties:
       description:
@@ -1400,18 +1499,65 @@ definitions:
     type: object
   repo.EntityPatch:
     properties:
+      archived:
+        type: boolean
+        x-nullable: true
+        x-omitempty: true
+      description:
+        maxLength: 1000
+        type: string
+        x-nullable: true
+        x-omitempty: true
       entityTypeId:
         type: string
         x-nullable: true
         x-omitempty: true
       id:
         type: string
+      manufacturer:
+        maxLength: 255
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      modelNumber:
+        maxLength: 255
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      name:
+        description: |-
+          Scalar fields: nil leaves the field untouched, a pointed-to value
+          (including "" / 0) overwrites it. Caps mirror EntityUpdate.
+        maxLength: 255
+        minLength: 1
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      notes:
+        maxLength: 1000
+        type: string
+        x-nullable: true
+        x-omitempty: true
       parentId:
         type: string
         x-nullable: true
         x-omitempty: true
+      purchaseFrom:
+        maxLength: 255
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      purchasePrice:
+        type: number
+        x-nullable: true
+        x-omitempty: true
       quantity:
         type: number
+        x-nullable: true
+        x-omitempty: true
+      serialNumber:
+        maxLength: 255
+        type: string
         x-nullable: true
         x-omitempty: true
       tagIds:
@@ -2435,13 +2581,6 @@ definitions:
           $ref: '#/definitions/schema.SocialLink'
         type: array
     type: object
-  services.Latest:
-    properties:
-      date:
-        type: string
-      version:
-        type: string
-    type: object
   services.UserAdminCreate:
     properties:
       email:
@@ -2489,6 +2628,8 @@ definitions:
     type: object
   settings.Resolved:
     properties:
+      ai:
+        $ref: '#/definitions/config.AIConf'
       algolia:
         $ref: '#/definitions/config.AlgoliaConf'
       barcode:
@@ -2516,73 +2657,38 @@ definitions:
     - TypeNumber
     - TypeBoolean
     - TypeTime
-  time.Duration:
-    enum:
-    - -9223372036854775808
-    - 9223372036854775807
-    - 1
-    - 1000
-    - 1000000
-    - 1000000000
-    - 60000000000
-    - 3600000000000
-    - -9223372036854775808
-    - 9223372036854775807
-    - 1
-    - 1000
-    - 1000000
-    - 1000000000
-    - 60000000000
-    - 3600000000000
-    - -9223372036854775808
-    - 9223372036854775807
-    - 1
-    - 1000
-    - 1000000
-    - 1000000000
-    - 60000000000
-    - 3600000000000
-    format: int64
-    type: integer
-    x-enum-varnames:
-    - minDuration
-    - maxDuration
-    - Nanosecond
-    - Microsecond
-    - Millisecond
-    - Second
-    - Minute
-    - Hour
-    - minDuration
-    - maxDuration
-    - Nanosecond
-    - Microsecond
-    - Millisecond
-    - Second
-    - Minute
-    - Hour
-    - minDuration
-    - maxDuration
-    - Nanosecond
-    - Microsecond
-    - Millisecond
-    - Second
-    - Minute
-    - Hour
+  v1.AIAnalyzeResult:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ai.AnalyzedItem'
+        type: array
+    type: object
+  v1.AIStatus:
+    properties:
+      enabled:
+        type: boolean
+    type: object
+  v1.AISuggestRequest:
+    properties:
+      overwrite:
+        type: boolean
+    type: object
+  v1.AISuggestResult:
+    properties:
+      suggestions:
+        items:
+          $ref: '#/definitions/ai.FieldSuggestion'
+        type: array
+    type: object
   v1.APISummary:
     properties:
-      allowRegistration:
-        type: boolean
       build:
         $ref: '#/definitions/v1.Build'
       demo:
         type: boolean
       health:
         type: boolean
-      labelPrinting:
-        type: boolean
-      latest:
-        $ref: '#/definitions/services.Latest'
       message:
         type: string
       oidc:
@@ -2635,6 +2741,17 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  v1.EntityBulkDeleteRequest:
+    properties:
+      ids:
+        items:
+          type: string
+        maxItems: 500
+        minItems: 1
+        type: array
+    required:
+    - ids
     type: object
   v1.EntityTemplateCreateItemRequest:
     properties:
@@ -2921,6 +3038,79 @@ paths:
       summary: Trigger a full Algolia reindex
       tags:
       - Admin Settings
+  /v1/ai/analyze:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Runs vision analysis over uploaded photos and returns detected
+        inventory items
+      parameters:
+      - description: Photos to analyze (repeatable, max 8)
+        in: formData
+        name: images
+        required: true
+        type: file
+      - description: JSON-encoded ai.AnalyzeOptions
+        in: formData
+        name: options
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AIAnalyzeResult'
+      security:
+      - Bearer: []
+      summary: Detect items in photos
+      tags:
+      - AI
+  /v1/ai/entities/{id}/suggest:
+    post:
+      consumes:
+      - application/json
+      description: Analyzes an item's photo attachments and proposes values for its
+        catalog fields
+      parameters:
+      - description: Entity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Suggestion options
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AISuggestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AISuggestResult'
+      security:
+      - Bearer: []
+      summary: Suggest field values from an item's photos
+      tags:
+      - AI
+  /v1/ai/status:
+    get:
+      description: Reports whether AI features are enabled on this instance
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AIStatus'
+      security:
+      - Bearer: []
+      summary: AI integration status
+      tags:
+      - AI
   /v1/assets/{id}:
     get:
       parameters:
@@ -3358,6 +3548,54 @@ paths:
       summary: Get the full path of an entity
       tags:
       - Entities
+  /v1/entities/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Moves, tags/untags, or archives many entities in one call
+      parameters:
+      - description: Bulk edit payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.EntityBulkEdit'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ActionAmountResult'
+      security:
+      - Bearer: []
+      summary: Bulk Edit Entities
+      tags:
+      - Items
+  /v1/entities/bulk/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes many entities (and their attachments) in one call
+      parameters:
+      - description: Bulk delete payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EntityBulkDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ActionAmountResult'
+      security:
+      - Bearer: []
+      summary: Bulk Delete Entities
+      tags:
+      - Items
   /v1/entities/export:
     get:
       responses:
@@ -3789,78 +4027,22 @@ paths:
       summary: Get Tags Statistics
       tags:
       - Statistics
-  /v1/labelmaker/asset/{id}:
+  /v1/labelmaker/settings:
     get:
-      parameters:
-      - description: Asset ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Print this label, defaults to false
-        in: query
-        name: print
-        type: boolean
+      description: Returns the instance-wide label sheet layout used by the browser
+        label renderer
       produces:
       - application/json
       responses:
         "200":
-          description: image/png
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/config.LabelMakerConf'
       security:
       - Bearer: []
-      summary: Get Asset label
+      summary: Label layout settings
       tags:
-      - Items
-  /v1/labelmaker/item/{id}:
-    get:
-      parameters:
-      - description: Item ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Print this label, defaults to false
-        in: query
-        name: print
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: image/png
-          schema:
-            type: string
-      security:
-      - Bearer: []
-      summary: Get Item label
-      tags:
-      - Items
-  /v1/labelmaker/location/{id}:
-    get:
-      parameters:
-      - description: Location ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Print this label, defaults to false
-        in: query
-        name: print
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: image/png
-          schema:
-            type: string
-      security:
-      - Bearer: []
-      summary: Get Location label
-      tags:
-      - Locations
+      - Labelmaker
   /v1/maintenance:
     get:
       parameters:

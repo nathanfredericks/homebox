@@ -57,13 +57,6 @@
                     "import_success": "匯入成功！",
                     "please_select_file": "請選擇要匯入的檔案。"
                 }
-            },
-            "outdated": {
-                "current_version": "當前版本",
-                "dismiss": "取消",
-                "latest_version": "最新版本",
-                "new_version_available": "新版本上線",
-                "new_version_available_link": "按此處查看發行說明"
             }
         },
         "collection": {

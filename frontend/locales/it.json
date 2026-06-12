@@ -58,13 +58,6 @@
                     "import_success": "Importazione riuscita!",
                     "please_select_file": "Selezionare un file da importare."
                 }
-            },
-            "outdated": {
-                "current_version": "Versione corrente",
-                "dismiss": "Rifiuta",
-                "latest_version": "Ultima Versione",
-                "new_version_available": "Nuova versione disponibile",
-                "new_version_available_link": "Clicca qui per visualizzare le note di rilascio"
             }
         },
         "collection": {
