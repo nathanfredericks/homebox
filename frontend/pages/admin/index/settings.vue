@@ -288,6 +288,11 @@
       }
       applyResponse(res.data);
       toast.success(t("admin.settings.saved"));
+      if (section === "ai") {
+        // The AI gate is session-cached; refresh it so the toggle takes
+        // effect in this session without a page reload.
+        await refreshNuxtData("ai-status");
+      }
     } finally {
       saving[section] = false;
     }
@@ -306,6 +311,9 @@
       }
       applyResponse(res.data);
       toast.success(t("admin.settings.reset_done"));
+      if (section === "ai") {
+        await refreshNuxtData("ai-status");
+      }
     } finally {
       saving[section] = false;
     }
