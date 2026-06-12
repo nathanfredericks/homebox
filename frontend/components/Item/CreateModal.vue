@@ -684,19 +684,21 @@
       error = result.error;
       data = result.data;
     } else {
-      // Normal item creation without template
-      const out: EntityCreate = {
+      // Normal item creation without template. entityTypeId is omitted when
+      // the collection has no item types yet: the backend falls back to the
+      // collection's default item type.
+      const out = {
         parentId: form.parentId || form.location.id!,
         name: form.name,
         quantity: form.quantity,
         description: form.description,
         tagIds: form.tags,
-        entityTypeId: selectedEntityType.value!.id,
+        ...(selectedEntityType.value ? { entityTypeId: selectedEntityType.value.id } : {}),
         serialNumber: form.serialNumber,
         modelNumber: form.modelNumber,
         manufacturer: form.manufacturer,
         notes: form.notes,
-      };
+      } as EntityCreate;
 
       const result = await api.items.create(out);
       error = result.error;

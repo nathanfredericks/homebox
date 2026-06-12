@@ -27,7 +27,10 @@
 
   const emit = defineEmits<{ "update:modelValue": [value: unknown] }>();
 
-  const fieldId = computed(() => `setting-${props.def.key}`);
+  // Field keys repeat across sections (e.g. every integration has "enabled"),
+  // so the DOM id needs a per-instance component id to stay unique.
+  const uid = useId();
+  const fieldId = computed(() => `setting-${uid}-${props.def.key}`);
 
   const boolValue = computed({
     get: () => props.modelValue === true,
