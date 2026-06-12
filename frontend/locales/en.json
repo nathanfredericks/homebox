@@ -324,7 +324,7 @@
                     "import_success": "Import successful!",
                     "please_select_file": "Please select a file to import."
                 }
-            },
+            }
         },
         "collection": {
             "create_modal": {
