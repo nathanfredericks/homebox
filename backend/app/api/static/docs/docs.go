@@ -170,7 +170,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin Settings"
                 ],
-                "summary": "Reset one site settings section to environment/default values",
+                "summary": "Reset one site settings section to default values",
                 "parameters": [
                     {
                         "type": "string",
@@ -7406,12 +7406,6 @@ const docTemplate = `{
                 1000000,
                 1000000000,
                 60000000000,
-                3600000000000,
-                1,
-                1000,
-                1000000,
-                1000000000,
-                60000000000,
                 3600000000000
             ],
             "x-enum-varnames": [
@@ -7433,12 +7427,6 @@ const docTemplate = `{
                 "Hour",
                 "minDuration",
                 "maxDuration",
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
-                "Minute",
-                "Hour",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
@@ -7506,13 +7494,6 @@ const docTemplate = `{
         "v1.AdminSettingsOut": {
             "type": "object",
             "properties": {
-                "overridden": {
-                    "description": "Overridden marks sections whose values come from the database rather\nthan environment variables / defaults.",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "boolean"
-                    }
-                },
                 "settings": {
                     "$ref": "#/definitions/settings.Resolved"
                 }

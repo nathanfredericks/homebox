@@ -208,23 +208,6 @@
 
           <slot />
           <div class="grow" />
-
-          <footer v-if="status" class="bottom-0 w-full pb-4 text-center print:hidden">
-            <p class="text-center text-sm">
-              <span
-                v-html="
-                  DOMPurify.sanitize(
-                    $t('global.footer.version_link', {
-                      version: status.build.version.replace(/^v/, ''),
-                      build: status.build.commit,
-                    })
-                  )
-                "
-              />
-              ~
-              <span v-html="DOMPurify.sanitize($t('global.footer.api_link'))" />
-            </p>
-          </footer>
         </div>
       </SidebarInset>
     </SidebarProvider>
@@ -233,7 +216,6 @@
 
 <script lang="ts" setup>
   import { useI18n } from "vue-i18n";
-  import DOMPurify from "isomorphic-dompurify";
   import { useTagStore } from "~/stores/tags";
   import { useLocationStore } from "~~/stores/locations";
 

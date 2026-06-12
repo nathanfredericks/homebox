@@ -39,10 +39,6 @@
                 "title": "Barcode lookup",
                 "token_barcodespider": "Barcodespider API token"
             },
-            "env_only": {
-                "description": "These settings are read at startup or are security-sensitive; change them via environment variables and restart.",
-                "title": "Environment-only configuration"
-            },
             "labelmaker": {
                 "additional_information": "Additional information",
                 "bold_font_path": "Bold font path",
@@ -90,13 +86,11 @@
                 "hostname_help": "Externally reachable base URL of this instance, used in emails and generated links.",
                 "title": "General"
             },
-            "reset_confirm": "Reset this section to its environment/default values? All overrides saved here will be removed.",
-            "reset_done": "Section reset to environment values",
-            "reset_to_environment": "Reset to environment",
+            "reset_confirm": "Reset this section to its default values? All settings saved here will be removed.",
+            "reset_done": "Section reset to defaults",
+            "reset_to_defaults": "Reset to defaults",
             "save_failed": "Failed to save settings.",
             "saved": "Settings saved",
-            "source_database": "Database override",
-            "source_environment": "From environment",
             "thumbnail": {
                 "description": "Generated preview images for item photos.",
                 "enabled": "Generate thumbnails",
@@ -122,7 +116,7 @@
             "asset_uploaded": "Image uploaded",
             "back": "Back to Theming",
             "branding": "Branding",
-            "branding_sub": "Replace the HomeBox name, logos and login page content. Empty fields keep the defaults.",
+            "branding_sub": "Replace the application name, logos and login page content. Empty fields keep the defaults.",
             "color_names": {
                 "accent": "Accent",
                 "background": "Background",
@@ -169,7 +163,7 @@
                 "mastodon": "Mastodon"
             },
             "social_links": "Login page links",
-            "social_links_sub": "Links shown in the login page header. Leave empty to keep the default HomeBox links.",
+            "social_links_sub": "Links shown in the login page header. Leave empty to keep the default links.",
             "system_font": "System",
             "upload": "Upload"
         },
@@ -616,7 +610,6 @@
     "global": {
         "add": "Add",
         "archived": "Archived",
-        "build": "Build: { build }",
         "cancel": "Cancel",
         "close": "Close",
         "confirm": "Confirm",
@@ -632,10 +625,6 @@
         "edit": "Edit",
         "email": "Email",
         "follow_dev": "Follow the Developer",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub Project",
         "insured": "Insured",
         "items": "Items",
@@ -665,7 +654,6 @@
         "update": "Update",
         "updating": "Updating",
         "value": "Value",
-        "version": "Version: { version }",
         "welcome": "Welcome, { username }",
         "yes": "Yes"
     },
@@ -1066,8 +1054,8 @@
             "font_default": "Default",
             "generate_page": "Generate Page",
             "input_placeholder": "Type here",
-            "instruction_1": "The HomeBox Label Generator is a tool to help you print labels for your HomeBox inventory. These are intended to\n be print-ahead labels so you can print many labels and have them ready to apply",
-            "instruction_2": "As such, these labels work by printing a URL QR Code and AssetID information on a label. If you've disabled\n AssetID's in your HomeBox settings, you can still use this tool, but the AssetID's won't reference any item",
+            "instruction_1": "The {appName} Label Generator is a tool to help you print labels for your {appName} inventory. These are intended to\n be print-ahead labels so you can print many labels and have them ready to apply",
+            "instruction_2": "As such, these labels work by printing a URL QR Code and AssetID information on a label. If you've disabled\n AssetID's in your {appName} settings, you can still use this tool, but the AssetID's won't reference any item",
             "label_height": "Label Height",
             "label_per_quantity": "One label per quantity",
             "label_width": "Label Width",
@@ -1129,7 +1117,7 @@
         "submit": "Create Administrator Account",
         "subtitle": "Create your administrator account to get started.",
         "success": "Administrator account created",
-        "title": "Welcome to Homebox"
+        "title": "Welcome to {appName}"
     },
     "tags": {
         "no_results": "No Tags Found",
@@ -1179,13 +1167,13 @@
         "import_export_set": {
             "export": "Export Inventory",
             "export_button": "Export Inventory",
-            "export_sub": "Exports the standard CSV format for Homebox. This will export all items in your inventory.",
+            "export_sub": "Exports the standard CSV format for {appName}. This will export all items in your inventory.",
             "import": "Import Inventory",
             "import_button": "Import Inventory",
             "import_ref_confirm": "Are you sure you want to ensure all assets have an import_ref? This can take a while and cannot be undone.",
-            "import_sub": "Imports the standard CSV format for Homebox. Without an '<code>'HB.import_ref'</code>' column, this will '<b>'not'</b>' overwrite any existing items in your inventory, only add new items. Rows with an '<code>'HB.import_ref'</code>' column are merged into existing items with the same import_ref, if one exists."
+            "import_sub": "Imports the standard CSV format for {appName}. Without an '<code>'HB.import_ref'</code>' column, this will '<b>'not'</b>' overwrite any existing items in your inventory, only add new items. Rows with an '<code>'HB.import_ref'</code>' column are merged into existing items with the same import_ref, if one exists."
         },
-        "import_export_sub": "Import and export your inventory to and from a CSV file. This is useful for migrating your inventory to a new instance of Homebox.",
+        "import_export_sub": "Import and export your inventory to and from a CSV file. This is useful for migrating your inventory to a new instance of {appName}.",
         "reports": "Reports",
         "reports_set": {
             "asset_labels": "Asset ID Labels",

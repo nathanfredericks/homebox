@@ -30,8 +30,6 @@
     title: t("global.items"),
   });
 
-  const searchLocked = ref(false);
-  const queryParamsInitialized = ref(false);
   const initialSearch = ref(true);
 
   const api = useUserApi();
@@ -139,20 +137,6 @@
   }
 
   onMounted(async () => {
-    loading.value = true;
-    searchLocked.value = true;
-    await Promise.all([locationsStore.ensureLocationsFetched(), tagStore.ensureAllTagsFetched()]);
-    if (qLoc.value.length > 0) {
-      selectedLocations.value = locations.value.filter(l => qLoc.value.includes(l.id));
-    }
-
-    if (qTag.value.length > 0) {
-      selectedTags.value = tags.value.filter(l => qTag.value.includes(l.id));
-    }
-
-    queryParamsInitialized.value = true;
-    searchLocked.value = false;
-
     const qFields = routeQueryFields();
     if (qFields.length > 0) {
       fieldTuples.value = qFields.map(f => f.split("=") as [string, string]);
@@ -175,7 +159,6 @@
       search();
     }
 
-    loading.value = false;
     window.scroll({
       top: 0,
       left: 0,
@@ -194,6 +177,23 @@
 
   const selectedLocations = ref<EntitySummary[]>([]);
   const selectedTags = ref<TagSummary[]>([]);
+
+  // Filter options are part of the first paint: fetch them during SSR (pinia
+  // state serializes into the payload) and initialize the query-param filters
+  // before the search watchers register, so hydration shows the filters
+  // applied without a loading flash.
+  await useAsyncData("items-filter-options", async () => {
+    await Promise.all([locationsStore.ensureLocationsFetched(), tagStore.ensureAllTagsFetched()]);
+    return true;
+  });
+
+  if (qLoc.value.length > 0) {
+    selectedLocations.value = locations.value.filter(l => qLoc.value.includes(l.id));
+  }
+
+  if (qTag.value.length > 0) {
+    selectedTags.value = tags.value.filter(l => qTag.value.includes(l.id));
+  }
 
   const locIDs = computed(() => selectedLocations.value.map(l => l.id));
   const tagIDs = computed(() => selectedTags.value.map(l => l.id));
@@ -315,10 +315,6 @@
   }
 
   async function search() {
-    if (searchLocked.value) {
-      return;
-    }
-
     loading.value = true;
 
     const fields = [];

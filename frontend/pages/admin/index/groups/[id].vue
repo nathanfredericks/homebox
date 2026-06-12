@@ -21,50 +21,43 @@
 
   const groupId = computed(() => route.params.id as string);
 
-  const loading = ref(true);
   const saving = ref(false);
-  const isSuperAdmin = ref(false);
-  const form = reactive<{ name: string; description: string; permissions: RolePermissionInput[] }>({
-    name: "",
-    description: "",
-    permissions: [],
-  });
 
-  const collections = ref<{ id: string; name: string }[]>([]);
-
-  onMounted(async () => {
+  // Fetched during SSR so the editor renders without a loading state.
+  const { data: pageData } = await useAsyncData(`admin-group-${groupId.value}`, async () => {
     const [roleRes, collectionsRes] = await Promise.all([api.roles.get(groupId.value), api.group.getAll()]);
 
     if (roleRes.error) {
-      toast.error(t("errors.api_failure") + String(roleRes.error));
-      void navigateTo("/admin/groups");
-      return;
+      return null;
     }
 
-    // The Super Admin group is immutable; its editor does not exist.
-    if (roleRes.data.isSuperAdmin || !can("roles", "edit")) {
-      void navigateTo("/admin/groups");
-      return;
-    }
+    return {
+      role: roleRes.data,
+      collections: collectionsRes.error ? [] : (collectionsRes.data ?? []).map(g => ({ id: g.id!, name: g.name! })),
+    };
+  });
 
-    isSuperAdmin.value = roleRes.data.isSuperAdmin;
-    form.name = roleRes.data.name;
-    form.description = roleRes.data.description;
-    form.permissions = (roleRes.data.permissions ?? []).map(p => ({
+  // The Super Admin group is immutable; its editor does not exist. Unknown
+  // groups and users without the edit grant land back on the list.
+  if (!pageData.value || pageData.value.role.isSuperAdmin || !can("roles", "edit")) {
+    await navigateTo("/admin/groups", { replace: true });
+  }
+
+  const role = pageData.value?.role;
+  const form = reactive<{ name: string; description: string; permissions: RolePermissionInput[] }>({
+    name: role?.name ?? "",
+    description: role?.description ?? "",
+    permissions: (role?.permissions ?? []).map(p => ({
       section: p.section,
       collectionId: p.collectionId ?? null,
       canView: p.canView,
       canCreate: p.canCreate,
       canEdit: p.canEdit,
       canDelete: p.canDelete,
-    }));
-
-    collections.value = collectionsRes.error
-      ? []
-      : (collectionsRes.data ?? []).map(g => ({ id: g.id!, name: g.name! }));
-
-    loading.value = false;
+    })),
   });
+
+  const collections = computed(() => pageData.value?.collections ?? []);
 
   async function save() {
     if (saving.value) return;
@@ -92,11 +85,7 @@
 
 <template>
   <div class="space-y-4">
-    <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-      {{ $t("global.loading") }}
-    </div>
-
-    <template v-else>
+    <template v-if="pageData">
       <div class="flex items-center justify-between gap-2">
         <Button variant="outline" size="sm" @click="navigateTo('/admin/groups')">
           <MdiArrowLeft class="mr-1 size-4" />

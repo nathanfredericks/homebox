@@ -271,7 +271,6 @@
     },
     "global": {
         "add": "Afegeix",
-        "build": "Construcció: { build }",
         "confirm": "Confirma",
         "create": "Crea",
         "create_and_add": "Crea i afegeix-ne un altre",
@@ -296,7 +295,6 @@
         "submit": "Envia",
         "update": "Actualitza",
         "value": "Valor",
-        "version": "Versió {version}",
         "welcome": "Us donem la benvinguda, { username }"
     },
     "home": {
@@ -498,11 +496,11 @@
         "import_export_set": {
             "export": "Exporta inventari",
             "export_button": "Exporta inventari",
-            "export_sub": "Exporta el format CSV estàndard per a Homebox. S'exportaran tots els articles de l'inventari.",
+            "export_sub": "Exporta el format CSV estàndard per a {appName}. S'exportaran tots els articles de l'inventari.",
             "import": "Importa inventari",
             "import_button": "Importa inventari"
         },
-        "import_export_sub": "Importa i exporta l'inventari amb un fitxer CSV. És útil per a migracions d'inventari a una nova instància de Homebox.",
+        "import_export_sub": "Importa i exporta l'inventari amb un fitxer CSV. És útil per a migracions d'inventari a una nova instància de {appName}.",
         "reports": "Informes",
         "reports_set": {
             "asset_labels": "Etiquetes d'identificador de recurs",

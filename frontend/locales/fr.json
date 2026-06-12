@@ -389,7 +389,6 @@
     "global": {
         "add": "Ajouter",
         "archived": "Archivé",
-        "build": "Build : { build }",
         "cancel": "Annuler",
         "close": "Fermer",
         "confirm": "Confirmer",
@@ -405,10 +404,6 @@
         "edit": "Modifier",
         "email": "Courriel",
         "follow_dev": "Suivre le développeur",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "Projet GitHub",
         "insured": "Assuré",
         "items": "Articles",
@@ -437,7 +432,6 @@
         "update": "Mettre à jour",
         "updating": "Mise à jour en cours",
         "value": "Valeur",
-        "version": "Version : { version }",
         "welcome": "Bienvenue, { username }",
         "yes": "Oui"
     },
@@ -773,8 +767,8 @@
             "bordered_labels": "Étiquettes avec bords",
             "generate_page": "Générer page",
             "input_placeholder": "Tapez ici",
-            "instruction_1": "Le générateur d'étiquettes de HomeBox est un outil pour vous aider à imprimer des étiquettes pour votre inventaire. Ces étiquette générés d'avance\nvous permettre d'en imprimer plusieurs afin qu'elles soit prêtes à être utilisées pour identifier vos items",
-            "instruction_2": "Servent à imprimer un code QR contenant le lien URL et les identifiants des ressources sur une étiquette. Si vous avez désactivé\n les ID de ressource dans vos paramètres HomeBox, vous pouvez quand même utiliser cet outil, mais les ID de Ressource ne référenceront aucun article",
+            "instruction_1": "Le générateur d'étiquettes de {appName} est un outil pour vous aider à imprimer des étiquettes pour votre inventaire. Ces étiquette générés d'avance\nvous permettre d'en imprimer plusieurs afin qu'elles soit prêtes à être utilisées pour identifier vos items",
+            "instruction_2": "Servent à imprimer un code QR contenant le lien URL et les identifiants des ressources sur une étiquette. Si vous avez désactivé\n les ID de ressource dans vos paramètres {appName}, vous pouvez quand même utiliser cet outil, mais les ID de Ressource ne référenceront aucun article",
             "label_height": "Hauteur de l'étiquette",
             "label_width": "Largeur de l’étiquette",
             "measure_type": "Type de mesure",
@@ -864,13 +858,13 @@
         "import_export_set": {
             "export": "Exporter l'inventaire",
             "export_button": "Exporter l'inventaire",
-            "export_sub": "Exporte l'inventaire au format CSV Homebox. Cela exportera l'intégralité de votre inventaire.",
+            "export_sub": "Exporte l'inventaire au format CSV {appName}. Cela exportera l'intégralité de votre inventaire.",
             "import": "Importer l'inventaire",
             "import_button": "Importer l'inventaire",
             "import_ref_confirm": "Êtes-vous certain de vouloir vérifier que toutes les ressources ont un import_ref ? Cela peut prendre du temps et est irréversible.",
-            "import_sub": "Importer un fichier CSV au format Homebox. Sans la colonne '<code>'HB.import_ref'</code>' , cela '<b>'n'écrasera pas'</b>' d'éléments de votre inventaire actuel, seuls les nouveaux éléments seront importés. Les lignes contenant une colonne '<code>'HB.import_ref'</code>' seront fusionnées avec les éléments existants comportant le même import_ref, si existant."
+            "import_sub": "Importer un fichier CSV au format {appName}. Sans la colonne '<code>'HB.import_ref'</code>' , cela '<b>'n'écrasera pas'</b>' d'éléments de votre inventaire actuel, seuls les nouveaux éléments seront importés. Les lignes contenant une colonne '<code>'HB.import_ref'</code>' seront fusionnées avec les éléments existants comportant le même import_ref, si existant."
         },
-        "import_export_sub": "Importez et exportez votre inventaire vers et depuis un fichier CSV. Ceci est utile pour migrer votre inventaire vers une nouvelle instance de Homebox.",
+        "import_export_sub": "Importez et exportez votre inventaire vers et depuis un fichier CSV. Ceci est utile pour migrer votre inventaire vers une nouvelle instance de {appName}.",
         "reports": "Rapports",
         "reports_set": {
             "asset_labels": "Étiquettes d’ID de ressource",

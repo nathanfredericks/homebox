@@ -14,6 +14,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services"
 	"github.com/sysadminsmedia/homebox/backend/internal/core/services/reporting/eventbus"
+	"github.com/sysadminsmedia/homebox/backend/internal/core/services/settings"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/migrations"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
@@ -121,7 +122,14 @@ func generateResetLinkOffline(cfg *config.Config, email string) (string, error) 
 	repos := repo.New(c, bus, cfg.Storage, cfg.Database.PubSubConnString, repo.StaticThumbnail(cfg.Thumbnail))
 	svc := services.New(repos)
 
-	baseURL := strings.TrimSuffix(cfg.Options.Hostname, "/")
+	// The hostname is an admin setting stored in the database, not an
+	// environment variable; resolve it the same way the server does.
+	settingsSvc, err := settings.New(context.Background(), repo.NewSiteSettingsRepository(c), cfg, nil)
+	if err != nil {
+		return "", fmt.Errorf("resolve site settings: %w", err)
+	}
+
+	baseURL := strings.TrimSuffix(settingsSvc.Get().Options.Hostname, "/")
 	if baseURL != "" && !strings.HasPrefix(baseURL, "http://") && !strings.HasPrefix(baseURL, "https://") {
 		// Hostname without a scheme: assume https. The CLI has no request to
 		// inspect for r.TLS, and https is the safer default to print.

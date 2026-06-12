@@ -267,7 +267,6 @@
     "global": {
         "add": "追加",
         "archived": "アーカイブ済み",
-        "build": "ビルド番号: { build }",
         "cancel": "キャンセル",
         "confirm": "確認が必要です",
         "create": "項目の追加",
@@ -282,10 +281,6 @@
         "edit": "編集",
         "email": "メール",
         "follow_dev": "開発者をフォローする",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'APIリファレンス(英語)'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub プロジェクト",
         "insured": "保険適用",
         "items": "アイテム",
@@ -307,7 +302,6 @@
         "update": "アップデート",
         "updating": "更新中",
         "value": "値",
-        "version": "現在のバージョン: { version }",
         "welcome": "{ username } でログイン中"
     },
     "home": {
@@ -607,8 +601,8 @@
             "bordered_labels": "ラベルの境界線を印刷",
             "generate_page": "印刷プレビューを取得",
             "input_placeholder": "ここに入力",
-            "instruction_1": "Homebox ラベルジェネレーターは、Homeboxに登録されたアイテムの管理シールを印刷するツールです。\nシールはアイテムを登録する前に印刷できるため、事前に大量作成することが可能です！",
-            "instruction_2": "シールには、HomeboxのQRコードやAsset IDを印刷できます。\nAsset IDを無効にしている場合でもこのツールは使用できますが、Asset IDを利用してアイテムページを開く機能などは利用できません。",
+            "instruction_1": "{appName} ラベルジェネレーターは、{appName}に登録されたアイテムの管理シールを印刷するツールです。\nシールはアイテムを登録する前に印刷できるため、事前に大量作成することが可能です！",
+            "instruction_2": "シールには、{appName}のQRコードやAsset IDを印刷できます。\nAsset IDを無効にしている場合でもこのツールは使用できますが、Asset IDを利用してアイテムページを開く機能などは利用できません。",
             "label_height": "シール 高さ",
             "label_width": "シール 横幅",
             "measure_type": "メジャータイプ",
@@ -668,13 +662,13 @@
         "import_export_set": {
             "export": "エクスポート (出力)",
             "export_button": "エクスポートの実行",
-            "export_sub": "Homeboxで利用可能なCSV形式のファイルをエクスポートします。'<br>'すべてのアイテムが対象です。一部のアイテムを選択してエクスポートすることはできません。",
+            "export_sub": "{appName}で利用可能なCSV形式のファイルをエクスポートします。'<br>'すべてのアイテムが対象です。一部のアイテムを選択してエクスポートすることはできません。",
             "import": "インポート (CSVの取り込み)",
             "import_button": "CSVファイルを選択",
             "import_ref_confirm": "すべてのアイテムに import_ref の値があることを確認します。'<br>'件数によっては時間がかかる場合があり、元に戻すことはできません。",
-            "import_sub": "Homeboxで利用可能なCSVファイルをインポートします。\n'<code>'HB.import_ref'</code>'が存在しないアイテムに重複がある場合は上書きされません。\n'<code>'HB.import_ref'</code>'が存在するアイテムに重複がある場合は、同じ'<code>'HB.import_ref'</code>'を持つアイテムのデータが上書きされます。\nどちらも、重複していない場合は関係なく追加されます。"
+            "import_sub": "{appName}で利用可能なCSVファイルをインポートします。\n'<code>'HB.import_ref'</code>'が存在しないアイテムに重複がある場合は上書きされません。\n'<code>'HB.import_ref'</code>'が存在するアイテムに重複がある場合は、同じ'<code>'HB.import_ref'</code>'を持つアイテムのデータが上書きされます。\nどちらも、重複していない場合は関係なく追加されます。"
         },
-        "import_export_sub": "登録されたアイテムをCSVファイルにインポートおよびエクスポートします。Homeboxのソフトウェアを切り替える場合などに便利です。",
+        "import_export_sub": "登録されたアイテムをCSVファイルにインポートおよびエクスポートします。{appName}のソフトウェアを切り替える場合などに便利です。",
         "reports": "レポート",
         "reports_set": {
             "asset_labels": "管理ラベルの作成",

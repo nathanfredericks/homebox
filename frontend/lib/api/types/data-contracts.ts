@@ -37,12 +37,6 @@ export enum TimeDuration {
   Second14 = 1000000000,
   Minute15 = 60000000000,
   Hour16 = 3600000000000,
-  Nanosecond17 = 1,
-  Microsecond18 = 1000,
-  Millisecond19 = 1000000,
-  Second20 = 1000000000,
-  Minute21 = 60000000000,
-  Hour22 = 3600000000000,
 }
 
 export enum TemplatefieldType {
@@ -1598,11 +1592,6 @@ export interface ActionAmountResult {
 }
 
 export interface AdminSettingsOut {
-  /**
-   * Overridden marks sections whose values come from the database rather
-   * than environment variables / defaults.
-   */
-  overridden: Record<string, boolean>;
   settings: SettingsResolved;
 }
 

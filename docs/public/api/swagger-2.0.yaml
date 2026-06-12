@@ -2542,12 +2542,6 @@ definitions:
     - 1000000000
     - 60000000000
     - 3600000000000
-    - 1
-    - 1000
-    - 1000000
-    - 1000000000
-    - 60000000000
-    - 3600000000000
     format: int64
     type: integer
     x-enum-varnames:
@@ -2569,12 +2563,6 @@ definitions:
     - Hour
     - minDuration
     - maxDuration
-    - Nanosecond
-    - Microsecond
-    - Millisecond
-    - Second
-    - Minute
-    - Hour
     - Nanosecond
     - Microsecond
     - Millisecond
@@ -2622,13 +2610,6 @@ definitions:
     type: object
   v1.AdminSettingsOut:
     properties:
-      overridden:
-        additionalProperties:
-          type: boolean
-        description: |-
-          Overridden marks sections whose values come from the database rather
-          than environment variables / defaults.
-        type: object
       settings:
         $ref: '#/definitions/settings.Resolved'
     type: object
@@ -2897,7 +2878,7 @@ paths:
             $ref: '#/definitions/v1.AdminSettingsOut'
       security:
       - Bearer: []
-      summary: Reset one site settings section to environment/default values
+      summary: Reset one site settings section to default values
       tags:
       - Admin Settings
     put:

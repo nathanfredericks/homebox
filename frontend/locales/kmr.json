@@ -396,7 +396,6 @@
     "global": {
         "add": "Lê zêde bike",
         "archived": "Arşîvkirî",
-        "build": "Avakirin: { build }",
         "cancel": "Betal bike",
         "close": "Bigire",
         "confirm": "Piştrast bike",
@@ -412,10 +411,6 @@
         "edit": "Sererast bike",
         "email": "E-name",
         "follow_dev": "Pêşdebir bişopîne",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Guherto: { version } Avakirin: { build } '</a>'"
-        },
         "github": "Projeya GitHub",
         "insured": "Bîmeya wê heye",
         "items": "Tişt",
@@ -444,7 +439,6 @@
         "update": "Nû bike",
         "updating": "Tê nûkirin",
         "value": "Nirx",
-        "version": "Guherto: { version }",
         "welcome": "Bi xêr hatî, { username }",
         "yes": "Erê"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "Etîketên bi sînor",
             "generate_page": "Rûpelê biafirîne",
             "input_placeholder": "Li vir binivîse",
-            "instruction_1": "Çêkerê etîketên HomeBox amûrek e ku alîkariya te dike etîketên envantera HomeBox çap bikî. Ev ji bo etîketên pêşçapkirî ne, da ku tu gelek etîketan çap bikî û amade bikî ku li envantera xwe bisepînî",
-            "instruction_2": "Ji ber vê yekê, ev etîket bi çapkirina Koda QR ya URL û agahiyên AssetID li ser etîketê dixebitin. Heke te AssetID di mîhengên HomeBox de neçalak kiribe, tu hîn jî dikarî vê amûrê bikar bînî, lê AssetID dê tu tiştê nîşan nedin",
+            "instruction_1": "Çêkerê etîketên {appName} amûrek e ku alîkariya te dike etîketên envantera {appName} çap bikî. Ev ji bo etîketên pêşçapkirî ne, da ku tu gelek etîketan çap bikî û amade bikî ku li envantera xwe bisepînî",
+            "instruction_2": "Ji ber vê yekê, ev etîket bi çapkirina Koda QR ya URL û agahiyên AssetID li ser etîketê dixebitin. Heke te AssetID di mîhengên {appName} de neçalak kiribe, tu hîn jî dikarî vê amûrê bikar bînî, lê AssetID dê tu tiştê nîşan nedin",
             "label_height": "Bilindiya etîketê",
             "label_width": "Firehiya etîketê",
             "measure_type": "Cureya pîvanê",
@@ -943,13 +937,13 @@
         "import_export_set": {
             "export": "Envanterê export bike",
             "export_button": "Envanterê export bike",
-            "export_sub": "Formata CSV ya standard ji bo Homebox export dike. Ev dê hemû tiştên di envantera te de export bike.",
+            "export_sub": "Formata CSV ya standard ji bo {appName} export dike. Ev dê hemû tiştên di envantera te de export bike.",
             "import": "Envanterê import bike",
             "import_button": "Envanterê import bike",
             "import_ref_confirm": "Tu piştrastî dixwazî piştrast bikî ku hemû sermaye xwedî import_ref in? Ev dikare demekê bistîne û nayê vegerandin.",
-            "import_sub": "Formata CSV ya standard ji bo Homebox import dike. Bê stûna '<code>'HB.import_ref'</code>', ev '<b>'li ser'</b>' tiştên heyî yên di envantera te de nanivîse, tenê tiştên nû lê zêde dike. Rêzên bi stûna '<code>'HB.import_ref'</code>' bi tiştên heyî yên xwedî heman import_ref re têne yekgirtin, heke hebe."
+            "import_sub": "Formata CSV ya standard ji bo {appName} import dike. Bê stûna '<code>'HB.import_ref'</code>', ev '<b>'li ser'</b>' tiştên heyî yên di envantera te de nanivîse, tenê tiştên nû lê zêde dike. Rêzên bi stûna '<code>'HB.import_ref'</code>' bi tiştên heyî yên xwedî heman import_ref re têne yekgirtin, heke hebe."
         },
-        "import_export_sub": "Envantera xwe bo û ji pelê CSV import û export bike. Ev ji bo veguhestina envantera te bo nimûneyeke nû ya Homebox bikêr e.",
+        "import_export_sub": "Envantera xwe bo û ji pelê CSV import û export bike. Ev ji bo veguhestina envantera te bo nimûneyeke nû ya {appName} bikêr e.",
         "reports": "Rapor",
         "reports_set": {
             "asset_labels": "Etîketên ID-ya sermayeyê",

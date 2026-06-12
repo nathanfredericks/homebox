@@ -17,8 +17,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const defaultAppName = "Homebox"
-
 // MailerReady reports whether the SMTP mailer is configured and usable. The
 // HTTP forgot-password handler uses this to short-circuit with a clear error
 // when SMTP is missing, so the user sees something actionable instead of a
@@ -86,7 +84,7 @@ func (svc *UserService) processResetRequest(email, baseURL string) {
 	}
 	span.SetAttributes(attribute.String("user.id", usr.ID.String()))
 
-	appName := svc.getAppName(ctx)
+	appName := activeAppName(ctx, svc.repos)
 	link := buildResetLink(baseURL, rawToken)
 	if err := svc.sendResetEmail(usr, link, appName); err != nil {
 		recordServiceSpanError(span, err)
@@ -95,14 +93,6 @@ func (svc *UserService) processResetRequest(email, baseURL string) {
 		return
 	}
 	span.SetAttributes(attribute.String("reset.outcome", "sent"))
-}
-
-func (svc *UserService) getAppName(ctx context.Context) string {
-	_, theme, err := svc.repos.Themes.GetActiveTheme(ctx)
-	if err != nil || theme == nil || theme.Branding.AppName == "" {
-		return defaultAppName
-	}
-	return theme.Branding.AppName
 }
 
 // GenerateResetLink mints a token and returns the reset URL without sending

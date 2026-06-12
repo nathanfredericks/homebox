@@ -250,7 +250,7 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 		}
 
 		theming := ctrl.themingStatus(r.Context())
-		title := "Homebox"
+		title := defaultAppTitle
 		if theming.Branding != nil && theming.Branding.AppName != "" {
 			title = theming.Branding.AppName
 		}
@@ -302,6 +302,18 @@ func (ctrl *V1Controller) themingStatus(ctx context.Context) ThemingStatus {
 		status.Version = theme.UpdatedAt.Unix()
 	}
 	return status
+}
+
+const defaultAppTitle = "Homebox"
+
+// appName resolves the whitelabel app name from the active theme's branding,
+// falling back to the stock name when no branding is configured.
+func (ctrl *V1Controller) appName(ctx context.Context) string {
+	theming := ctrl.themingStatus(ctx)
+	if theming.Branding != nil && theming.Branding.AppName != "" {
+		return theming.Branding.AppName
+	}
+	return defaultAppTitle
 }
 
 // HandleCurrency godoc

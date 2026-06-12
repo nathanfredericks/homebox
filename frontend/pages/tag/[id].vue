@@ -123,8 +123,11 @@
     return getIconComponent(tag.value?.icon);
   });
 
-  onMounted(async () => {
+  // Breadcrumb ancestors come from the tag store; fetch during SSR (pinia
+  // state serializes into the payload) so they render with the page.
+  await useAsyncData("tags-all-store", async () => {
     await tagStore.ensureAllTagsFetched();
+    return true;
   });
 
   function getBreadcrumbPath() {

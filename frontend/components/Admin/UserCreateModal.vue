@@ -40,12 +40,15 @@
   import { useUserApi } from "~/composables/use-api";
   import type { RoleSummary } from "~~/lib/api/types/data-contracts";
 
+  // The role list is fetched (SSR) by the users page so it is already
+  // available when the dialog opens.
+  defineProps<{ roles: RoleSummary[] }>();
+
   const { t } = useI18n();
   const { activeDialog, closeDialog } = useDialog();
   const api = useUserApi();
 
   const loading = ref(false);
-  const roles = ref<RoleSummary[]>([]);
   const form = reactive<{ name: string; email: string; password: string; roleIds: string[] }>({
     name: "",
     email: "",
@@ -55,16 +58,13 @@
 
   watch(
     () => activeDialog.value,
-    async active => {
+    active => {
       if (active === DialogID.AdminUserCreate) {
         form.name = "";
         form.email = "";
         form.password = "";
         form.roleIds = [];
         loading.value = false;
-
-        const res = await api.roles.getAll();
-        roles.value = res.error ? [] : (res.data ?? []);
       }
     }
   );

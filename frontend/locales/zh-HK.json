@@ -35,7 +35,6 @@
         }
     },
     "global": {
-        "build": "建立{ build }",
         "confirm": "確認",
         "create": "新增",
         "create_and_add": "創建並添加另一個",
@@ -52,7 +51,6 @@
         "search": "搜尋",
         "sign_out": "登出",
         "submit": "提交",
-        "version": "版本:{ version }",
         "welcome": "歡迎，{ username }"
     },
     "index": {

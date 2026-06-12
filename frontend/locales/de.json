@@ -392,7 +392,6 @@
     "global": {
         "add": "Hinzufügen",
         "archived": "Archiviert",
-        "build": "Erstellt: { build }",
         "cancel": "Abbrechen",
         "close": "Schließen",
         "confirm": "Bestätigen",
@@ -408,10 +407,6 @@
         "edit": "Bearbeiten",
         "email": "E-Mail",
         "follow_dev": "Dem Entwickler folgen",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Erstellt: { build } '</a>'"
-        },
         "github": "GitHub-Projekt",
         "insured": "Versichert",
         "items": "Artikel",
@@ -440,7 +435,6 @@
         "update": "Aktualisieren",
         "updating": "Aktualisiere",
         "value": "Wert",
-        "version": "Version: { version }",
         "welcome": "Willkommen, { username }",
         "yes": "Ja"
     },
@@ -789,8 +783,8 @@
             "bordered_labels": "Etiketten mit Rand",
             "generate_page": "Seite erstellen",
             "input_placeholder": "Hier tippen",
-            "instruction_1": "Der Homebox-Etikettengenerator ist ein Tool, mit dem Sie Etiketten für Ihr Homebox-Inventar drucken können. Er dient dazu,\nEtiketten im Voraus zu drucken, sodass Sie viele Etiketten drucken und zum Anbringen bereithalten können",
-            "instruction_2": "Diese Etiketten funktionieren, indem Sie einen URL-QR-Code und Asset-ID-Informationen auf ein Etikett drucken. Falls Sie Asset-IDs\nin Ihren HomeBox-Einstellungen deaktiviert haben, können Sie dieses Tool weiterhin verwenden, aber die Asset-IDs verweisen nicht auf Artikel",
+            "instruction_1": "Der {appName}-Etikettengenerator ist ein Tool, mit dem Sie Etiketten für Ihr {appName}-Inventar drucken können. Er dient dazu,\nEtiketten im Voraus zu drucken, sodass Sie viele Etiketten drucken und zum Anbringen bereithalten können",
+            "instruction_2": "Diese Etiketten funktionieren, indem Sie einen URL-QR-Code und Asset-ID-Informationen auf ein Etikett drucken. Falls Sie Asset-IDs\nin Ihren {appName}-Einstellungen deaktiviert haben, können Sie dieses Tool weiterhin verwenden, aber die Asset-IDs verweisen nicht auf Artikel",
             "label_height": "Etikettenhöhe",
             "label_width": "Etikettenbreite",
             "measure_type": "Art der Messung",
@@ -891,13 +885,13 @@
         "import_export_set": {
             "export": "Gesamten Bestand exportieren",
             "export_button": "Gesamten Bestand exportieren",
-            "export_sub": "Exportiert das Standard-CSV-Format für Homebox. Diese Aktion exportiert alle Artikel in ihrem Inventar.",
+            "export_sub": "Exportiert das Standard-CSV-Format für {appName}. Diese Aktion exportiert alle Artikel in ihrem Inventar.",
             "import": "Inventar importieren",
             "import_button": "Inventar importieren",
             "import_ref_confirm": "Möchten Sie wirklich, dass alle Assets über eine Importreferenz verfügen? Dies kann eine Weile dauern und kann nicht rückgängig gemacht werden.",
-            "import_sub": "Importiert das Standard-CSV-Format für Homebox. Ohne eine '<code>'HB.import_ref'</code>' Spalte werden vorhandenen Artikel in Ihrem Bestand '<b>'nicht'</b>' überschrieben, sondern nur neue Artikel hinzugefügt. Zeilen mit einer '<code>'HB.import_ref'</code>' Spalte werden mit vorhandenen Artikeln mit der gleichen import_ref zusammengeführt, sofern vorhanden."
+            "import_sub": "Importiert das Standard-CSV-Format für {appName}. Ohne eine '<code>'HB.import_ref'</code>' Spalte werden vorhandenen Artikel in Ihrem Bestand '<b>'nicht'</b>' überschrieben, sondern nur neue Artikel hinzugefügt. Zeilen mit einer '<code>'HB.import_ref'</code>' Spalte werden mit vorhandenen Artikeln mit der gleichen import_ref zusammengeführt, sofern vorhanden."
         },
-        "import_export_sub": "Importieren und exportieren Sie Ihren Lagerbestand in und aus einer CSV-Datei. Dies ist nützlich zum migrieren ihres Inventars zu einer neuen Instanz von Homebox.",
+        "import_export_sub": "Importieren und exportieren Sie Ihren Lagerbestand in und aus einer CSV-Datei. Dies ist nützlich zum migrieren ihres Inventars zu einer neuen Instanz von {appName}.",
         "reports": "Berichte",
         "reports_set": {
             "asset_labels": "Asset-ID-Etiketten",

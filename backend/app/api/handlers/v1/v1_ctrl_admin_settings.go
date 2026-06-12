@@ -19,9 +19,6 @@ import (
 // keeps the stored value.
 type AdminSettingsOut struct {
 	Settings settings.Resolved `json:"settings"`
-	// Overridden marks sections whose values come from the database rather
-	// than environment variables / defaults.
-	Overridden map[string]bool `json:"overridden"`
 }
 
 func (ctrl *V1Controller) adminSettingsOut() (AdminSettingsOut, error) {
@@ -29,8 +26,7 @@ func (ctrl *V1Controller) adminSettingsOut() (AdminSettingsOut, error) {
 		return AdminSettingsOut{}, validate.NewRequestError(errors.New("site settings not available"), http.StatusNotFound)
 	}
 	return AdminSettingsOut{
-		Settings:   ctrl.settings.Get(),
-		Overridden: ctrl.settings.Overridden(),
+		Settings: ctrl.settings.Get(),
 	}, nil
 }
 
@@ -101,7 +97,7 @@ func (ctrl *V1Controller) HandleAdminSettingsUpdate() errchain.HandlerFunc {
 
 // HandleAdminSettingsReset godoc
 //
-//	@Summary	Reset one site settings section to environment/default values
+//	@Summary	Reset one site settings section to default values
 //	@Tags		Admin Settings
 //	@Produce	json
 //	@Param		section	path	string	true	"Section name"

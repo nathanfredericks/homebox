@@ -68,7 +68,8 @@ func (svc *BackgroundService) SendNotifiersToday(ctx context.Context) error {
 
 		bldr := strings.Builder{}
 
-		bldr.WriteString("Homebox Maintenance for (")
+		bldr.WriteString(activeAppName(ctx, svc.repos))
+		bldr.WriteString(" Maintenance for (")
 		bldr.WriteString(today.String())
 		bldr.WriteString("):\n")
 

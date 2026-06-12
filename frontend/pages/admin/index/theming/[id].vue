@@ -29,7 +29,6 @@
   const route = useRoute();
   const themeId = computed(() => route.params.id as string);
 
-  const loading = ref(true);
   const saving = ref(false);
   const theme = ref<ThemeOut | null>(null);
   const activePointer = ref<string>("");
@@ -66,21 +65,32 @@
     form.socialLinks = (data.branding?.socialLinks ?? []).map(link => ({ ...link }));
   }
 
-  async function load() {
-    loading.value = true;
-    try {
-      const [themeRes, activeRes] = await Promise.all([api.theming.get(themeId.value), api.theming.getActive()]);
-      if (themeRes.error || !themeRes.data) {
-        toast.error(t("errors.api_failure") + String(themeRes.error));
-        await navigateTo("/admin/theming");
-        return;
-      }
-      applyTheme(themeRes.data);
-      activePointer.value = activeRes.data?.active ?? "";
-    } finally {
-      loading.value = false;
+  // Fetched during SSR so the editor renders without a loading state. The
+  // theme/activePointer refs stay because saves and asset uploads update them
+  // in place.
+  const { data: themeData } = await useAsyncData(`admin-theme-${themeId.value}`, async () => {
+    const [themeRes, activeRes] = await Promise.all([api.theming.get(themeId.value), api.theming.getActive()]);
+    if (themeRes.error || !themeRes.data) {
+      return null;
     }
+    return { theme: themeRes.data, active: activeRes.data?.active ?? "" };
+  });
+
+  // Unknown theme: back to the list.
+  if (!themeData.value) {
+    await navigateTo("/admin/theming", { replace: true });
   }
+
+  watch(
+    themeData,
+    data => {
+      if (data) {
+        applyTheme(data.theme);
+        activePointer.value = data.active;
+      }
+    },
+    { immediate: true }
+  );
 
   const isActive = computed(() => activePointer.value === `custom:${themeId.value}`);
 
@@ -186,18 +196,10 @@
   function removeSocialLink(index: number) {
     form.socialLinks.splice(index, 1);
   }
-
-  onMounted(() => {
-    void load();
-  });
 </script>
 
 <template>
-  <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-    {{ $t("global.loading") }}
-  </div>
-
-  <div v-else class="space-y-4">
+  <div v-if="theme" class="space-y-4">
     <Button variant="ghost" size="sm" @click="navigateTo('/admin/theming')">
       <MdiArrowLeft class="mr-1 size-4" />
       {{ $t("admin.theming.back") }}

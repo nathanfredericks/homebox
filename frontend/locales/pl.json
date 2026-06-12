@@ -394,7 +394,6 @@
     "global": {
         "add": "Dodaj",
         "archived": "Zarchiwizowane",
-        "build": "Kompilacja: {build}",
         "cancel": "Anuluj",
         "close": "Zamknij",
         "confirm": "Potwierdź",
@@ -410,10 +409,6 @@
         "edit": "Edytuj",
         "email": "E-mail",
         "follow_dev": "Śledź dewelopera",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Wersja: { version } Build: { build } '</a>'"
-        },
         "github": "Projekt na GitHubie",
         "insured": "Ubezpieczony",
         "items": "Przedmioty",
@@ -442,7 +437,6 @@
         "update": "Aktualizuj",
         "updating": "Aktualizacja",
         "value": "Wartość",
-        "version": "Wersja:{version}",
         "welcome": "Witaj, {username}",
         "yes": "Tak"
     },
@@ -803,8 +797,8 @@
             "bordered_labels": "Etykiety obramowane",
             "generate_page": "Wygeneruj stronę",
             "input_placeholder": "Wpisz",
-            "instruction_1": "Generator etykiet HomeBox to narzędzie, które pomoże Ci drukować etykiety do twojej kolekcji. Są to etykiety do\n druku z wyprzedzeniem, dzięki czemu możesz wydrukować wiele etykiet i mieć je gotowe do użycia",
-            "instruction_2": "W związku z tym etykiety te działają poprzez drukowanie kodu QR URL i informacji o AssetID na etykiecie. \nJeśli wyłączyłeś/aś AssetID w ustawieniach HomeBox, nadal możesz korzystać z tego narzędzia, ale AssetID nie będzie odnosić się do żadnego elementu",
+            "instruction_1": "Generator etykiet {appName} to narzędzie, które pomoże Ci drukować etykiety do twojej kolekcji. Są to etykiety do\n druku z wyprzedzeniem, dzięki czemu możesz wydrukować wiele etykiet i mieć je gotowe do użycia",
+            "instruction_2": "W związku z tym etykiety te działają poprzez drukowanie kodu QR URL i informacji o AssetID na etykiecie. \nJeśli wyłączyłeś/aś AssetID w ustawieniach {appName}, nadal możesz korzystać z tego narzędzia, ale AssetID nie będzie odnosić się do żadnego elementu",
             "label_height": "Wysokość etykiety",
             "label_width": "Szerokość etykiety",
             "measure_type": "Typ miary",
@@ -894,13 +888,13 @@
         "import_export_set": {
             "export": "Eksportuj inwentarz",
             "export_button": "Eksportuj inwentarz",
-            "export_sub": "Eksportuje standardowy format CSV dla Homebox. Zostaną wyeksportowane wszystkie przedmioty z Twojego inwentarza.",
+            "export_sub": "Eksportuje standardowy format CSV dla {appName}. Zostaną wyeksportowane wszystkie przedmioty z Twojego inwentarza.",
             "import": "Importuj inwentarz",
             "import_button": "Importuj inwentarz",
             "import_ref_confirm": "Czy na pewno chcesz, aby wszystkie zasoby miały import_ref? Może to chwilę potrwać i nie można tego cofnąć.",
-            "import_sub": "Importuje standardowy format CSV dla Homebox. Jeśli plik nie zawiera kolumny '<code>'HB.import_ref'</code>', istniejące przedmioty w Twoim inwentarzu '<b>'nie'</b>' zostaną nadpisane – zostaną dodane jedynie nowe przedmioty. Wiersze z kolumną '<code>'HB.import_ref'</code>' są łączone z istniejącymi przedmiotami, które mają ten sam import_ref, jeśli taki istnieje."
+            "import_sub": "Importuje standardowy format CSV dla {appName}. Jeśli plik nie zawiera kolumny '<code>'HB.import_ref'</code>', istniejące przedmioty w Twoim inwentarzu '<b>'nie'</b>' zostaną nadpisane – zostaną dodane jedynie nowe przedmioty. Wiersze z kolumną '<code>'HB.import_ref'</code>' są łączone z istniejącymi przedmiotami, które mają ten sam import_ref, jeśli taki istnieje."
         },
-        "import_export_sub": "Importuj i eksportuj swój inwentarz z i do pliku CSV. Jest to przydatne podczas przenoszenia inwentarza do nowej instancji Homebox.",
+        "import_export_sub": "Importuj i eksportuj swój inwentarz z i do pliku CSV. Jest to przydatne podczas przenoszenia inwentarza do nowej instancji {appName}.",
         "reports": "Raporty",
         "reports_set": {
             "asset_labels": "Etykiety identyfikatora zasobu",

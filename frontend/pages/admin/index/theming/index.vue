@@ -27,25 +27,30 @@
   const confirm = useConfirm();
   const { can } = usePermissions();
 
-  const loading = ref(true);
   const customThemes = ref<ThemeOut[]>([]);
   const active = ref<string>("builtin:homebox");
   const deleting = ref<Record<string, boolean>>({});
 
-  async function load() {
-    loading.value = true;
-    try {
-      const [themesRes, activeRes] = await Promise.all([api.theming.getAll(), api.theming.getActive()]);
-      if (themesRes.error || activeRes.error) {
-        toast.error(t("errors.api_failure") + String(themesRes.error || activeRes.error));
-        return;
-      }
-      customThemes.value = themesRes.data ?? [];
-      active.value = activeRes.data?.active || "builtin:homebox";
-    } finally {
-      loading.value = false;
+  // Fetched during SSR so the picker and table render without a loading
+  // state. The local refs stay because activation mutates them optimistically.
+  const { data: themingData, refresh: load } = await useAsyncData("admin-theming", async () => {
+    const [themesRes, activeRes] = await Promise.all([api.theming.getAll(), api.theming.getActive()]);
+    if (themesRes.error || activeRes.error) {
+      return null;
     }
-  }
+    return { themes: themesRes.data ?? [], active: activeRes.data?.active || "builtin:homebox" };
+  });
+
+  watch(
+    themingData,
+    data => {
+      if (data) {
+        customThemes.value = [...data.themes];
+        active.value = data.active;
+      }
+    },
+    { immediate: true }
+  );
 
   const pickerEntries = computed<ThemePickerEntry[]>(() => [
     ...builtinThemes.map(spec => ({
@@ -134,10 +139,6 @@
       deleting.value = { ...deleting.value, [theme.id]: false };
     }
   }
-
-  onMounted(() => {
-    void load();
-  });
 </script>
 
 <template>
@@ -147,10 +148,7 @@
         <span>{{ $t("admin.theming.active_theme") }}</span>
         <template #description>{{ $t("admin.theming.active_theme_sub") }}</template>
       </BaseSectionHeader>
-      <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-        {{ $t("global.loading") }}
-      </div>
-      <ThemePicker v-else :model-value="active" :entries="pickerEntries" @update:model-value="activate" />
+      <ThemePicker :model-value="active" :entries="pickerEntries" @update:model-value="activate" />
     </div>
 
     <div class="space-y-4">
@@ -165,14 +163,11 @@
         </Button>
       </div>
 
-      <div
-        v-if="!loading && customThemes.length === 0"
-        class="rounded-md border bg-card p-4 text-sm text-muted-foreground"
-      >
+      <div v-if="customThemes.length === 0" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
         {{ $t("admin.theming.empty") }}
       </div>
 
-      <div v-else-if="!loading" class="scroll-bg overflow-x-auto rounded-md border bg-card">
+      <div v-else class="scroll-bg overflow-x-auto rounded-md border bg-card">
         <Table class="min-w-[560px]">
           <TableHeader>
             <TableRow>

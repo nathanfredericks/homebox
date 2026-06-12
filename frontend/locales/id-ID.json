@@ -159,7 +159,6 @@
     "global": {
         "add": "Tambah",
         "archived": "Diarsipkan",
-        "build": "Build: { build }",
         "cancel": "Batal",
         "confirm": "Konfirmasi",
         "create": "Buat",
@@ -174,10 +173,6 @@
         "edit": "Sunting",
         "email": "Email",
         "follow_dev": "Ikuti Pengembang",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Versi: { version } Build: { build } '</a>'"
-        },
         "github": "Proyek GitHub",
         "insured": "Diasuransikan",
         "items": "Barang",
@@ -199,7 +194,6 @@
         "update": "Perbaharui",
         "updating": "Memperbaharui",
         "value": "Nilai",
-        "version": "Versi:{ version }",
         "welcome": "Selamat datang, { username }"
     },
     "home": {
@@ -433,12 +427,12 @@
         "import_export_set": {
             "export": "Ekspor Inventaris",
             "export_button": "Ekspor Inventaris",
-            "export_sub": "Mengekspor semua item ke file CSV dengan format standar Homebox.",
+            "export_sub": "Mengekspor semua item ke file CSV dengan format standar {appName}.",
             "import": "Impor Inventaris",
             "import_button": "Impor Inventaris",
-            "import_sub": "Mengimpor CSV dengan format standar Homebox. Tanpa kolom '<code>HB.import_ref</code>', impor ini <b>tidak</b> akan menimpa item yang sudah ada di inventaris Anda, hanya menambahkan item baru. Baris dengan kolom '<code>HB.import_ref</code>' akan digabungkan ke item yang sudah ada dengan import_ref yang sama, jika ada."
+            "import_sub": "Mengimpor CSV dengan format standar {appName}. Tanpa kolom '<code>HB.import_ref</code>', impor ini <b>tidak</b> akan menimpa item yang sudah ada di inventaris Anda, hanya menambahkan item baru. Baris dengan kolom '<code>HB.import_ref</code>' akan digabungkan ke item yang sudah ada dengan import_ref yang sama, jika ada."
         },
-        "import_export_sub": "Impor dan ekspor inventaris Anda ke dan dari file CSV. Ini berguna untuk memigrasikan inventaris Anda ke instance Homebox yang baru.",
+        "import_export_sub": "Impor dan ekspor inventaris Anda ke dan dari file CSV. Ini berguna untuk memigrasikan inventaris Anda ke instance {appName} yang baru.",
         "reports": "Laporan",
         "reports_set": {
             "asset_labels": "Label ID Aset",

@@ -396,7 +396,6 @@
     "global": {
         "add": "Přidat",
         "archived": "Archivované",
-        "build": "Sestavení: { build }",
         "cancel": "Zrušit",
         "close": "Zavřít",
         "confirm": "Potvrdit",
@@ -412,10 +411,6 @@
         "edit": "Upravit",
         "email": "E-mail",
         "follow_dev": "Sledovat vývojáře",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\">' Verze: { version } Sestavení: { build }'</a>'"
-        },
         "github": "GitHub projekt",
         "insured": "Pojištěno",
         "items": "Položky",
@@ -444,7 +439,6 @@
         "update": "Aktualizovat",
         "updating": "Aktualizuji",
         "value": "Hodnota",
-        "version": "Verze: { version }",
         "welcome": "Vítejte, { username }",
         "yes": "Ano"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "Ohraničené etikety",
             "generate_page": "Vygenerovat stránku",
             "input_placeholder": "Zadejte zde",
-            "instruction_1": "Generátor etiket HomeBox je nástroj, který vám pomůže tisknout etikety pro váš inventář HomeBox. Tyto etiket jsou\nurčeny k předběžnému tisku, takže můžete vytisknout mnoho etiket a mít je připravené k použití",
-            "instruction_2": "Tyto etikety fungují tak, že na etiketu vytisknou QR kód adresy URL a ID majetku. Pokud jste zakázali ID majetku\n v nastavení HomeBoxu, můžete tento nástroj stále používat, ale ID majetku nebude odkazovat na žádnou položku",
+            "instruction_1": "Generátor etiket {appName} je nástroj, který vám pomůže tisknout etikety pro váš inventář {appName}. Tyto etiket jsou\nurčeny k předběžnému tisku, takže můžete vytisknout mnoho etiket a mít je připravené k použití",
+            "instruction_2": "Tyto etikety fungují tak, že na etiketu vytisknou QR kód adresy URL a ID majetku. Pokud jste zakázali ID majetku\n v nastavení {appName}u, můžete tento nástroj stále používat, ale ID majetku nebude odkazovat na žádnou položku",
             "label_height": "Výška etikety",
             "label_width": "Šířka etikety",
             "measure_type": "Typ měření",
@@ -923,13 +917,13 @@
         "import_export_set": {
             "export": "Exportovat inventář",
             "export_button": "Exportovat inventář",
-            "export_sub": "Exportuje standardní formát CSV pro Homebox. Tím se vyexportují všechny položky v inventáři.",
+            "export_sub": "Exportuje standardní formát CSV pro {appName}. Tím se vyexportují všechny položky v inventáři.",
             "import": "Importovat inventář",
             "import_button": "Importovat inventář",
             "import_ref_confirm": "Opravdu chcete zajistit, aby všechen majetek měl import_ref? To může chvíli trvat a nelze to vrátit zpět.",
-            "import_sub": "Importuje standardní formát CSV pro Homebox. Bez sloupce '<code>'HB.import_ref'</code>' '<b>'nepřepisuje'</b>' žádné existující položky v inventáři, pouze přidává nové položky. Řádky se sloupcem '<code>'HB.import_ref'</code>' se sloučí do existujících položek se stejným import_ref, pokud nějaká existuje."
+            "import_sub": "Importuje standardní formát CSV pro {appName}. Bez sloupce '<code>'HB.import_ref'</code>' '<b>'nepřepisuje'</b>' žádné existující položky v inventáři, pouze přidává nové položky. Řádky se sloupcem '<code>'HB.import_ref'</code>' se sloučí do existujících položek se stejným import_ref, pokud nějaká existuje."
         },
-        "import_export_sub": "Import a export inventáře do a ze souboru CSV. To je užitečné při migraci inventáře do nové instance Homeboxu.",
+        "import_export_sub": "Import a export inventáře do a ze souboru CSV. To je užitečné při migraci inventáře do nové instance {appName}u.",
         "reports": "Zprávy",
         "reports_set": {
             "asset_labels": "Etikety ID majetku",

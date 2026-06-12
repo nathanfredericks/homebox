@@ -26,24 +26,14 @@
   const { can } = usePermissions();
   const { openDialog } = useDialog();
 
-  const loading = ref(true);
-  const groups = ref<RoleOut[]>([]);
   const deleting = ref<Record<string, boolean>>({});
 
-  const loadGroups = async () => {
-    loading.value = true;
-    try {
-      const res = await api.roles.getAll();
-      if (res.error) {
-        toast.error(t("errors.api_failure") + String(res.error));
-        groups.value = [];
-      } else {
-        groups.value = res.data ?? [];
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
+  // Fetched during SSR so the table renders without a loading state.
+  const { data: groupsData, refresh: refreshGroups } = await useAsyncData("admin-groups", async () => {
+    const res = await api.roles.getAll();
+    return res.error ? [] : (res.data ?? []);
+  });
+  const groups = computed<RoleOut[]>(() => groupsData.value ?? []);
 
   const handleCreate = () => {
     openDialog(DialogID.AdminGroupCreate, {
@@ -63,17 +53,13 @@
       if (res.error) {
         toast.error(t("errors.api_failure") + String(res.error));
       } else {
-        groups.value = groups.value.filter(g => g.id !== group.id);
         toast.success(t("admin.groups.deleted"));
+        await refreshGroups();
       }
     } finally {
       deleting.value = { ...deleting.value, [group.id]: false };
     }
   };
-
-  onMounted(() => {
-    void loadGroups();
-  });
 </script>
 
 <template>
@@ -85,11 +71,7 @@
       </Button>
     </div>
 
-    <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-      {{ $t("global.loading") }}
-    </div>
-
-    <div v-else class="scroll-bg overflow-x-auto rounded-md border bg-card">
+    <div class="scroll-bg overflow-x-auto rounded-md border bg-card">
       <Table class="min-w-[560px]">
         <TableHeader>
           <TableRow>

@@ -394,7 +394,6 @@
     "global": {
         "add": "Tilføj",
         "archived": "Arkiveret",
-        "build": "Build: { build }",
         "cancel": "Ophæv",
         "confirm": "Bekræft",
         "create": "Opret",
@@ -409,10 +408,6 @@
         "edit": "Rediger",
         "email": "Email",
         "follow_dev": "Følg udvikleren",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub projekt",
         "insured": "Forsikret",
         "items": "Genstande",
@@ -441,7 +436,6 @@
         "update": "Opdater",
         "updating": "Opdaterer",
         "value": "Værdi",
-        "version": "Version: { version }",
         "welcome": "Velkommen, { username }",
         "yes": "Ja"
     },
@@ -777,8 +771,8 @@
             "bordered_labels": "Etiketter med kant",
             "generate_page": "Generer side",
             "input_placeholder": "Skriv her",
-            "instruction_1": "HomeBox Label Generator er et værktøj, der hjælper dig med at udskrive etiketter til dit HomeBox-lager. Disse er beregnet til\n at være etiketter, der kan udskrives på forhånd, så du kan udskrive mange etiketter og have dem klar til påsætning",
-            "instruction_2": "Disse etiketter fungerer derfor ved at udskrive en URL, QR-kode og AssetID-oplysninger på en etiket. Hvis du har deaktiveret\n AssetID'er i dine HomeBox-indstillinger, kan du stadig bruge dette værktøj, men AssetID'erne vil ikke referere til nogen genstande",
+            "instruction_1": "{appName} Label Generator er et værktøj, der hjælper dig med at udskrive etiketter til dit {appName}-lager. Disse er beregnet til\n at være etiketter, der kan udskrives på forhånd, så du kan udskrive mange etiketter og have dem klar til påsætning",
+            "instruction_2": "Disse etiketter fungerer derfor ved at udskrive en URL, QR-kode og AssetID-oplysninger på en etiket. Hvis du har deaktiveret\n AssetID'er i dine {appName}-indstillinger, kan du stadig bruge dette værktøj, men AssetID'erne vil ikke referere til nogen genstande",
             "label_height": "Etikethøjde",
             "label_width": "Etiketbredde",
             "measure_type": "Målingstype",
@@ -882,13 +876,13 @@
         "import_export_set": {
             "export": "Eksporter inventar",
             "export_button": "Eksporter inventar",
-            "export_sub": "Eksporterer standard CSV-formatet til HomeBox. Dette vil eksportere alle genstande i dit lager.",
+            "export_sub": "Eksporterer standard CSV-formatet til {appName}. Dette vil eksportere alle genstande i dit lager.",
             "import": "Importeret beholdning",
             "import_button": "Importer beholdning",
             "import_ref_confirm": "Er du sikker på, at du vil sikre dig, at alle aktiver har en import_ref? Dette kan tage et stykke tid og kan ikke fortrydes.",
-            "import_sub": "Importerer standard CSV-formatet til HomeBox. Uden en '<code>'HB.import_ref'</code>'-kolonne vil dette '<b>'ikke'</b>' overskrive eksisterende genstande i dit lager, kun tilføje nye genstande. Rækker med kolonnen \"<code>HB.import_ref\"</code> flettes ind i eksisterende elementer med samme import_ref, hvis der findes en."
+            "import_sub": "Importerer standard CSV-formatet til {appName}. Uden en '<code>'HB.import_ref'</code>'-kolonne vil dette '<b>'ikke'</b>' overskrive eksisterende genstande i dit lager, kun tilføje nye genstande. Rækker med kolonnen \"<code>HB.import_ref\"</code> flettes ind i eksisterende elementer med samme import_ref, hvis der findes en."
         },
-        "import_export_sub": "Importér og eksporter din lagerbeholdning til og fra en CSV-fil. Dette er nyttigt til at migrere dit lager til en ny forekomst af HomeBox.",
+        "import_export_sub": "Importér og eksporter din lagerbeholdning til og fra en CSV-fil. Dette er nyttigt til at migrere dit lager til en ny forekomst af {appName}.",
         "reports": "Rapporter",
         "reports_set": {
             "asset_labels": "Etiketter for aktiv-id",

@@ -33,8 +33,6 @@ type MutationEvent struct {
 
 type state struct {
 	resolved Resolved
-	// overridden marks sections that currently have a database row.
-	overridden map[string]bool
 }
 
 // Service layers database overrides over the startup configuration and hands
@@ -52,19 +50,35 @@ type Service struct {
 
 // New builds the service and eagerly resolves the current state so a broken
 // database surfaces at startup rather than on first read.
+//
+// The base is built from compiled defaults, not the environment: these
+// sections are managed exclusively through the admin settings UI, so HBOX_*
+// variables have no effect on them. The only exceptions are the env-only
+// Options fields (currency config, analytics, trust proxy), which are
+// startup/security decisions and keep their environment values.
 func New(ctx context.Context, r *repo.SiteSettingsRepository, cfg *config.Config, bus *eventbus.EventBus) (*Service, error) {
+	defaults, err := config.Defaults()
+	if err != nil {
+		return nil, fmt.Errorf("settings: building default config: %w", err)
+	}
+
+	base := Resolved{
+		Options:    defaults.Options,
+		Thumbnail:  defaults.Thumbnail,
+		Barcode:    defaults.Barcode,
+		Mailer:     defaults.Mailer,
+		LabelMaker: defaults.LabelMaker,
+		Notifier:   defaults.Notifier,
+		Algolia:    defaults.Algolia,
+	}
+	base.Options.CurrencyConfig = cfg.Options.CurrencyConfig
+	base.Options.AllowAnalytics = cfg.Options.AllowAnalytics
+	base.Options.TrustProxy = cfg.Options.TrustProxy
+
 	s := &Service{
 		repo: r,
 		bus:  bus,
-		base: Resolved{
-			Options:    cfg.Options,
-			Thumbnail:  cfg.Thumbnail,
-			Barcode:    cfg.Barcode,
-			Mailer:     cfg.Mailer,
-			LabelMaker: cfg.LabelMaker,
-			Notifier:   cfg.Notifier,
-			Algolia:    cfg.Algolia,
-		},
+		base: base,
 	}
 
 	s.mu.Lock()
@@ -78,16 +92,6 @@ func New(ctx context.Context, r *repo.SiteSettingsRepository, cfg *config.Config
 // Get returns the effective configuration snapshot.
 func (s *Service) Get() Resolved {
 	return s.cache.Load().resolved
-}
-
-// Overridden reports which sections currently have a database override.
-func (s *Service) Overridden() map[string]bool {
-	cur := s.cache.Load().overridden
-	out := make(map[string]bool, len(cur))
-	for k, v := range cur {
-		out[k] = v
-	}
-	return out
 }
 
 // OnChange registers a listener invoked (synchronously, in registration
@@ -239,8 +243,7 @@ func (s *Service) rebuildLocked(ctx context.Context) error {
 	}
 
 	next := state{
-		resolved:   s.base,
-		overridden: make(map[string]bool, len(rows)),
+		resolved: s.base,
 	}
 	for _, name := range SectionNames {
 		raw, ok := rows[name]
@@ -248,12 +251,11 @@ func (s *Service) rebuildLocked(ctx context.Context) error {
 			continue
 		}
 		// A row is a sparse override: unmarshal only touches present keys, so
-		// everything else keeps its environment/default value. Rows that fail
-		// to decode are skipped rather than taking the whole service down.
+		// everything else keeps its default value. Rows that fail to decode
+		// are skipped rather than taking the whole service down.
 		if err := json.Unmarshal(raw, sectionPtr(&next.resolved, name)); err != nil {
 			return fmt.Errorf("settings: decoding section %q: %w", name, err)
 		}
-		next.overridden[name] = true
 	}
 
 	s.cache.Store(&next)

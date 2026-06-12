@@ -239,6 +239,19 @@ func New(buildstr string, description string) (*Config, error) {
 	return &cfg, nil
 }
 
+// Defaults returns a Config populated only from the struct `conf` default
+// tags: the parse uses a prefix that matches no environment variables, so
+// HBOX_* values are ignored. The admin settings service uses this as the base
+// for its runtime-changeable sections, making the database the only override;
+// bootstrap configuration keeps reading the environment via New.
+func Defaults() (*Config, error) {
+	var cfg Config
+	if _, err := conf.Parse("HBOXDEFAULTSONLY", &cfg); err != nil {
+		return nil, fmt.Errorf("parsing default config: %w", err)
+	}
+	return &cfg, nil
+}
+
 // Print prints the configuration to stdout as an indented JSON document.
 // Sensitive fields (secrets, tokens, passwords, embedded URL credentials) are
 // redacted via each sub-struct's MarshalJSON. Useful for debugging operator

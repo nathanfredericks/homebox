@@ -396,7 +396,6 @@
     "global": {
         "add": "添加",
         "archived": "归档",
-        "build": "编译：{build}",
         "cancel": "取消",
         "close": "关闭",
         "confirm": "确认",
@@ -412,10 +411,6 @@
         "edit": "修改",
         "email": "邮箱",
         "follow_dev": "关注开发者",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API接口'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' 版本号: { version } 构建号: { build } '</a>'"
-        },
         "github": "Github项目",
         "insured": "已投保",
         "items": "物品",
@@ -444,7 +439,6 @@
         "update": "更新",
         "updating": "更新中",
         "value": "值",
-        "version": "版本：{version}",
         "welcome": "欢迎，{username}",
         "yes": "是"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "标签边框",
             "generate_page": "生成标签页",
             "input_placeholder": "在此输入",
-            "instruction_1": "HomeBox 标签生成器是一个帮助您打印 Homebox 库存标签的工具。这些标签是\n预打印的设计，这样您就可以一次性打印出多张标签，并可以随时将它们粘贴到物品上",
-            "instruction_2": "因此，这些标签会打印一个 URL 的二维码以及资产ID信息来完成工作。\n如果您在 HomeBox 设置中禁用了资产ID，您仍然可以使用此工具，但资产编号将不会和任何物品相关",
+            "instruction_1": "{appName} 标签生成器是一个帮助您打印 {appName} 库存标签的工具。这些标签是\n预打印的设计，这样您就可以一次性打印出多张标签，并可以随时将它们粘贴到物品上",
+            "instruction_2": "因此，这些标签会打印一个 URL 的二维码以及资产ID信息来完成工作。\n如果您在 {appName} 设置中禁用了资产ID，您仍然可以使用此工具，但资产编号将不会和任何物品相关",
             "label_height": "标签高度",
             "label_width": "标签宽度",
             "measure_type": "长度单位",
@@ -943,13 +937,13 @@
         "import_export_set": {
             "export": "导出库存",
             "export_button": "导出清单",
-            "export_sub": "按标准CSV格式导出Homebox。这将导出库存中的所有物品。",
+            "export_sub": "按标准CSV格式导出{appName}。这将导出库存中的所有物品。",
             "import": "导入库存",
             "import_button": "导入库存",
             "import_ref_confirm": "确定要确保所有资产都有 import_ref 吗？这可能需要一段时间，且无法撤销。",
-            "import_sub": "Homebox只能导入标准的CSV格式文件。当 '<code>'HB.import_ref'</code>' 列不存在时，导入将 '<b>'不会'</b>' 覆盖库存中的任何现有物品，而是作为新物品添加。若现有物品的 import_ref 与文件中某行的 '<code>'HB.import_ref'</code>' 相同，则会将新旧数据进行合并。"
+            "import_sub": "{appName}只能导入标准的CSV格式文件。当 '<code>'HB.import_ref'</code>' 列不存在时，导入将 '<b>'不会'</b>' 覆盖库存中的任何现有物品，而是作为新物品添加。若现有物品的 import_ref 与文件中某行的 '<code>'HB.import_ref'</code>' 相同，则会将新旧数据进行合并。"
         },
-        "import_export_sub": "按CSV格式导入和导出您的库存。在将库存迁移到Homebox的新实例时非常有用。",
+        "import_export_sub": "按CSV格式导入和导出您的库存。在将库存迁移到{appName}的新实例时非常有用。",
         "reports": "报告",
         "reports_set": {
             "asset_labels": "资产ID标签",

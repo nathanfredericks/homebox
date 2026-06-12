@@ -117,7 +117,7 @@ func (ctrl *V1Controller) HandlerNotifierTest() errchain.HandlerFunc {
 			return nil, validate.NewRequestError(err, http.StatusBadRequest)
 		}
 
-		err := shoutrrr.Send(q.URL, "Test message from Homebox")
+		err := shoutrrr.Send(q.URL, "Test message from "+ctrl.appName(r.Context()))
 		return nil, err
 	}
 

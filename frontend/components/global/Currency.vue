@@ -1,17 +1,9 @@
 <template>
-  <Suspense>
-    <template #default>
-      {{ formattedValue }}
-    </template>
-    <template #fallback> {{ $t("global.loading") }} </template>
-  </Suspense>
+  {{ formattedValue }}
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from "vue";
-  import { useI18n } from "vue-i18n";
-
-  const { t } = useI18n();
+  import { computed } from "vue";
 
   type Props = {
     amount: string | number;
@@ -19,25 +11,16 @@
 
   const props = defineProps<Props>();
 
-  type AsyncReturnType<T extends (...args: unknown[]) => unknown> = Awaited<ReturnType<T>>;
-
-  const fmt = ref<AsyncReturnType<typeof useFormatCurrency> | null>(null);
-
-  const loadFormatter = async () => {
-    fmt.value = await useFormatCurrency();
-  };
-
-  loadFormatter();
+  // Awaited in setup so the formatted value is server-rendered: the currency
+  // code lands in a useState cache that serializes into the SSR payload, so
+  // hydration reuses it without refetching.
+  const fmt = await useFormatCurrency();
 
   const formattedValue = computed(() => {
-    if (!fmt.value) {
-      return t("global.loading");
-    }
-
     if (!props.amount || props.amount === "0") {
-      return fmt.value(0);
+      return fmt(0);
     }
 
-    return fmt.value(props.amount);
+    return fmt(props.amount);
   });
 </script>

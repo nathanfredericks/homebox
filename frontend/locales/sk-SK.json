@@ -396,7 +396,6 @@
     "global": {
         "add": "Pridať",
         "archived": "Archivované",
-        "build": "Zostava: { build }",
         "cancel": "Zrušiť",
         "close": "Zavrieť",
         "confirm": "Potvrďte",
@@ -412,10 +411,6 @@
         "edit": "Upraviť",
         "email": "Email",
         "follow_dev": "Sledujte vývojára",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Verzia: { version } Zostavenie: { build } '</a>'"
-        },
         "github": "Projekt GitHub",
         "insured": "Poistené",
         "items": "Položky",
@@ -444,7 +439,6 @@
         "update": "Aktualizovať",
         "updating": "Aktualizujem",
         "value": "Hodnota",
-        "version": "Verzia: { version }",
         "welcome": "Vitajte, { username }",
         "yes": "Áno"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "Ohraničené štítky",
             "generate_page": "Generovať stranu",
             "input_placeholder": "Píšte sem",
-            "instruction_1": "Generátor štítkov HomeBox je nástroj, ktorý vám pomôže vytlačiť štítky pre váš inventár HomeBoxu. Tieto štítky sú určené na\npredbežnú tlač, takže ich môžete vytlačiť viacero vopred a mať ich pripravené na neskoršie použitie.",
-            "instruction_2": "Tieto štítky fungujú tak, že sa na štítok vytlačí QR kód URL adresy a informácia AssetID. Ak ste v nastaveniach HomeBoxu\n AssetID zakázali, môžete tento nástroj i naďalej používať, ale AssetIT nebude odkazovať na žiadnu položku",
+            "instruction_1": "Generátor štítkov {appName} je nástroj, ktorý vám pomôže vytlačiť štítky pre váš inventár {appName}u. Tieto štítky sú určené na\npredbežnú tlač, takže ich môžete vytlačiť viacero vopred a mať ich pripravené na neskoršie použitie.",
+            "instruction_2": "Tieto štítky fungujú tak, že sa na štítok vytlačí QR kód URL adresy a informácia AssetID. Ak ste v nastaveniach {appName}u\n AssetID zakázali, môžete tento nástroj i naďalej používať, ale AssetIT nebude odkazovať na žiadnu položku",
             "label_height": "Výška štítka",
             "label_width": "Šírka štítku",
             "measure_type": "Typ merania",
@@ -938,13 +932,13 @@
         "import_export_set": {
             "export": "Exportovať inventár",
             "export_button": "Exportovať inventár",
-            "export_sub": "Exportuje štandardný formát CSV pre Homebox. Týmto sa exportujú všetky položky vo vašom inventári.",
+            "export_sub": "Exportuje štandardný formát CSV pre {appName}. Týmto sa exportujú všetky položky vo vašom inventári.",
             "import": "Importovať inventár",
             "import_button": "Importovať inventár",
             "import_ref_confirm": "Naozaj chcete, aby všetky aktíva mali import_ref? To môže chvíľu trvať a akciu nie je možné odvolať.",
-            "import_sub": "Importuje štandardný formát CSV pre Homebox. Bez stĺpca '<code>'HB.import_ref'</code>' '<b>'neprepíše'</b>' žiadne existujúce položky vo vašom inventári, iba pridá nové položky. Riadky so stĺpcom '<code>'HB.import_ref'</code>' sa zlúčia do existujúcich položiek s rovnakým import_ref, ak taká existuje."
+            "import_sub": "Importuje štandardný formát CSV pre {appName}. Bez stĺpca '<code>'HB.import_ref'</code>' '<b>'neprepíše'</b>' žiadne existujúce položky vo vašom inventári, iba pridá nové položky. Riadky so stĺpcom '<code>'HB.import_ref'</code>' sa zlúčia do existujúcich položiek s rovnakým import_ref, ak taká existuje."
         },
-        "import_export_sub": "Importujte a exportujte svoj inventár do a zo súboru CSV. To je užitočné pri migrácii inventára do novej inštancie Homeboxu.",
+        "import_export_sub": "Importujte a exportujte svoj inventár do a zo súboru CSV. To je užitočné pri migrácii inventára do novej inštancie {appName}u.",
         "reports": "Správy",
         "reports_set": {
             "asset_labels": "Identifikačné štítky položiek",

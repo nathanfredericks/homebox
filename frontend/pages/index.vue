@@ -287,7 +287,7 @@
                 <CardHeader>
                   <CardTitle class="flex items-center gap-2">
                     <MdiAccount class="mr-1 size-7" />
-                    {{ $t("setup.title") }}
+                    {{ $t("setup.title", { appName: branding.appName.value }) }}
                   </CardTitle>
                   <p class="text-sm text-muted-foreground">{{ $t("setup.subtitle") }}</p>
                 </CardHeader>
@@ -418,12 +418,6 @@
         </div>
       </div>
     </div>
-    <footer v-if="status" class="bottom-0 mt-auto w-full pb-4 text-center">
-      <p class="text-center text-sm">
-        {{ $t("global.version", { version: status.build.version }) }} ~
-        {{ $t("global.build", { build: status.build.commit }) }}
-      </p>
-    </footer>
   </div>
 </template>
 

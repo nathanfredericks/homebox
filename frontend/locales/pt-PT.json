@@ -256,7 +256,6 @@
     "global": {
         "add": "Adicionar",
         "archived": "Arquivado",
-        "build": "Compilação: { build }",
         "cancel": "Cancelar",
         "confirm": "Confirmar",
         "create": "Criar",
@@ -271,10 +270,6 @@
         "edit": "Editar",
         "email": "Email",
         "follow_dev": "Siga o Desenvolvedor",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Versão: { version } Compilação: { build } '</a>'"
-        },
         "github": "Projeto GitHub",
         "insured": "Com seguro",
         "items": "Itens",
@@ -297,7 +292,6 @@
         "update": "Atualizar",
         "updating": "A Atualizar",
         "value": "Valor",
-        "version": "Versão: { version }",
         "welcome": "Bem-vindo, { username }"
     },
     "home": {
@@ -601,8 +595,8 @@
             "bordered_labels": "Etiquetas com Contorno",
             "generate_page": "Gerar Página",
             "input_placeholder": "Escreva aqui",
-            "instruction_1": "O Gerador de Etiquetas Homebox é uma ferramenta para ajudar a imprimir etiquetas para o seu inventário Homebox.\n Estas etiquetas são preparadas antecipadamente para poder imprimi-las em quantidade e aplicá-las depois",
-            "instruction_2": "Assim, estas etiquetas funcionam imprimindo um código QR com o URL e informação do AssetID na etiqueta. \n Se desativou os AssetIDs nas definições do Homebox, ainda pode usar esta ferramenta, mas os AssetIDs não irão referenciar nenhum item",
+            "instruction_1": "O Gerador de Etiquetas {appName} é uma ferramenta para ajudar a imprimir etiquetas para o seu inventário {appName}.\n Estas etiquetas são preparadas antecipadamente para poder imprimi-las em quantidade e aplicá-las depois",
+            "instruction_2": "Assim, estas etiquetas funcionam imprimindo um código QR com o URL e informação do AssetID na etiqueta. \n Se desativou os AssetIDs nas definições do {appName}, ainda pode usar esta ferramenta, mas os AssetIDs não irão referenciar nenhum item",
             "label_height": "Altura da Etiqueta",
             "label_width": "Largura da Etiqueta",
             "measure_type": "Tipo de Medida",
@@ -662,13 +656,13 @@
         "import_export_set": {
             "export": "Exportar Inventário",
             "export_button": "Exportar Inventário",
-            "export_sub": "Exporta o formato CSV padrão para o Homebox. Isto vai exportar todos os items do inventário.",
+            "export_sub": "Exporta o formato CSV padrão para o {appName}. Isto vai exportar todos os items do inventário.",
             "import": "Importar Inventário",
             "import_button": "Importar Inventário",
             "import_ref_confirm": "Tem a certeza de que deseja garantir que todos os ativos têm um import_ref? Isto pode demorar e não pode ser desfeito.",
-            "import_sub": "Importa o formato standard do CSV para o Homebox. Sem uma coluna '<code>'HB.import_ref'</code>' , isto '<b>'não '</b>' vai escrever por cima de items existentes no inventário, apenas adiciona novos. As linhas com uma coluna '<code>'HB.import_ref'</code>' vão ser fundidas com os items que tenham o mesmo import_ref, se existirem."
+            "import_sub": "Importa o formato standard do CSV para o {appName}. Sem uma coluna '<code>'HB.import_ref'</code>' , isto '<b>'não '</b>' vai escrever por cima de items existentes no inventário, apenas adiciona novos. As linhas com uma coluna '<code>'HB.import_ref'</code>' vão ser fundidas com os items que tenham o mesmo import_ref, se existirem."
         },
-        "import_export_sub": "Importar e exportar o seu inventário de/para um ficheiro CSV. Útil para migração entre instâncias do Homebox.",
+        "import_export_sub": "Importar e exportar o seu inventário de/para um ficheiro CSV. Útil para migração entre instâncias do {appName}.",
         "reports": "Relatórios",
         "reports_set": {
             "asset_labels": "Etiquetas de ID do Ativo",

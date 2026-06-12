@@ -393,7 +393,6 @@
     "global": {
         "add": "新增",
         "archived": "封存",
-        "build": "組建：{ build }",
         "cancel": "取消",
         "confirm": "確認",
         "create": "新增",
@@ -408,10 +407,6 @@
         "edit": "編輯",
         "email": "電子郵件",
         "follow_dev": "追蹤開發人員",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API接口'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' 版本: { version } 組建: { build } '</a>'"
-        },
         "github": "GitHub專案",
         "insured": "已投保",
         "items": "物品",
@@ -436,7 +431,6 @@
         "update": "更新",
         "updating": "更新中",
         "value": "值",
-        "version": "版本:{ version }",
         "welcome": "您好，{ username }",
         "yes": "是"
     },
@@ -773,8 +767,8 @@
             "bordered_labels": "外框線",
             "generate_page": "印刷預覽",
             "input_placeholder": "在此輸入",
-            "instruction_1": "HomeBox標籤產生器可協助您為HomeBox物品列印標籤。\n且可以次性列印多個物品標籤，並直接貼於您的物品上",
-            "instruction_2": "標籤產生器將於標籤上列印網址QR Code和Asset ID。 \n若HomeBox設定中停用AssetID，此工具仍然可以使用但所產生的Asset ID將不會對應到任何項目",
+            "instruction_1": "{appName}標籤產生器可協助您為{appName}物品列印標籤。\n且可以次性列印多個物品標籤，並直接貼於您的物品上",
+            "instruction_2": "標籤產生器將於標籤上列印網址QR Code和Asset ID。 \n若{appName}設定中停用AssetID，此工具仍然可以使用但所產生的Asset ID將不會對應到任何項目",
             "label_height": "標籤高度",
             "label_width": "標籤寬度",
             "measure_type": "測量單位",
@@ -866,13 +860,13 @@
         "import_export_set": {
             "export": "匯出收藏",
             "export_button": "匯出",
-            "export_sub": "匯出HomeBox專用之標準CSV格式文件。此作業將匯出'<br>'所有'</br>'於收藏集中的物品。",
+            "export_sub": "匯出{appName}專用之標準CSV格式文件。此作業將匯出'<br>'所有'</br>'於收藏集中的物品。",
             "import": "匯入（CSV格式）",
             "import_button": "匯入",
             "import_ref_confirm": "是否確認執行驗證所有物品包含有效import_ref值？此作業可能需要一段時間，且無法復原。",
-            "import_sub": "匯入HomeBox專用之標準CSV格式文件。若匯入物品中未包含'<code>'HB.import_ref'</code>'值則'<b>'不會'</b>'覆寫任何已存在的物品，僅會新增為新物品。\n若匯入物品中包含'<code>'HB.import_ref'</code>'且和現有物品重複時，相同物品將會被合併；若無重複則僅會新增為新物品。"
+            "import_sub": "匯入{appName}專用之標準CSV格式文件。若匯入物品中未包含'<code>'HB.import_ref'</code>'值則'<b>'不會'</b>'覆寫任何已存在的物品，僅會新增為新物品。\n若匯入物品中包含'<code>'HB.import_ref'</code>'且和現有物品重複時，相同物品將會被合併；若無重複則僅會新增為新物品。"
         },
-        "import_export_sub": "將收藏集匯入或匯出為CSV檔案，方便您轉移HomeBox資料。",
+        "import_export_sub": "將收藏集匯入或匯出為CSV檔案，方便您轉移{appName}資料。",
         "reports": "統計資料",
         "reports_set": {
             "asset_labels": "資產標籤產生器",

@@ -98,7 +98,6 @@
     },
     "global": {
         "add": "Shto",
-        "build": "Ndërto: { build }",
         "confirm": "Konfirmo",
         "create": "Krijo",
         "create_and_add": "Krijo dhe shto një tjetër",
@@ -124,7 +123,6 @@
         "submit": "Dërgo",
         "update": "Përditëso",
         "value": "Vlerë",
-        "version": "Versioni: { version }",
         "welcome": "Mirë se erdhe, { username }"
     },
     "home": {

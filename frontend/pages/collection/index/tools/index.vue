@@ -8,7 +8,7 @@
             <MdiDatabase class="mr-2" />
             <span> {{ $t("tools.import_export") }} </span>
             <template #description>
-              {{ $t("tools.import_export_sub") }}
+              {{ $t("tools.import_export_sub", { appName }) }}
             </template>
           </BaseSectionHeader>
         </template>
@@ -16,12 +16,12 @@
           <DetailAction @action="openDialog(DialogID.Import)">
             <template #title> {{ $t("tools.import_export_set.import") }} </template>
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="DOMPurify.sanitize($t('tools.import_export_set.import_sub'))" />
+            <div v-html="DOMPurify.sanitize($t('tools.import_export_set.import_sub', { appName }))" />
             <template #button> {{ $t("tools.import_export_set.import_button") }} </template>
           </DetailAction>
           <DetailAction @action="getExportCSV()">
             <template #title>{{ $t("tools.import_export_set.export") }}</template>
-            {{ $t("tools.import_export_set.export_sub") }}
+            {{ $t("tools.import_export_set.export_sub", { appName }) }}
             <template #button> {{ $t("tools.import_export_set.export_button") }} </template>
           </DetailAction>
           <DetailAction @action="getBillOfMaterials()">
@@ -149,6 +149,7 @@
   import DetailAction from "@/components/DetailAction.vue";
 
   const { t } = useI18n();
+  const { appName } = useBranding();
   const prefs = useViewPreferences();
 
   definePageMeta({
@@ -211,21 +212,24 @@
   // Backup & Restore
   // ---------------------------------------------------------------------------
 
-  const backups = ref<CollectionExport[]>([]);
   const restoreInput = ref<HTMLInputElement | null>(null);
 
-  async function refreshBackups() {
-    const { data, error } = await api.backups.list();
-    if (error || !data) {
-      return;
+  // Initial fetch (awaited so the table is server-rendered) + live refresh on
+  // export/import lifecycle events.
+  const { data: backupsData, refresh: refreshBackups } = await useAsyncData<CollectionExport[]>(
+    "collection-backups",
+    async () => {
+      const { data, error } = await api.backups.list();
+      if (error || !data) {
+        return [];
+      }
+      return data.items ?? [];
     }
-    backups.value = data.items ?? [];
-  }
+  );
+  const backups = computed(() => backupsData.value ?? []);
 
-  // Initial fetch + live refresh on export/import lifecycle events.
-  refreshBackups();
-  onServerEvent(ServerEvent.ExportMutation, refreshBackups);
-  onServerEvent(ServerEvent.ImportMutation, refreshBackups);
+  onServerEvent(ServerEvent.ExportMutation, () => void refreshBackups());
+  onServerEvent(ServerEvent.ImportMutation, () => void refreshBackups());
 
   function downloadUrl(id: string): string {
     return api.backups.downloadURL(id);

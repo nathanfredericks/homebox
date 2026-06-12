@@ -396,7 +396,6 @@
     "global": {
         "add": "추가",
         "archived": "보관됨",
-        "build": "빌드 번호: { build }",
         "cancel": "취소",
         "close": "닫기",
         "confirm": "확인",
@@ -412,10 +411,6 @@
         "edit": "편집",
         "email": "Email",
         "follow_dev": "개발자 팔로우",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub 프로젝트",
         "insured": "보험 가입됨",
         "items": "아이템",
@@ -444,7 +439,6 @@
         "update": "업데이트",
         "updating": "업데이트 중",
         "value": "값",
-        "version": "버전: {version}",
         "welcome": "환영합니다",
         "yes": "예"
     },
@@ -802,8 +796,8 @@
             "bordered_labels": "테두리 라벨",
             "generate_page": "페이지 생성",
             "input_placeholder": "여기에 입력하세요",
-            "instruction_1": "HomeBox 라벨 생성기는 HomeBox 인벤토리용 라벨 출력을 돕는 도구입니다. \n이 기능은 라벨을 미리 대량으로 출력해 두었다가 필요할 때 바로 부착하여 사용할 수 있도록 설계되었습니다",
-            "instruction_2": "이에 따라, 각 라벨에는 URL QR 코드와 자산 ID(AssetID) 정보가 인쇄됩니다. \nHomeBox 설정에서 자산 ID를 비활성화한 경우에도 이 도구를 사용할 수 있지만, 이 경우 인쇄된 자산 ID는 특정 물품을 참조하지 않습니다",
+            "instruction_1": "{appName} 라벨 생성기는 {appName} 인벤토리용 라벨 출력을 돕는 도구입니다. \n이 기능은 라벨을 미리 대량으로 출력해 두었다가 필요할 때 바로 부착하여 사용할 수 있도록 설계되었습니다",
+            "instruction_2": "이에 따라, 각 라벨에는 URL QR 코드와 자산 ID(AssetID) 정보가 인쇄됩니다. \n{appName} 설정에서 자산 ID를 비활성화한 경우에도 이 도구를 사용할 수 있지만, 이 경우 인쇄된 자산 ID는 특정 물품을 참조하지 않습니다",
             "label_height": "라벨 높이",
             "label_width": "라벨 너비",
             "measure_type": "측정 유형",
@@ -911,13 +905,13 @@
         "import_export_set": {
             "export": "재고 내보내기",
             "export_button": "재고 내보내기",
-            "export_sub": "Homebox 표준 CSV 형식으로 내보냅니다. 인벤토리의 모든 품목이 추출됩니다.",
+            "export_sub": "{appName} 표준 CSV 형식으로 내보냅니다. 인벤토리의 모든 품목이 추출됩니다.",
             "import": "재고 가져오기",
             "import_button": "재고 가져오기",
             "import_ref_confirm": "모든 자산에 import_ref를 할당하시겠습니까? 이 작업은 시간이 오래 걸릴 수 있으며, 한 번 실행하면 취소할 수 없습니다.",
-            "import_sub": "Homebox 표준 CSV 형식을 가져옵니다. '<code>'HB.import_ref'</code>' column, this will '<b>'not'</b>' overwrite any existing items in your inventory, only add new items. Rows with an '<code>'HB.import_ref'</code>' 열이 포함된 행은 동일한 import_ref를 가진 기존 항목이 있을 경우 해당 데이터로 병합됩니다."
+            "import_sub": "{appName} 표준 CSV 형식을 가져옵니다. '<code>'HB.import_ref'</code>' column, this will '<b>'not'</b>' overwrite any existing items in your inventory, only add new items. Rows with an '<code>'HB.import_ref'</code>' 열이 포함된 행은 동일한 import_ref를 가진 기존 항목이 있을 경우 해당 데이터로 병합됩니다."
         },
-        "import_export_sub": "CSV 파일을 통해 재고 데이터를 가져오거나 내보낼 수 있습니다. 이 기능은 재고 데이터를 새로운 Homebox 인스턴스로 이전할 때 유용합니다.",
+        "import_export_sub": "CSV 파일을 통해 재고 데이터를 가져오거나 내보낼 수 있습니다. 이 기능은 재고 데이터를 새로운 {appName} 인스턴스로 이전할 때 유용합니다.",
         "reports": "보고서",
         "reports_set": {
             "asset_labels": "자산 ID 라벨",

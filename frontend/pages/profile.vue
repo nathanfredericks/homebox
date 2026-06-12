@@ -106,23 +106,12 @@
   // ---------------------------------------------------------------------------
   // API keys
 
-  const apiKeys = ref<APIKeyOut[]>([]);
-  const apiKeysLoading = ref(false);
-
-  async function loadApiKeys() {
-    apiKeysLoading.value = true;
+  // Fetched during SSR so the list renders without a loading state.
+  const { data: apiKeysData, refresh: loadApiKeys } = await useAsyncData("profile-api-keys", async () => {
     const { data, error } = await api.user.listApiKeys();
-    apiKeysLoading.value = false;
-    if (error) {
-      toast.error(t("errors.api_failure") + String(error));
-      return;
-    }
-    apiKeys.value = data ?? [];
-  }
-
-  onMounted(() => {
-    void loadApiKeys();
+    return error ? [] : (data ?? []);
   });
+  const apiKeys = computed<APIKeyOut[]>(() => apiKeysData.value ?? []);
 
   const apiKeyForm = reactive({
     name: "",
@@ -354,7 +343,7 @@
 
         <div class="px-4 pb-4">
           <div class="mx-1 divide-y rounded-md border">
-            <p v-if="!apiKeysLoading && apiKeys.length === 0" class="p-2 text-center text-sm">
+            <p v-if="apiKeys.length === 0" class="p-2 text-center text-sm">
               {{ $t("profile.no_api_keys") }}
             </p>
             <article v-for="k in apiKeys" :key="k.id" class="p-2">

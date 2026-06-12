@@ -119,7 +119,6 @@
     "global": {
         "add": "เพิ่ม",
         "archived": "เก็บถาวร",
-        "build": "รุ่น: { build }",
         "cancel": "ยกเลิก",
         "confirm": "ยืนยัน",
         "create": "สร้าง",
@@ -131,10 +130,6 @@
         "edit": "แก้ไข",
         "email": "อีเมล์",
         "follow_dev": "ติดตามผู้พัฒนา",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Version: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub Project",
         "insured": "ประกัน",
         "items": "รายการ",
@@ -152,7 +147,6 @@
         "submit": "ส่ง",
         "update": "อัปเดต",
         "value": "ราคา",
-        "version": "เวอร์ชั่น: { version }",
         "welcome": "ยินดีต้อนรับ, { username }"
     },
     "home": {

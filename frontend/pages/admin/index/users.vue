@@ -28,31 +28,28 @@
   const { can } = usePermissions();
   const { openDialog } = useDialog();
 
-  const loading = ref(true);
-  const users = ref<UserAdminOut[]>([]);
   const deleting = ref<Record<string, boolean>>({});
 
   const currentUserId = computed(() => auth.user?.id ?? "");
 
-  const loadUsers = async () => {
-    loading.value = true;
-    try {
-      const res = await api.adminUsers.getAll();
-      if (res.error) {
-        toast.error(t("errors.api_failure") + String(res.error));
-        users.value = [];
-      } else {
-        users.value = res.data ?? [];
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
+  // Fetched during SSR so the table (and the modals' group list) render
+  // without a loading state.
+  const { data: usersData, refresh: refreshUsers } = await useAsyncData("admin-users", async () => {
+    const res = await api.adminUsers.getAll();
+    return res.error ? [] : (res.data ?? []);
+  });
+  const users = computed(() => usersData.value ?? []);
+
+  const { data: rolesData } = await useAsyncData("admin-user-roles", async () => {
+    const res = await api.roles.getAll();
+    return res.error ? [] : (res.data ?? []);
+  });
+  const roles = computed(() => rolesData.value ?? []);
 
   const handleCreate = () => {
     openDialog(DialogID.AdminUserCreate, {
       onClose: result => {
-        if (result) void loadUsers();
+        if (result) void refreshUsers();
       },
     });
   };
@@ -61,7 +58,7 @@
     openDialog(DialogID.AdminUserEdit, {
       params: { user },
       onClose: result => {
-        if (result) void loadUsers();
+        if (result) void refreshUsers();
       },
     });
   };
@@ -76,17 +73,13 @@
       if (res.error) {
         toast.error(t("errors.api_failure") + String(res.error));
       } else {
-        users.value = users.value.filter(u => u.id !== user.id);
         toast.success(t("admin.users.deleted"));
+        await refreshUsers();
       }
     } finally {
       deleting.value = { ...deleting.value, [user.id]: false };
     }
   };
-
-  onMounted(() => {
-    void loadUsers();
-  });
 </script>
 
 <template>
@@ -98,11 +91,7 @@
       </Button>
     </div>
 
-    <div v-if="loading" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-      {{ $t("global.loading") }}
-    </div>
-
-    <div v-else>
+    <div>
       <div v-if="!users.length" class="rounded-md border bg-card p-4 text-sm text-muted-foreground">
         {{ $t("admin.users.empty") }}
       </div>
@@ -167,7 +156,7 @@
       </div>
     </div>
 
-    <AdminUserCreateModal />
-    <AdminUserEditModal />
+    <AdminUserCreateModal :roles="roles" />
+    <AdminUserEditModal :roles="roles" />
   </div>
 </template>

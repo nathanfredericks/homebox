@@ -2,7 +2,6 @@
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
   import { Button } from "@/components/ui/button";
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
   import { Checkbox } from "@/components/ui/checkbox";
   import { Label } from "@/components/ui/label";
   import MdiLoading from "~icons/mdi/loading";
@@ -204,28 +203,10 @@
     },
   ]);
 
-  // Env-only configuration shown read-only at the bottom of the page.
-  const envOnlyVars = [
-    "HBOX_MODE",
-    "HBOX_DEMO",
-    "HBOX_WEB_*",
-    "HBOX_STORAGE_*",
-    "HBOX_DATABASE_*",
-    "HBOX_LOGGER_*",
-    "HBOX_DEBUG_*",
-    "HBOX_OIDC_*",
-    "HBOX_OTEL_*",
-    "HBOX_AUTH_*",
-    "HBOX_OPTIONS_CURRENCY_CONFIG",
-    "HBOX_OPTIONS_ALLOW_ANALYTICS",
-    "HBOX_OPTIONS_TRUST_PROXY",
-  ];
-
   type SectionState = Record<string, unknown>;
 
   const forms = reactive<Record<string, SectionState>>({});
   const initial = ref<Record<string, SectionState>>({});
-  const overridden = ref<Record<string, boolean>>({});
   const saving = reactive<Record<string, boolean>>({});
   const reindexing = ref(false);
 
@@ -235,7 +216,6 @@
       forms[def.id] = { ...(sections[def.id] ?? {}) };
     }
     initial.value = JSON.parse(JSON.stringify(forms));
-    overridden.value = { ...(doc.overridden ?? {}) };
   }
 
   // SSR-first load; failures render the inline error block.
@@ -368,7 +348,6 @@
         :key="def.id"
         :title="$t(`admin.settings.${def.id}.title`)"
         :description="$t(`admin.settings.${def.id}.description`)"
-        :overridden="overridden[def.id] === true"
         :saving="saving[def.id] === true"
         :dirty="isDirty(def.id)"
         :can-edit="canEdit"
@@ -410,18 +389,6 @@
           </Button>
         </template>
       </SectionCard>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{{ $t("admin.settings.env_only.title") }}</CardTitle>
-          <CardDescription>{{ $t("admin.settings.env_only.description") }}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div class="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-            <code v-for="name in envOnlyVars" :key="name" class="text-xs text-muted-foreground">{{ name }}</code>
-          </div>
-        </CardContent>
-      </Card>
     </template>
   </div>
 </template>

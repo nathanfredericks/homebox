@@ -389,7 +389,6 @@
     "global": {
         "add": "Lisää",
         "archived": "Arkistoitu",
-        "build": "Build: { build }",
         "cancel": "Peruuta",
         "confirm": "Vahvista",
         "create": "Luo uusi",
@@ -404,10 +403,6 @@
         "edit": "Muokkaa",
         "email": "Sähköposti",
         "follow_dev": "Seuraa kehittäjää",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Versio: { version } Build: { build } '</a>'"
-        },
         "github": "GitHub Projekti",
         "insured": "Vakuutettu",
         "items": "Erä",
@@ -432,7 +427,6 @@
         "update": "Päivitys",
         "updating": "Päivitetään",
         "value": "Arvo",
-        "version": "Versio: { version }",
         "welcome": "Tervetuloa, { username }",
         "yes": "Kyllä"
     },
@@ -769,8 +763,8 @@
             "bordered_labels": "Kehystä tarrat",
             "generate_page": "Luo sivu",
             "input_placeholder": "Kirjoita tähän",
-            "instruction_1": "HomeBox Label Generator on työkalu, joka auttaa tulostamaan tarroja HomeBox-varastollesi.\n Tarrat on tarkoitettu etukäteen tulostettaviksi, jotta voit tulostaa monta tarraa ja pitää ne valmiina liitettäväksi kohteisiin",
-            "instruction_2": "Näin ollen nämä tarrat toimivat siten, että niihin tulostetaan URL-osoitteen QR-koodi ja resurssitunnus-tiedot.\nJos olet poistanut resurssitunnukset käytöstä HomeBox-asetuksissasi, voit silti käyttää tätä työkalua, mutta resurssitunnukset eivät viittaa mihinkään kohteeseen.",
+            "instruction_1": "{appName} Label Generator on työkalu, joka auttaa tulostamaan tarroja {appName}-varastollesi.\n Tarrat on tarkoitettu etukäteen tulostettaviksi, jotta voit tulostaa monta tarraa ja pitää ne valmiina liitettäväksi kohteisiin",
+            "instruction_2": "Näin ollen nämä tarrat toimivat siten, että niihin tulostetaan URL-osoitteen QR-koodi ja resurssitunnus-tiedot.\nJos olet poistanut resurssitunnukset käytöstä {appName}-asetuksissasi, voit silti käyttää tätä työkalua, mutta resurssitunnukset eivät viittaa mihinkään kohteeseen.",
             "label_height": "Tarran korkeus",
             "label_width": "Tarran leveys",
             "measure_type": "Mittayksikkö",
@@ -862,13 +856,13 @@
         "import_export_set": {
             "export": "Vie varasto",
             "export_button": "Vie varasto",
-            "export_sub": "Vie Homebox CSV-standardin. Tämä vie kaikki varastossasi olevat tuotteet.",
+            "export_sub": "Vie {appName} CSV-standardin. Tämä vie kaikki varastossasi olevat tuotteet.",
             "import": "Tuo varasto",
             "import_button": "Tuo varasto",
             "import_ref_confirm": "Varmistaa, että kaikilla varastosi kohteilla on voimassa oleva import_ref-kenttä. Tämä tehdään luomalla satunnaisesti 8 merkin pituinen merkkijono jokaiselle kohteelle, jolla ei ole asetettua import_ref-kenttää.",
-            "import_sub": "Tuo CSV-standardimuodon Homebox. Ilman ‘<code>'HB.import_ref’</code>‘ kolumni, tämä tulee ’<b>‘not’</b>' korvaa inventaariossasi olevia esineitä, vaan lisää vain uusia esineitä. Rivit, joissa on ‘<code>'HB.import_ref’</code>' sarakkeen tiedot yhdistetään olemassa oleviin kohteisiin, joilla on sama import_ref, jos sellainen on olemassa."
+            "import_sub": "Tuo CSV-standardimuodon {appName}. Ilman ‘<code>'HB.import_ref’</code>‘ kolumni, tämä tulee ’<b>‘not’</b>' korvaa inventaariossasi olevia esineitä, vaan lisää vain uusia esineitä. Rivit, joissa on ‘<code>'HB.import_ref’</code>' sarakkeen tiedot yhdistetään olemassa oleviin kohteisiin, joilla on sama import_ref, jos sellainen on olemassa."
         },
-        "import_export_sub": "Tuo ja vie varastosi CSV-tiedostoon. Tämä on hyödyllistä siirrettäessä varastosi uuteen Homebox-asennukseen.",
+        "import_export_sub": "Tuo ja vie varastosi CSV-tiedostoon. Tämä on hyödyllistä siirrettäessä varastosi uuteen {appName}-asennukseen.",
         "reports": "Raportit",
         "reports_set": {
             "asset_labels": "Resurssitunnustarrat",

@@ -32,11 +32,43 @@ func newTestService(t *testing.T, cfg *config.Config) *Service {
 	return svc
 }
 
+// baseConfig simulates an environment-parsed config. The web-managed sections
+// are expected to be IGNORED by the service (its base comes from compiled
+// defaults); only the env-only Options fields should carry over.
 func baseConfig() *config.Config {
 	return &config.Config{
-		Thumbnail: config.Thumbnail{Enabled: true, Width: 300, Height: 300},
-		Options:   config.Options{AllowRegistration: true, TrustProxy: false},
-		Algolia:   config.AlgoliaConf{IndexName: "homebox-items", AdminAPIKey: "env-secret"},
+		Thumbnail: config.Thumbnail{Enabled: false, Width: 300, Height: 300},
+		Options:   config.Options{AllowRegistration: false, TrustProxy: false, AllowAnalytics: true, CurrencyConfig: "/tmp/currencies.json"},
+		Algolia:   config.AlgoliaConf{IndexName: "env-index", AdminAPIKey: "env-secret"},
+	}
+}
+
+func TestEnvironmentIsIgnoredForWebSections(t *testing.T) {
+	svc := newTestService(t, baseConfig())
+
+	// The env config set thumbnail to 300x300/disabled and a custom Algolia
+	// index, but the base must be the compiled defaults.
+	got := svc.Get()
+	if got.Thumbnail.Width != 500 || got.Thumbnail.Height != 500 || !got.Thumbnail.Enabled {
+		t.Errorf("thumbnail: got %+v, want compiled defaults (enabled, 500x500)", got.Thumbnail)
+	}
+	if got.Algolia.IndexName != "homebox-items" {
+		t.Errorf("algolia index: got %q, want default homebox-items", got.Algolia.IndexName)
+	}
+	if got.Algolia.AdminAPIKey != "" {
+		t.Errorf("algolia secret: got %q, want empty (env value ignored)", got.Algolia.AdminAPIKey)
+	}
+}
+
+func TestEnvOnlyFieldsComeFromEnvironment(t *testing.T) {
+	svc := newTestService(t, baseConfig())
+
+	got := svc.Get().Options
+	if !got.AllowAnalytics {
+		t.Error("allowAnalytics is env-only and must carry the environment value")
+	}
+	if got.CurrencyConfig != "/tmp/currencies.json" {
+		t.Errorf("currencyConfig: got %q, want environment value", got.CurrencyConfig)
 	}
 }
 
@@ -44,7 +76,7 @@ func TestSparseOverrideLayering(t *testing.T) {
 	svc := newTestService(t, baseConfig())
 	ctx := context.Background()
 
-	// Override only the width; height keeps its environment value.
+	// Override only the width; height keeps its default value.
 	if err := svc.UpdateSection(ctx, SectionThumbnail, json.RawMessage(`{"width":700}`)); err != nil {
 		t.Fatalf("update: %v", err)
 	}
@@ -53,21 +85,15 @@ func TestSparseOverrideLayering(t *testing.T) {
 	if got.Width != 700 {
 		t.Errorf("width: got %d, want 700 (database override)", got.Width)
 	}
-	if got.Height != 300 {
-		t.Errorf("height: got %d, want 300 (environment fallback)", got.Height)
+	if got.Height != 500 {
+		t.Errorf("height: got %d, want 500 (default fallback)", got.Height)
 	}
 	if !got.Enabled {
-		t.Error("enabled: lost environment value")
-	}
-	if !svc.Overridden()[SectionThumbnail] {
-		t.Error("thumbnail section should report as overridden")
-	}
-	if svc.Overridden()[SectionOptions] {
-		t.Error("options section should not report as overridden")
+		t.Error("enabled: lost default value")
 	}
 }
 
-func TestResetSectionRestoresEnvironment(t *testing.T) {
+func TestResetSectionRestoresDefaults(t *testing.T) {
 	svc := newTestService(t, baseConfig())
 	ctx := context.Background()
 
@@ -78,11 +104,8 @@ func TestResetSectionRestoresEnvironment(t *testing.T) {
 		t.Fatalf("reset: %v", err)
 	}
 
-	if got := svc.Get().Thumbnail.Width; got != 300 {
-		t.Errorf("width after reset: got %d, want 300", got)
-	}
-	if svc.Overridden()[SectionThumbnail] {
-		t.Error("section should not report as overridden after reset")
+	if got := svc.Get().Thumbnail.Width; got != 500 {
+		t.Errorf("width after reset: got %d, want 500 (compiled default)", got)
 	}
 }
 
@@ -110,21 +133,13 @@ func TestSecretSentinelKeepsCurrentValue(t *testing.T) {
 	}
 }
 
-func TestSecretSentinelKeepsEnvironmentValue(t *testing.T) {
+func TestRedactionOnMarshal(t *testing.T) {
 	svc := newTestService(t, baseConfig())
 	ctx := context.Background()
 
-	// No DB secret yet: the sentinel resolves to the environment value.
-	if err := svc.UpdateSection(ctx, SectionAlgolia, json.RawMessage(`{"adminApiKey":"[REDACTED]"}`)); err != nil {
+	if err := svc.UpdateSection(ctx, SectionAlgolia, json.RawMessage(`{"adminApiKey":"db-secret"}`)); err != nil {
 		t.Fatalf("update: %v", err)
 	}
-	if got := svc.Get().Algolia.AdminAPIKey; got != "env-secret" {
-		t.Errorf("adminApiKey: got %q, want env-secret", got)
-	}
-}
-
-func TestRedactionOnMarshal(t *testing.T) {
-	svc := newTestService(t, baseConfig())
 
 	out, err := json.Marshal(svc.Get())
 	if err != nil {
@@ -164,15 +179,15 @@ func TestEnvOnlyFieldsAreStripped(t *testing.T) {
 	svc := newTestService(t, baseConfig())
 	ctx := context.Background()
 
-	if err := svc.UpdateSection(ctx, SectionOptions, json.RawMessage(`{"trustProxy":true,"allowRegistration":false}`)); err != nil {
+	if err := svc.UpdateSection(ctx, SectionOptions, json.RawMessage(`{"trustProxy":true,"allowRegistration":true}`)); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 	got := svc.Get().Options
 	if got.TrustProxy {
 		t.Error("trustProxy is env-only and must not be overridable from the database")
 	}
-	if got.AllowRegistration {
-		t.Error("allowRegistration should have been overridden to false")
+	if !got.AllowRegistration {
+		t.Error("allowRegistration should have been overridden to true")
 	}
 }
 
@@ -188,8 +203,8 @@ func TestOnChangeListenerFires(t *testing.T) {
 	if err := svc.UpdateSection(ctx, SectionThumbnail, json.RawMessage(`{"width":900}`)); err != nil {
 		t.Fatalf("update: %v", err)
 	}
-	if oldW != 300 || newW != 900 {
-		t.Errorf("listener saw old=%d new=%d, want 300/900", oldW, newW)
+	if oldW != 500 || newW != 900 {
+		t.Errorf("listener saw old=%d new=%d, want 500/900", oldW, newW)
 	}
 }
 
@@ -222,7 +237,7 @@ func TestOverridesSurviveServiceRestart(t *testing.T) {
 		t.Fatalf("recreating service: %v", err)
 	}
 	if got := svc2.Get().Thumbnail.Width; got != 700 {
-		t.Errorf("width after restart: got %d, want 700 (database wins over env)", got)
+		t.Errorf("width after restart: got %d, want 700 (database wins over defaults)", got)
 	}
 }
 

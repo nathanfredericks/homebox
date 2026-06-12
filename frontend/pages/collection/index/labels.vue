@@ -25,6 +25,7 @@
   import MdiPrinter from "~icons/mdi/printer";
 
   const { t } = useI18n();
+  const { appName } = useBranding();
 
   definePageMeta({
     middleware: ["auth"],
@@ -236,13 +237,13 @@
         <BaseSectionHeader>
           <MdiPrinter class="mr-2" />
           <span> {{ $t("reports.label_generator.title") }} </span>
-          <template #description> {{ $t("reports.label_generator.instruction_1") }} </template>
+          <template #description> {{ $t("reports.label_generator.instruction_1", { appName }) }} </template>
         </BaseSectionHeader>
       </template>
       <div class="border-t p-4 sm:px-6">
         <div class="prose max-w-none">
           <p>
-            {{ $t("reports.label_generator.instruction_2") }}
+            {{ $t("reports.label_generator.instruction_2", { appName }) }}
           </p>
           <h4>{{ $t("reports.label_generator.tips") }}</h4>
           <ul>

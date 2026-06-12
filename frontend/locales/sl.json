@@ -170,7 +170,6 @@
     "global": {
         "add": "Dodaj",
         "archived": "Arhivirano",
-        "build": "Gradnja: { build }",
         "cancel": "Prekliči",
         "confirm": "Potrdi",
         "create": "Ustvari",
@@ -185,10 +184,6 @@
         "edit": "Uredi",
         "email": "E-pošta",
         "follow_dev": "Sledi razvijjalcu",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Verzija: { version } Gradnja: { build } '</a>'"
-        },
         "github": "GitHub projekt",
         "insured": "Zavarovano",
         "items": "Predmeti",
@@ -210,7 +205,6 @@
         "update": "Posodobi",
         "updating": "Posodabljanje",
         "value": "Vrednost",
-        "version": "Verzija: { version }",
         "welcome": "Dobrodošel, { username }"
     },
     "home": {
@@ -498,8 +492,8 @@
             "bordered_labels": "Nalepke z obrobo",
             "generate_page": "Generiraj stran",
             "input_placeholder": "Vnesite tukaj",
-            "instruction_1": "Homebox Generator Nalepk je orodje za pomoč pri tiskanju nalepk za vaš Homebox inventar. Te so namenjene za\n tisk vnaprej, da imate več nalepk pripravljenih za uporabo",
-            "instruction_2": "Te nalepke delujejo z uporabo URL naslovne QR kode in ID sredstva na nalepki. Če ste onemogočili\nIDje sredstev v vaših Homebox nastavitvah lahko to orodje še vedno uporabljate, vendar se IDji sredstev ne bodo nanašali na noben predmet",
+            "instruction_1": "{appName} Generator Nalepk je orodje za pomoč pri tiskanju nalepk za vaš {appName} inventar. Te so namenjene za\n tisk vnaprej, da imate več nalepk pripravljenih za uporabo",
+            "instruction_2": "Te nalepke delujejo z uporabo URL naslovne QR kode in ID sredstva na nalepki. Če ste onemogočili\nIDje sredstev v vaših {appName} nastavitvah lahko to orodje še vedno uporabljate, vendar se IDji sredstev ne bodo nanašali na noben predmet",
             "label_height": "Višina nalepke",
             "label_width": "Širina nalepke",
             "measure_type": "Merska enota",
@@ -557,13 +551,13 @@
         "import_export_set": {
             "export": "Izvozi inventar",
             "export_button": "Izvozi Inventar",
-            "export_sub": "Izvozi standardni format CSV za Homebox. S tem boste izvozili vse predmete v vašem inventarju.",
+            "export_sub": "Izvozi standardni format CSV za {appName}. S tem boste izvozili vse predmete v vašem inventarju.",
             "import": "Uvozi inventar",
             "import_button": "Uvozi inventar",
             "import_ref_confirm": "Ali ste prepričani, da želite zagotoviti, da imajo vsa sredstva določen import_ref? To lahko traja nekaj časa in ni možno razveljaviti.",
-            "import_sub": "Uvozi standardni format CSV za Homebox. Brez stolpca '<code>'HB.import_ref'</code>' to '<b>'ne'</b>' bo prepisalo vse obstoječe elemente v vašem inventarju, samo dodaja nove elemente. Vrstice s stolpcem '<code>'HB.import_ref'</code>' so združene v obstoječe elemente z istim import_ref, če le ta obstaja."
+            "import_sub": "Uvozi standardni format CSV za {appName}. Brez stolpca '<code>'HB.import_ref'</code>' to '<b>'ne'</b>' bo prepisalo vse obstoječe elemente v vašem inventarju, samo dodaja nove elemente. Vrstice s stolpcem '<code>'HB.import_ref'</code>' so združene v obstoječe elemente z istim import_ref, če le ta obstaja."
         },
-        "import_export_sub": "Uvozite in izvozite svoj inventar v in iz datoteke CSV. To je uporabno za selitev vašega inventarja v novo namestitev Homeboxa.",
+        "import_export_sub": "Uvozite in izvozite svoj inventar v in iz datoteke CSV. To je uporabno za selitev vašega inventarja v novo namestitev {appName}a.",
         "reports": "Poročila",
         "reports_set": {
             "asset_labels": "Oznake ID-jev sredstev",

@@ -104,7 +104,6 @@
     },
     "global": {
         "add": "添加",
-        "build": "建立{ build }",
         "confirm": "確認",
         "create": "新增",
         "create_and_add": "創建並添加另一個",
@@ -130,7 +129,6 @@
         "submit": "提交",
         "update": "更新",
         "value": "值",
-        "version": "版本:{ version }",
         "welcome": "歡迎，{ username }"
     },
     "home": {

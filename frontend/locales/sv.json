@@ -396,7 +396,6 @@
     "global": {
         "add": "Lägg till",
         "archived": "Arkiverad",
-        "build": "Byggd: { build }",
         "cancel": "Avbryta",
         "close": "Stäng",
         "confirm": "Godkänn",
@@ -412,10 +411,6 @@
         "edit": "Ändra",
         "email": "Epost",
         "follow_dev": "Följ utvecklaren",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Version: { version } Bygge: { build } '</a>'"
-        },
         "github": "GitHub-projekt",
         "insured": "Försäkrad",
         "items": "Föremål",
@@ -444,7 +439,6 @@
         "update": "Uppdatera",
         "updating": "Uppdaterar",
         "value": "Värde",
-        "version": "Version: { version }",
         "welcome": "Välkommen, { username }",
         "yes": "Ja"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "Inramade etiketter",
             "generate_page": "Generera sida",
             "input_placeholder": "Skriv här",
-            "instruction_1": "HomeBox Label Generator är ett verktyg som hjälper dig att skriva ut etiketter för ditt HomeBox-inventering. Dessa är skapade\nför att skrivas ut i förväg så att de är redo att användas",
-            "instruction_2": "Dessa etiketter fungerar då så att en QR-kod med en URL och ett objekt-ID skrivs ut på etiketten. Om du har stängt av\nObjekt-ID i dina HomeBox.inställningar kan du fortfarande använda verktyget men då kommer Objekt-ID:t inte att hänvisa till något objekt",
+            "instruction_1": "{appName} Label Generator är ett verktyg som hjälper dig att skriva ut etiketter för ditt {appName}-inventering. Dessa är skapade\nför att skrivas ut i förväg så att de är redo att användas",
+            "instruction_2": "Dessa etiketter fungerar då så att en QR-kod med en URL och ett objekt-ID skrivs ut på etiketten. Om du har stängt av\nObjekt-ID i dina {appName}.inställningar kan du fortfarande använda verktyget men då kommer Objekt-ID:t inte att hänvisa till något objekt",
             "label_height": "Etiketthöjd",
             "label_width": "Etikettbredd",
             "measure_type": "Måttyp",
@@ -943,13 +937,13 @@
         "import_export_set": {
             "export": "Exportera varulager",
             "export_button": "Exportera varulager",
-            "export_sub": "Exporterar standard CSV format för Homebox. Detta kommer exportera alla saker i ditt lager.",
+            "export_sub": "Exporterar standard CSV format för {appName}. Detta kommer exportera alla saker i ditt lager.",
             "import": "Importera lager",
             "import_button": "Importera Lager",
             "import_ref_confirm": "Är du säker på att du vill se till att alla tillgångar har en import_ref? Detta kan ta en stund och kan inte ångras.",
-            "import_sub": "Importerar standard CSV format för Homebox. Utan en '<code>'HB.import_ref'</code>' kolumn, detta kommer '<b>'inte'</b>' att skriva över existerande saker i ditt lager, endast lägga till nya. Rader med en '<code>'HB.import_ref'</code>' kolumn blir sammanfogade i existerande saker med samma import_ref, om det existerar."
+            "import_sub": "Importerar standard CSV format för {appName}. Utan en '<code>'HB.import_ref'</code>' kolumn, detta kommer '<b>'inte'</b>' att skriva över existerande saker i ditt lager, endast lägga till nya. Rader med en '<code>'HB.import_ref'</code>' kolumn blir sammanfogade i existerande saker med samma import_ref, om det existerar."
         },
-        "import_export_sub": "Importera och exportera ditt lager till och från en CSV-fil. Detta är användbart för att migrera din inventering till en ny instans av Homebox.",
+        "import_export_sub": "Importera och exportera ditt lager till och från en CSV-fil. Detta är användbart för att migrera din inventering till en ny instans av {appName}.",
         "reports": "Rapporter",
         "reports_set": {
             "asset_labels": "Tillgångs-ID-etiketter",

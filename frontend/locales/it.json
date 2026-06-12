@@ -396,7 +396,6 @@
     "global": {
         "add": "Aggiungi",
         "archived": "Archiviato",
-        "build": "Compila: { build }",
         "cancel": "Ignora",
         "close": "Chiudi",
         "confirm": "Conferma",
@@ -412,10 +411,6 @@
         "edit": "Modifica",
         "email": "Email",
         "follow_dev": "Segui lo Sviluppatore",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/v{ version }\" target=\"_blank\"'>' Versione: { version } Build: { build } '</a>'"
-        },
         "github": "Progetto GitHub",
         "insured": "Assicurato",
         "items": "Articoli",
@@ -444,7 +439,6 @@
         "update": "Aggiorna",
         "updating": "Aggiornamento",
         "value": "Valore",
-        "version": "Versione: { version }",
         "welcome": "Benvenuto, { username }",
         "yes": "Sì"
     },
@@ -814,8 +808,8 @@
             "bordered_labels": "Etichette con bordo",
             "generate_page": "Genera Pagina",
             "input_placeholder": "Scrivi qui",
-            "instruction_1": "Il Generatore di Etichette di HomeBox è uno strumento che ti aiuta a stampare le etichette per il tuo inventario HomeBox.\nSono pensate come etichette da stampare in anticipo, così potrai stamparne molte e averle pronte da applicare",
-            "instruction_2": "Queste etichette funzionano stampando un codice QR con un URL e le informazioni dell’AssetID sull’etichetta. Se hai disabilitato\n gli AssetID nelle impostazioni di HomeBox, puoi comunque usare questo strumento, ma gli AssetID non faranno riferimento a nessun elemento",
+            "instruction_1": "Il Generatore di Etichette di {appName} è uno strumento che ti aiuta a stampare le etichette per il tuo inventario {appName}.\nSono pensate come etichette da stampare in anticipo, così potrai stamparne molte e averle pronte da applicare",
+            "instruction_2": "Queste etichette funzionano stampando un codice QR con un URL e le informazioni dell’AssetID sull’etichetta. Se hai disabilitato\n gli AssetID nelle impostazioni di {appName}, puoi comunque usare questo strumento, ma gli AssetID non faranno riferimento a nessun elemento",
             "label_height": "Altezza dell'etichetta",
             "label_width": "Larghezza dell'etichetta",
             "measure_type": "Tipo di misurazione",
@@ -943,13 +937,13 @@
         "import_export_set": {
             "export": "Esporta Inventario",
             "export_button": "Esporta Inventario",
-            "export_sub": "Esporta il formato CSV standard per Homebox. Questo esporterà tutti gli articoli del tuo inventario.",
+            "export_sub": "Esporta il formato CSV standard per {appName}. Questo esporterà tutti gli articoli del tuo inventario.",
             "import": "Importa Inventario",
             "import_button": "Importa Inventario",
             "import_ref_confirm": "Sei sicuro di voler garantire che tutti gli asset abbiano un import_ref? Questa operazione potrebbe richiedere tempo e non può essere annullata.",
-            "import_sub": "Importa il formato CSV standard per Homebox. Senza una colonna '<code>'HB.import_ref'</code>' questo '<b>'non'</b>' sovrascriverà gli articoli esistenti nel tuo inventario, aggiungerà solamente nuovi articoli. Le righe con una colonna '<code>'HB.import_ref'</code>' saranno unite agli articoli esistenti con lo stesso import_ref, se presente."
+            "import_sub": "Importa il formato CSV standard per {appName}. Senza una colonna '<code>'HB.import_ref'</code>' questo '<b>'non'</b>' sovrascriverà gli articoli esistenti nel tuo inventario, aggiungerà solamente nuovi articoli. Le righe con una colonna '<code>'HB.import_ref'</code>' saranno unite agli articoli esistenti con lo stesso import_ref, se presente."
         },
-        "import_export_sub": "Importa ed esporta il tuo inventario da e verso un file CSV. Questo è utile per migrare il tuo inventario verso una nuova istanza di Homebox.",
+        "import_export_sub": "Importa ed esporta il tuo inventario da e verso un file CSV. Questo è utile per migrare il tuo inventario verso una nuova istanza di {appName}.",
         "reports": "Rapporti",
         "reports_set": {
             "asset_labels": "Etichette ID risorsa",

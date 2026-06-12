@@ -170,7 +170,6 @@
     "global": {
         "add": "Legg til",
         "archived": "Arkivert",
-        "build": "Byggnummer: { build }",
         "cancel": "Avbryt",
         "confirm": "Bekreft",
         "create": "Opprett",
@@ -185,10 +184,6 @@
         "edit": "Rediger",
         "email": "E-post",
         "follow_dev": "Følg utvikleren",
-        "footer": {
-            "api_link": "'<a href=\"https://homebox.software/en/api/\" target=\"_blank\">'API'</a>'",
-            "version_link": "'<'a href=\"https://github.com/sysadminsmedia/homebox/releases/tag/{ version }\" target=\"_blank\"'>' Versjon: { version } Bygg: { build } '</a>'"
-        },
         "github": "GitHub-prosjekt",
         "insured": "Forsikret",
         "items": "Objekter",
@@ -210,7 +205,6 @@
         "update": "Oppdater",
         "updating": "Oppdaterer",
         "value": "Verdi",
-        "version": "Versjon: { version }",
         "welcome": "Velkommen, { username }"
     },
     "home": {
@@ -498,8 +492,8 @@
             "bordered_labels": "Kantede etiketter",
             "generate_page": "Generer side",
             "input_placeholder": "Skriv her",
-            "instruction_1": "Homebox Label Generator er et verktøy som hjelper deg med å skrive ut etiketter for Homebox-oversikten din. Disse er ment\n som forhåndsutskrevne etiketter, slik at du kan skrive ut mange etiketter og ha dem klare til bruk",
-            "instruction_2": "Etikettene fungerer ved å skrive ut en QR-kode med URL og AssetID-informasjon på etiketten. Hvis du har deaktivert\n AssetID-er i Homebox-innstillingene dine, kan du fortsatt bruke dette verktøyet, men AssetID-ene vil da ikke vise til noen gjenstand",
+            "instruction_1": "{appName} Label Generator er et verktøy som hjelper deg med å skrive ut etiketter for {appName}-oversikten din. Disse er ment\n som forhåndsutskrevne etiketter, slik at du kan skrive ut mange etiketter og ha dem klare til bruk",
+            "instruction_2": "Etikettene fungerer ved å skrive ut en QR-kode med URL og AssetID-informasjon på etiketten. Hvis du har deaktivert\n AssetID-er i {appName}-innstillingene dine, kan du fortsatt bruke dette verktøyet, men AssetID-ene vil da ikke vise til noen gjenstand",
             "label_height": "Etiketthøyde",
             "label_width": "Etikettbredde",
             "measure_type": "Måltype",
@@ -557,13 +551,13 @@
         "import_export_set": {
             "export": "Eksporter inventar",
             "export_button": "Eksporter inventar",
-            "export_sub": "Eksporterer standard CSV-format for Homebox. Dette vil eksportere alle objektene i inventaret ditt.",
+            "export_sub": "Eksporterer standard CSV-format for {appName}. Dette vil eksportere alle objektene i inventaret ditt.",
             "import": "Importer inventar",
             "import_button": "Importer inventar",
             "import_ref_confirm": "Er du sikker på at alle ressurser skal få en import_ref? Dette kan ta en stund og kan ikke angres.",
-            "import_sub": "Importerer standard CSV-format for Homebox. Uten en '<code>'HB.import_ref'</code>'-kolonne vil dette '<b>'ikke'</b>' overskrive noen eksisterende objekter i inventaret ditt, bare legge til nye. Rader med en '<code>'HB.import_ref'</code>'-kolonne slås sammen med eksisterende objekter med samme import_ref, hvis en eksisterer."
+            "import_sub": "Importerer standard CSV-format for {appName}. Uten en '<code>'HB.import_ref'</code>'-kolonne vil dette '<b>'ikke'</b>' overskrive noen eksisterende objekter i inventaret ditt, bare legge til nye. Rader med en '<code>'HB.import_ref'</code>'-kolonne slås sammen med eksisterende objekter med samme import_ref, hvis en eksisterer."
         },
-        "import_export_sub": "Importer og eksporter inventaret ditt til og fra CSV-format. Dette er nyttig for å flytte inventaret ditt til en ny instans av Homebox.",
+        "import_export_sub": "Importer og eksporter inventaret ditt til og fra CSV-format. Dette er nyttig for å flytte inventaret ditt til en ny instans av {appName}.",
         "reports": "Rapporter",
         "reports_set": {
             "asset_labels": "Asset-ID-merkelapper",
